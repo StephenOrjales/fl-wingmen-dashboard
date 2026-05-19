@@ -82,6 +82,7 @@ st.markdown("""
     section[data-testid="stSidebar"] .stMarkdown p { color: #6B7280; font-size: 0.8rem; }
     section[data-testid="stSidebar"] .stMarkdown hr { border-color: #E8ECF0; }
     section[data-testid="stSidebar"] .stSelectbox > div > div { font-size: 0.82rem; }
+    section[data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] { border: 2px solid #1A3C34 !important; border-radius: 8px !important; }
 
     .stDataFrame { border-radius: 8px; overflow: hidden; }
     .stDataFrame [data-testid="stDataFrameResizable"] { background: #FFFFFF; border: 1px solid #E8ECF0; border-radius: 8px; }
@@ -391,28 +392,26 @@ if kds_df_all.empty and q2_store.empty:
 with st.sidebar:
     st.markdown("# FL Wingmen")
     st.markdown("---")
-    st.markdown('<div style="border:2px solid #1A3C34; border-radius:8px; padding:0.6rem; margin-bottom:0.5rem;">'
-                '<div style="background:#F0FDF4; border-left:3px solid #059669; padding:0.4rem 0.6rem; border-radius:4px; margin-bottom:0.5rem;">'
-                '<span style="color:#1A3C34; font-weight:700; font-size:0.85rem;">Filters</span></div>', unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown('<div style="background:#F0FDF4; border-left:3px solid #059669; padding:0.4rem 0.6rem; border-radius:4px; margin-bottom:0.3rem;">'
+                    '<span style="color:#1A3C34; font-weight:700; font-size:0.85rem;">Filters</span></div>', unsafe_allow_html=True)
 
-    district_options = ["All Districts"] + sorted(DISTRICTS.keys())
-    selected_district = st.selectbox("District", district_options, label_visibility="collapsed")
+        district_options = ["All Districts"] + sorted(DISTRICTS.keys())
+        selected_district = st.selectbox("District", district_options, label_visibility="collapsed")
 
-    if not kds_df_all.empty:
-        store_src = kds_df_all
-    else:
-        store_src = pd.DataFrame(columns=["Store Full Name", "store_num"])
+        if not kds_df_all.empty:
+            store_src = kds_df_all
+        else:
+            store_src = pd.DataFrame(columns=["Store Full Name", "store_num"])
 
-    if selected_district == "All Districts":
-        store_list = sorted(store_src["Store Full Name"].dropna().unique())
-    else:
-        district_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
-        store_list = sorted(store_src[store_src["store_num"].isin(district_nums)]["Store Full Name"].dropna().unique())
+        if selected_district == "All Districts":
+            store_list = sorted(store_src["Store Full Name"].dropna().unique())
+        else:
+            district_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
+            store_list = sorted(store_src[store_src["store_num"].isin(district_nums)]["Store Full Name"].dropna().unique())
 
-    store_options = ["All Stores"] + store_list
-    selected_store = st.selectbox("Store", store_options, label_visibility="collapsed")
-
-    st.markdown('</div>', unsafe_allow_html=True)
+        store_options = ["All Stores"] + store_list
+        selected_store = st.selectbox("Store", store_options, label_visibility="collapsed")
 
     nav_options = ["Daily KDS Snapshot", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance"]
     selected_tab = st.radio("Navigation", nav_options, label_visibility="collapsed")
