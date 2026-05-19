@@ -170,6 +170,18 @@ CHART_LAYOUT = dict(
 )
 
 
+def fiscal_week_label(d):
+    """Wingstop fiscal weeks run Saturday-Friday. Returns (week_start_date, label)."""
+    from datetime import date
+    if not isinstance(d, date):
+        return None, "Unknown"
+    days_since_sat = (d.weekday() + 2) % 7
+    week_start = d - timedelta(days=days_since_sat)
+    fy_start = date(2025, 12, 27)
+    week_num = ((week_start - fy_start).days // 7) + 1
+    return week_start, f"W{week_num}"
+
+
 def parse_time_to_minutes(t):
     if pd.isna(t) or not isinstance(t, str):
         return None
@@ -436,23 +448,58 @@ if selected_tab == "Daily KDS Snapshot":
     if daily_df_all.empty:
         st.warning("No daily KDS data found. Run fetch_outlook.py to grab the Smart Kitchen Daily email.")
     else:
-        # Date picker
         available_dates = sorted(daily_df_all["data_date"].dropna().unique(), reverse=True)
-        date_labels = {d: d.strftime("%A, %B %#d, %Y") for d in available_dates}
-        selected_date = st.selectbox(
-            "Select Date", available_dates,
-            format_func=lambda d: date_labels.get(d, str(d)),
-            key="daily_date_picker",
-        )
 
-        # Filter by date, then sidebar
-        kds = daily_df_all[daily_df_all["data_date"] == selected_date].copy()
+        week_map = {}
+        for d in available_dates:
+            ws, wl = fiscal_week_label(d)
+            today_ws, _ = fiscal_week_label(datetime.now().date())
+            label = "Current Week" if ws == today_ws else f"2026 {wl}"
+            week_map.setdefault(label, []).append(d)
+
+        week_options = list(week_map.keys())
+
+        fw1, fw2 = st.columns(2)
+        with fw1:
+            selected_week = st.selectbox("Fiscal Week", ["All Weeks"] + week_options, key="fiscal_week_picker")
+        with fw2:
+            if selected_week == "All Weeks":
+                date_choices = available_dates
+            else:
+                date_choices = sorted(week_map[selected_week], reverse=True)
+            date_labels = {d: f"{d.strftime('%A')}, {d.strftime('%B')} {d.day}, {d.year}" for d in date_choices}
+            date_options = ["Entire Week"] + list(date_choices) if selected_week != "All Weeks" else list(date_choices)
+            selected_date_option = st.selectbox(
+                "Date", date_options,
+                format_func=lambda d: "Entire Week" if d == "Entire Week" else date_labels.get(d, str(d)),
+                key="daily_date_picker",
+            )
+
+        if selected_date_option == "Entire Week":
+            filter_dates = set(date_choices)
+            is_week_view = True
+        else:
+            filter_dates = {selected_date_option}
+            is_week_view = False
+
+        kds = daily_df_all[daily_df_all["data_date"].isin(filter_dates)].copy()
         if selected_store != "All Stores":
             sk_num = extract_store_number(selected_store)
             kds = kds[kds["store_num"] == sk_num]
         elif selected_district != "All Districts":
             d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
             kds = kds[kds["store_num"].isin(d_nums)]
+
+        if is_week_view and len(filter_dates) > 1:
+            kds = kds.groupby(["store_num", "district", "short_name", "STORE FULL NAME"], dropna=False).agg(
+                sos_min=("sos_min", "mean"), sos_lunch=("sos_lunch", "mean"),
+                sos_snack=("sos_snack", "mean"), sos_dinner=("sos_dinner", "mean"),
+                sos_late=("sos_late", "mean"), pre_bump=("pre_bump", "mean"),
+                bone_in_adopt=("bone_in_adopt", "mean"), make_ahead_rate=("make_ahead_rate", "mean"),
+                bone_in_accuracy=("bone_in_accuracy", "mean"), pct_7_10=("pct_7_10", "mean"),
+                waste=("waste", "mean"), orders_num=("orders_num", "sum"),
+                sss=("sss", "mean"), aqt_var=("aqt_var", "mean"),
+            ).reset_index()
 
         history_path = DATA_DIR / "kds_history.csv"
         check_path = history_path if history_path.exists() else DATA_DIR / "smart_kitchen_daily.xlsx"
@@ -462,7 +509,13 @@ if selected_tab == "Daily KDS Snapshot":
             fresh_tag = ' <span style="color:#2E7D32;">&#9679; Updated today</span>' if freshness < 18 else ' <span style="color:#C62828;">&#9679; Stale data</span>'
         else:
             fresh_tag = ""
-        st.markdown(f'<p style="color:#666666; font-size:0.85rem;">Data as of <span style="color:#2E7D32; font-weight:600;">{date_labels.get(selected_date, str(selected_date))}</span> &nbsp;|&nbsp; {len(kds)} stores{fresh_tag}</p>', unsafe_allow_html=True)
+
+        if is_week_view:
+            date_range = sorted(filter_dates)
+            date_display = f"{selected_week} ({date_range[0].strftime('%m/%d')} - {date_range[-1].strftime('%m/%d')})" if date_range else selected_week
+        else:
+            date_display = date_labels.get(selected_date_option, str(selected_date_option))
+        st.markdown(f'<p style="color:#666666; font-size:0.85rem;">Data as of <span style="color:#2E7D32; font-weight:600;">{date_display}</span> &nbsp;|&nbsp; {len(kds)} stores{fresh_tag}</p>', unsafe_allow_html=True)
 
         # ── 5 Key KPI Cards ──
         k1, k2, k3, k4, k5 = st.columns(5)
