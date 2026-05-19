@@ -16,74 +16,122 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    .stApp { background-color: #0E1117; }
+    .stApp { background-color: #FFFFFF; }
     .block-container { padding-top: 1rem; padding-bottom: 1rem; }
 
     .dash-header {
-        background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 60%, #43A047 100%);
+        background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 60%, #B8860B 100%);
         padding: 1.2rem 1.8rem;
         border-radius: 10px;
         margin-bottom: 1rem;
     }
     .dash-header h1 { color: #FFFFFF; font-size: 1.6rem; font-weight: 700; margin: 0; }
-    .dash-header p { color: #C8E6C9; font-size: 0.85rem; margin: 0.2rem 0 0 0; }
+    .dash-header p { color: #E8E8E8; font-size: 0.85rem; margin: 0.2rem 0 0 0; }
 
     .kpi-box {
-        background: #1A1D23;
-        border: 1px solid #2A2D35;
+        background: #F8F9FA;
+        border: 1px solid #E0E0E0;
         border-radius: 10px;
         padding: 1rem 0.8rem;
         text-align: center;
     }
     .kpi-label {
-        color: #9E9E9E;
+        color: #666666;
         font-size: 0.7rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.8px;
     }
     .kpi-value {
-        color: #FFFFFF;
+        color: #1A1A1A;
         font-size: 1.5rem;
         font-weight: 700;
         margin-top: 0.2rem;
     }
-    .kpi-value.green { color: #66BB6A; }
-    .kpi-value.orange { color: #FFA726; }
-    .kpi-value.red { color: #EF5350; }
+    .kpi-value.green { color: #2E7D32; }
+    .kpi-value.orange { color: #E65100; }
+    .kpi-value.red { color: #C62828; }
 
     .section-title {
-        color: #E0E0E0;
+        color: #1A1A1A;
         font-size: 1rem;
         font-weight: 600;
         margin: 1rem 0 0.5rem 0;
         padding-bottom: 0.3rem;
-        border-bottom: 2px solid #2E7D32;
+        border-bottom: 2px solid #B8860B;
         display: inline-block;
     }
 
     div[data-testid="stMetric"] {
-        background: #1A1D23;
-        border: 1px solid #2A2D35;
+        background: #F8F9FA;
+        border: 1px solid #E0E0E0;
         border-radius: 10px;
         padding: 0.8rem;
     }
-    div[data-testid="stMetric"] label { color: #9E9E9E !important; font-size: 0.72rem !important; text-transform: uppercase; letter-spacing: 0.5px; }
-    div[data-testid="stMetric"] div[data-testid="stMetricValue"] { color: #FFFFFF !important; font-size: 1.4rem !important; font-weight: 700 !important; }
+    div[data-testid="stMetric"] label { color: #666666 !important; font-size: 0.72rem !important; text-transform: uppercase; letter-spacing: 0.5px; }
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] { color: #1A1A1A !important; font-size: 1.4rem !important; font-weight: 700 !important; }
 
-    .stTabs [data-baseweb="tab-list"] { gap: 4px; background: #1A1D23; border-radius: 8px; padding: 4px; }
-    .stTabs [data-baseweb="tab"] { color: #9E9E9E; font-weight: 600; border-radius: 6px; }
-    .stTabs [aria-selected="true"] { color: #FFFFFF !important; background: #2E7D32 !important; }
+    .stTabs [data-baseweb="tab-list"] { display: none; }
 
-    section[data-testid="stSidebar"] { background: #161B22; }
-    section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] .stMarkdown h1 { color: #66BB6A; }
-    section[data-testid="stSidebar"] label { color: #BDBDBD !important; }
-    section[data-testid="stSidebar"] .stMarkdown p { color: #9E9E9E; }
+    section[data-testid="stSidebar"] { background: #1B5E20; }
+    section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] .stMarkdown h1 { color: #FFFFFF; font-size: 1.1rem; }
+    section[data-testid="stSidebar"] label { color: #E0E0E0 !important; }
+    section[data-testid="stSidebar"] .stMarkdown p { color: #C8E6C9; }
+    section[data-testid="stSidebar"] .stMarkdown hr { border-color: #2E7D32; }
+    section[data-testid="stSidebar"] .stSelectbox > div > div { font-size: 0.85rem; }
+
+    .sidebar-nav-btn {
+        display: block;
+        width: 100%;
+        padding: 0.6rem 1rem;
+        margin: 0.2rem 0;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .sidebar-nav-active {
+        background: #B8860B;
+        color: #FFFFFF;
+    }
+    .sidebar-nav-inactive {
+        background: transparent;
+        color: #C8E6C9;
+    }
+    .sidebar-nav-inactive:hover {
+        background: #2E7D32;
+        color: #FFFFFF;
+    }
 
     .stDataFrame { border-radius: 8px; overflow: hidden; }
 
-    div[data-testid="stExpander"] { background: #1A1D23; border: 1px solid #2A2D35; border-radius: 8px; }
-    div[data-testid="stExpander"] summary span { color: #BDBDBD !important; }
+    div[data-testid="stExpander"] { background: #F8F9FA; border: 1px solid #E0E0E0; border-radius: 8px; }
+    div[data-testid="stExpander"] summary span { color: #333333 !important; }
+
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] > div { gap: 0.2rem; }
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label {
+        background: transparent;
+        color: #C8E6C9 !important;
+        padding: 0.5rem 0.8rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:hover {
+        background: #2E7D32;
+        color: #FFFFFF !important;
+    }
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label[data-checked="true"],
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) {
+        background: #B8860B;
+        color: #FFFFFF !important;
+    }
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label span p { margin: 0; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -103,13 +151,14 @@ for district, stores in DISTRICTS.items():
         STORE_TO_DISTRICT[store_num] = district
 
 GREEN = "#2E7D32"
-TEAL = "#26A69A"
-ORANGE = "#FFA726"
-RED = "#EF5350"
-DARK = "#37474F"
-CHART_BG = "#0E1117"
-GRID_COLOR = "#1E2128"
-FONT_COLOR = "#BDBDBD"
+GOLD = "#B8860B"
+TEAL = "#2E7D32"
+ORANGE = "#E65100"
+RED = "#C62828"
+DARK = "#546E7A"
+CHART_BG = "#FFFFFF"
+GRID_COLOR = "#EEEEEE"
+FONT_COLOR = "#333333"
 
 CHART_LAYOUT = dict(
     plot_bgcolor=CHART_BG,
@@ -327,10 +376,17 @@ if kds_df_all.empty and q2_store.empty:
 
 # ── Sidebar ──
 with st.sidebar:
-    st.title("Filters")
+    st.markdown("# FL Wingmen")
+    st.markdown("---")
+
+    nav_options = ["Daily KDS Snapshot", "Q1 Performance", "Q2 Performance"]
+    selected_tab = st.radio("Navigation", nav_options, label_visibility="collapsed")
+
+    st.markdown("---")
+    st.markdown("**Filters**")
 
     district_options = ["All Districts"] + sorted(DISTRICTS.keys())
-    selected_district = st.selectbox("District", district_options)
+    selected_district = st.selectbox("District", district_options, label_visibility="collapsed")
 
     if not kds_df_all.empty:
         store_src = kds_df_all
@@ -344,10 +400,10 @@ with st.sidebar:
         store_list = sorted(store_src[store_src["store_num"].isin(district_nums)]["Store Full Name"].dropna().unique())
 
     store_options = ["All Stores"] + store_list
-    selected_store = st.selectbox("Store", store_options)
+    selected_store = st.selectbox("Store", store_options, label_visibility="collapsed")
 
     st.markdown("---")
-    st.markdown(f"**{len(store_src)}** stores across **{len(DISTRICTS)}** districts")
+    st.markdown(f"**{len(store_src)}** stores | **{len(DISTRICTS)}** districts")
 
 # ── Header ──
 filter_text = "All Stores"
@@ -372,13 +428,10 @@ def kpi_card(label, value, color=""):
     </div>"""
 
 
-# ── Tabs ──
-tab_kds, tab_q1, tab_q2 = st.tabs(["Daily KDS Snapshot", "Q1 Performance", "Q2 Performance"])
-
 # ════════════════════════════════
-# TAB 1: DAILY KDS SNAPSHOT
+# DAILY KDS SNAPSHOT
 # ════════════════════════════════
-with tab_kds:
+if selected_tab == "Daily KDS Snapshot":
 
     if daily_df_all.empty:
         st.warning("No daily KDS data found. Run fetch_outlook.py to grab the Smart Kitchen Daily email.")
@@ -406,10 +459,10 @@ with tab_kds:
         if check_path.exists():
             file_mod = datetime.fromtimestamp(check_path.stat().st_mtime)
             freshness = (datetime.now() - file_mod).total_seconds() / 3600
-            fresh_tag = ' <span style="color:#66BB6A;">&#9679; Updated today</span>' if freshness < 18 else ' <span style="color:#EF5350;">&#9679; Stale data</span>'
+            fresh_tag = ' <span style="color:#2E7D32;">&#9679; Updated today</span>' if freshness < 18 else ' <span style="color:#C62828;">&#9679; Stale data</span>'
         else:
             fresh_tag = ""
-        st.markdown(f'<p style="color:#9E9E9E; font-size:0.85rem;">Data as of <span style="color:#66BB6A; font-weight:600;">{date_labels.get(selected_date, str(selected_date))}</span> &nbsp;|&nbsp; {len(kds)} stores{fresh_tag}</p>', unsafe_allow_html=True)
+        st.markdown(f'<p style="color:#666666; font-size:0.85rem;">Data as of <span style="color:#2E7D32; font-weight:600;">{date_labels.get(selected_date, str(selected_date))}</span> &nbsp;|&nbsp; {len(kds)} stores{fresh_tag}</p>', unsafe_allow_html=True)
 
         # ── 5 Key KPI Cards ──
         k1, k2, k3, k4, k5 = st.columns(5)
@@ -443,7 +496,7 @@ with tab_kds:
             hovertemplate="%{x}<br>SOS: %{y:.1f} min<extra></extra>",
         ))
         fig_sos_k.add_hline(y=10, line_dash="dash", line_color=RED, line_width=1.5,
-                            annotation_text="10 min target", annotation_font=dict(color=RED, size=10))
+                            annotation_text="10 min target", annotation_font=dict(color="#C62828", size=10))
         fig_sos_k.update_layout(**CHART_LAYOUT, height=380,
                                 yaxis_title="Minutes", xaxis_tickangle=-45)
         st.plotly_chart(fig_sos_k, use_container_width=True, key="kds_sos")
@@ -453,7 +506,7 @@ with tab_kds:
         daypart_kds = kds[kds["sos_min"].notna()].sort_values("sos_min")
         fig_dp = go.Figure()
         dayparts = [
-            ("sos_lunch", "Lunch", "#66BB6A"),
+            ("sos_lunch", "Lunch", "#2E7D32"),
             ("sos_snack", "Snack", TEAL),
             ("sos_dinner", "Dinner", ORANGE),
             ("sos_late", "Late", "#AB47BC"),
@@ -466,12 +519,12 @@ with tab_kds:
                     hovertemplate=f"%{{x}}<br>{name}: %{{y:.1f}} min<extra></extra>",
                 ))
         fig_dp.add_hline(y=10, line_dash="dash", line_color=RED, line_width=1.5,
-                         annotation_text="10 min target", annotation_font=dict(color=RED, size=10))
+                         annotation_text="10 min target", annotation_font=dict(color="#C62828", size=10))
         fig_dp.update_layout(
             **CHART_LAYOUT, barmode="group", height=420,
             yaxis_title="Minutes", xaxis_tickangle=-45,
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
-                        font=dict(color="#BDBDBD")),
+                        font=dict(color="#333333")),
         )
         st.plotly_chart(fig_dp, use_container_width=True, key="kds_daypart")
 
@@ -493,14 +546,14 @@ with tab_kds:
         with pb_r:
             st.markdown('<div class="section-title">Adoption of Cooks by Store</div>', unsafe_allow_html=True)
             ad_kds = kds[kds["bone_in_adopt"].notna()].sort_values("bone_in_adopt")
-            ad_colors = [RED if v < 90 else (ORANGE if v < 97 else "#66BB6A") for v in ad_kds["bone_in_adopt"]]
+            ad_colors = [RED if v < 90 else (ORANGE if v < 97 else "#2E7D32") for v in ad_kds["bone_in_adopt"]]
             fig_ad = go.Figure(go.Bar(
                 x=ad_kds["short_name"], y=ad_kds["bone_in_adopt"],
                 marker_color=ad_colors,
                 hovertemplate="%{x}<br>Adoption: %{y:.1f}%<extra></extra>",
             ))
             fig_ad.add_hline(y=100, line_dash="dash", line_color=GREEN, line_width=1.5,
-                             annotation_text="100%", annotation_font=dict(color="#66BB6A", size=10))
+                             annotation_text="100%", annotation_font=dict(color="#2E7D32", size=10))
             fig_ad.update_layout(**CHART_LAYOUT, height=370,
                                  yaxis_title="Adoption %", xaxis_tickangle=-45)
             st.plotly_chart(fig_ad, use_container_width=True, key="kds_adopt")
@@ -510,7 +563,7 @@ with tab_kds:
         with ma_l:
             st.markdown('<div class="section-title">Make Ahead Rate by Store</div>', unsafe_allow_html=True)
             ma_kds = kds[kds["make_ahead_rate"].notna()].sort_values("make_ahead_rate")
-            ma_colors = [RED if v < 50 else (ORANGE if v < 80 else "#66BB6A") for v in ma_kds["make_ahead_rate"]]
+            ma_colors = [RED if v < 50 else (ORANGE if v < 80 else "#2E7D32") for v in ma_kds["make_ahead_rate"]]
             fig_ma = go.Figure(go.Bar(
                 x=ma_kds["short_name"], y=ma_kds["make_ahead_rate"],
                 marker_color=ma_colors,
@@ -544,7 +597,7 @@ with tab_kds:
                 hovertemplate="%{x}<br>Accuracy: %{y:.1f}%<extra></extra>",
             ))
             fig_acc.add_hline(y=100, line_dash="dash", line_color=GREEN, line_width=1.5,
-                              annotation_text="100%", annotation_font=dict(color="#66BB6A", size=10))
+                              annotation_text="100%", annotation_font=dict(color="#2E7D32", size=10))
             fig_acc.update_layout(**CHART_LAYOUT, height=350,
                                   yaxis_title="Accuracy %", xaxis_tickangle=-45)
             st.plotly_chart(fig_acc, use_container_width=True, key="kds_acc")
@@ -580,9 +633,9 @@ with tab_kds:
         st.dataframe(detail, use_container_width=True, hide_index=True)
 
 # ════════════════════════════════
-# TAB 2: Q1 PERFORMANCE
+# Q1 PERFORMANCE
 # ════════════════════════════════
-with tab_q1:
+elif selected_tab == "Q1 Performance":
 
     if kds_q1_all.empty and q1_store.empty:
         st.warning("No Q1 data found. Place kds_q1.xlsx and/or forecast.xlsm in the data/ folder.")
@@ -602,7 +655,7 @@ with tab_q1:
             q1f = q1f[q1f["store_num"].isin(d_nums)]
             q1w = q1w[q1w["store_num"].isin(d_nums)]
 
-        st.markdown(f'<p style="color:#9E9E9E; font-size:0.85rem;">Q1 2026 (Periods 1-3, Weeks 1-13) &nbsp;|&nbsp; {len(q1k)} stores KDS &nbsp;|&nbsp; {len(q1f)} stores forecast</p>', unsafe_allow_html=True)
+        st.markdown(f'<p style="color:#666666; font-size:0.85rem;">Q1 2026 (Periods 1-3, Weeks 1-13) &nbsp;|&nbsp; {len(q1k)} stores KDS &nbsp;|&nbsp; {len(q1f)} stores forecast</p>', unsafe_allow_html=True)
 
         # ── KDS KPI Cards ──
         k1, k2, k3, k4, k5 = st.columns(5)
@@ -659,7 +712,7 @@ with tab_q1:
                 hovertemplate="%{x}<br>SOS: %{y:.1f} min<extra></extra>",
             ))
             fig_sos_q1.add_hline(y=10, line_dash="dash", line_color=RED, line_width=1.5,
-                                 annotation_text="10 min target", annotation_font=dict(color=RED, size=10))
+                                 annotation_text="10 min target", annotation_font=dict(color="#C62828", size=10))
             fig_sos_q1.update_layout(**CHART_LAYOUT, height=380,
                                      yaxis_title="Minutes", xaxis_tickangle=-45)
             st.plotly_chart(fig_sos_q1, use_container_width=True, key="q1_sos")
@@ -682,14 +735,14 @@ with tab_q1:
             with pb_r:
                 st.markdown('<div class="section-title">Q1 Bone-In Adoption</div>', unsafe_allow_html=True)
                 ad_q1 = q1k[q1k["bone_in_adopt"].notna()].sort_values("bone_in_adopt")
-                ad_colors = [RED if v < 90 else (ORANGE if v < 97 else "#66BB6A") for v in ad_q1["bone_in_adopt"]]
+                ad_colors = [RED if v < 90 else (ORANGE if v < 97 else "#2E7D32") for v in ad_q1["bone_in_adopt"]]
                 fig_ad_q1 = go.Figure(go.Bar(
                     x=ad_q1["short_name"], y=ad_q1["bone_in_adopt"],
                     marker_color=ad_colors,
                     hovertemplate="%{x}<br>Adoption: %{y:.1f}%<extra></extra>",
                 ))
                 fig_ad_q1.add_hline(y=100, line_dash="dash", line_color=GREEN, line_width=1.5,
-                                    annotation_text="100%", annotation_font=dict(color="#66BB6A", size=10))
+                                    annotation_text="100%", annotation_font=dict(color="#2E7D32", size=10))
                 fig_ad_q1.update_layout(**CHART_LAYOUT, height=370,
                                         yaxis_title="Adoption %", xaxis_tickangle=-45)
                 st.plotly_chart(fig_ad_q1, use_container_width=True, key="q1_adopt")
@@ -699,13 +752,13 @@ with tab_q1:
             with qv_l:
                 st.markdown('<div class="section-title">Q1 Bone-In Qty Variance</div>', unsafe_allow_html=True)
                 qv_q1 = q1k[q1k["bone_in_qty_var"].notna()].sort_values("bone_in_qty_var")
-                qv_colors = [RED if abs(v) > 6 else (ORANGE if abs(v) > 3 else "#66BB6A") for v in qv_q1["bone_in_qty_var"]]
+                qv_colors = [RED if abs(v) > 6 else (ORANGE if abs(v) > 3 else "#2E7D32") for v in qv_q1["bone_in_qty_var"]]
                 fig_qv_q1 = go.Figure(go.Bar(
                     x=qv_q1["short_name"], y=qv_q1["bone_in_qty_var"],
                     marker_color=qv_colors,
                     hovertemplate="%{x}<br>Qty Var: %{y:+.2f}%<extra></extra>",
                 ))
-                fig_qv_q1.add_hline(y=0, line_color="#616161", line_width=1)
+                fig_qv_q1.add_hline(y=0, line_color="#BDBDBD", line_width=1)
                 fig_qv_q1.update_layout(**CHART_LAYOUT, height=370,
                                         yaxis_title="Qty Variance %", xaxis_tickangle=-45)
                 st.plotly_chart(fig_qv_q1, use_container_width=True, key="q1_qv")
@@ -713,7 +766,7 @@ with tab_q1:
             with qv_r:
                 st.markdown('<div class="section-title">Q1 Make Ahead Rate</div>', unsafe_allow_html=True)
                 ma_q1 = q1k[q1k["make_ahead_rate"].notna()].sort_values("make_ahead_rate")
-                ma_colors = [RED if v < 50 else (ORANGE if v < 80 else "#66BB6A") for v in ma_q1["make_ahead_rate"]]
+                ma_colors = [RED if v < 50 else (ORANGE if v < 80 else "#2E7D32") for v in ma_q1["make_ahead_rate"]]
                 fig_ma_q1 = go.Figure(go.Bar(
                     x=ma_q1["short_name"], y=ma_q1["make_ahead_rate"],
                     marker_color=ma_colors,
@@ -727,14 +780,14 @@ with tab_q1:
         if not q1f.empty:
             st.markdown('<div class="section-title">Q1 Labor Variance % by Store</div>', unsafe_allow_html=True)
             lv_q1 = q1f[q1f["labor_pct_variance"].notna()].sort_values("labor_pct_variance")
-            lv_colors = [RED if v > 0 else ("#66BB6A" if v < -0.02 else TEAL) for v in lv_q1["labor_pct_variance"]]
+            lv_colors = [RED if v > 0 else ("#2E7D32" if v < -0.02 else TEAL) for v in lv_q1["labor_pct_variance"]]
             fig_lv_q1 = go.Figure(go.Bar(
                 x=lv_q1["short_name"],
                 y=lv_q1["labor_pct_variance"] * 100,
                 marker_color=lv_colors,
                 hovertemplate="%{x}<br>Labor Var: %{y:+.2f}%<extra></extra>",
             ))
-            fig_lv_q1.add_hline(y=0, line_color="#616161", line_width=1)
+            fig_lv_q1.add_hline(y=0, line_color="#BDBDBD", line_width=1)
             fig_lv_q1.update_layout(**CHART_LAYOUT, height=400,
                                     yaxis_title="Labor Variance %", xaxis_tickangle=-45)
             st.plotly_chart(fig_lv_q1, use_container_width=True, key="q1_lv")
@@ -744,14 +797,14 @@ with tab_q1:
             with sv_l:
                 st.markdown('<div class="section-title">Q1 Sales vs Forecast Variance</div>', unsafe_allow_html=True)
                 sv_q1 = q1f.sort_values("sales_var_pct")
-                sv_colors = [RED if v < -0.05 else (ORANGE if v < 0 else "#66BB6A") for v in sv_q1["sales_var_pct"]]
+                sv_colors = [RED if v < -0.05 else (ORANGE if v < 0 else "#2E7D32") for v in sv_q1["sales_var_pct"]]
                 fig_sv_q1 = go.Figure(go.Bar(
                     x=sv_q1["short_name"],
                     y=sv_q1["sales_var_pct"] * 100,
                     marker_color=sv_colors,
                     hovertemplate="%{x}<br>Sales Var: %{y:+.1f}%<extra></extra>",
                 ))
-                fig_sv_q1.add_hline(y=0, line_color="#616161", line_width=1)
+                fig_sv_q1.add_hline(y=0, line_color="#BDBDBD", line_width=1)
                 fig_sv_q1.update_layout(**CHART_LAYOUT, height=370,
                                         yaxis_title="Sales Variance %", xaxis_tickangle=-45)
                 st.plotly_chart(fig_sv_q1, use_container_width=True, key="q1_sv")
@@ -797,7 +850,7 @@ with tab_q1:
                     **CHART_LAYOUT, height=350,
                     yaxis_title="Labor %",
                     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
-                                font=dict(color="#BDBDBD")),
+                                font=dict(color="#333333")),
                 )
                 st.plotly_chart(fig_wk_q1, use_container_width=True, key="q1_wk")
 
@@ -832,9 +885,9 @@ with tab_q1:
             st.dataframe(detail, use_container_width=True, hide_index=True)
 
 # ════════════════════════════════
-# TAB 3: Q2 PERFORMANCE
+# Q2 PERFORMANCE
 # ════════════════════════════════
-with tab_q2:
+elif selected_tab == "Q2 Performance":
 
     if kds_df_all.empty and q2_store.empty:
         st.warning("No Q2 data found. Place kds_detailed.xlsx and/or forecast.xlsm in the data/ folder.")
@@ -855,7 +908,7 @@ with tab_q2:
             q2w = q2w[q2w["store_num"].isin(d_nums)]
 
         weeks_covered = sorted(q2w["week_d"].unique()) if not q2w.empty else []
-        st.markdown(f'<p style="color:#9E9E9E; font-size:0.85rem;">Q2 2026 (Periods 4-6) &nbsp;|&nbsp; {len(weeks_covered)} weeks forecast &nbsp;|&nbsp; {len(q2k)} stores KDS &nbsp;|&nbsp; {len(q2f)} stores forecast</p>', unsafe_allow_html=True)
+        st.markdown(f'<p style="color:#666666; font-size:0.85rem;">Q2 2026 (Periods 4-6) &nbsp;|&nbsp; {len(weeks_covered)} weeks forecast &nbsp;|&nbsp; {len(q2k)} stores KDS &nbsp;|&nbsp; {len(q2f)} stores forecast</p>', unsafe_allow_html=True)
 
         # ── KDS KPI Cards ──
         k1, k2, k3, k4, k5 = st.columns(5)
@@ -912,7 +965,7 @@ with tab_q2:
                 hovertemplate="%{x}<br>SOS: %{y:.1f} min<extra></extra>",
             ))
             fig_sos_q2.add_hline(y=10, line_dash="dash", line_color=RED, line_width=1.5,
-                                 annotation_text="10 min target", annotation_font=dict(color=RED, size=10))
+                                 annotation_text="10 min target", annotation_font=dict(color="#C62828", size=10))
             fig_sos_q2.update_layout(**CHART_LAYOUT, height=380,
                                      yaxis_title="Minutes", xaxis_tickangle=-45)
             st.plotly_chart(fig_sos_q2, use_container_width=True, key="q2_sos")
@@ -935,14 +988,14 @@ with tab_q2:
             with pb_r:
                 st.markdown('<div class="section-title">Q2 Bone-In Adoption</div>', unsafe_allow_html=True)
                 ad_q2 = q2k[q2k["bone_in_adopt"].notna()].sort_values("bone_in_adopt")
-                ad_colors = [RED if v < 90 else (ORANGE if v < 97 else "#66BB6A") for v in ad_q2["bone_in_adopt"]]
+                ad_colors = [RED if v < 90 else (ORANGE if v < 97 else "#2E7D32") for v in ad_q2["bone_in_adopt"]]
                 fig_ad_q2 = go.Figure(go.Bar(
                     x=ad_q2["short_name"], y=ad_q2["bone_in_adopt"],
                     marker_color=ad_colors,
                     hovertemplate="%{x}<br>Adoption: %{y:.1f}%<extra></extra>",
                 ))
                 fig_ad_q2.add_hline(y=100, line_dash="dash", line_color=GREEN, line_width=1.5,
-                                    annotation_text="100%", annotation_font=dict(color="#66BB6A", size=10))
+                                    annotation_text="100%", annotation_font=dict(color="#2E7D32", size=10))
                 fig_ad_q2.update_layout(**CHART_LAYOUT, height=370,
                                         yaxis_title="Adoption %", xaxis_tickangle=-45)
                 st.plotly_chart(fig_ad_q2, use_container_width=True, key="q2_adopt")
@@ -952,13 +1005,13 @@ with tab_q2:
             with qv_l:
                 st.markdown('<div class="section-title">Q2 Bone-In Qty Variance</div>', unsafe_allow_html=True)
                 qv_q2 = q2k[q2k["bone_in_qty_var"].notna()].sort_values("bone_in_qty_var")
-                qv_colors = [RED if abs(v) > 6 else (ORANGE if abs(v) > 3 else "#66BB6A") for v in qv_q2["bone_in_qty_var"]]
+                qv_colors = [RED if abs(v) > 6 else (ORANGE if abs(v) > 3 else "#2E7D32") for v in qv_q2["bone_in_qty_var"]]
                 fig_qv_q2 = go.Figure(go.Bar(
                     x=qv_q2["short_name"], y=qv_q2["bone_in_qty_var"],
                     marker_color=qv_colors,
                     hovertemplate="%{x}<br>Qty Var: %{y:+.2f}%<extra></extra>",
                 ))
-                fig_qv_q2.add_hline(y=0, line_color="#616161", line_width=1)
+                fig_qv_q2.add_hline(y=0, line_color="#BDBDBD", line_width=1)
                 fig_qv_q2.update_layout(**CHART_LAYOUT, height=370,
                                         yaxis_title="Qty Variance %", xaxis_tickangle=-45)
                 st.plotly_chart(fig_qv_q2, use_container_width=True, key="q2_qv")
@@ -966,7 +1019,7 @@ with tab_q2:
             with qv_r:
                 st.markdown('<div class="section-title">Q2 Make Ahead Rate</div>', unsafe_allow_html=True)
                 ma_q2 = q2k[q2k["make_ahead_rate"].notna()].sort_values("make_ahead_rate")
-                ma_colors = [RED if v < 50 else (ORANGE if v < 80 else "#66BB6A") for v in ma_q2["make_ahead_rate"]]
+                ma_colors = [RED if v < 50 else (ORANGE if v < 80 else "#2E7D32") for v in ma_q2["make_ahead_rate"]]
                 fig_ma_q2 = go.Figure(go.Bar(
                     x=ma_q2["short_name"], y=ma_q2["make_ahead_rate"],
                     marker_color=ma_colors,
@@ -980,14 +1033,14 @@ with tab_q2:
         if not q2f.empty:
             st.markdown('<div class="section-title">Q2 Labor Variance % by Store</div>', unsafe_allow_html=True)
             lv_df = q2f[q2f["labor_pct_variance"].notna()].sort_values("labor_pct_variance")
-            lv_colors = [RED if v > 0 else ("#66BB6A" if v < -0.02 else TEAL) for v in lv_df["labor_pct_variance"]]
+            lv_colors = [RED if v > 0 else ("#2E7D32" if v < -0.02 else TEAL) for v in lv_df["labor_pct_variance"]]
             fig_lv = go.Figure(go.Bar(
                 x=lv_df["short_name"],
                 y=lv_df["labor_pct_variance"] * 100,
                 marker_color=lv_colors,
                 hovertemplate="%{x}<br>Labor Var: %{y:+.2f}%<extra></extra>",
             ))
-            fig_lv.add_hline(y=0, line_color="#616161", line_width=1)
+            fig_lv.add_hline(y=0, line_color="#BDBDBD", line_width=1)
             fig_lv.update_layout(**CHART_LAYOUT, height=400,
                                  yaxis_title="Labor Variance %", xaxis_tickangle=-45)
             st.plotly_chart(fig_lv, use_container_width=True, key="q2_lv")
@@ -997,14 +1050,14 @@ with tab_q2:
             with sv_l:
                 st.markdown('<div class="section-title">Q2 Sales vs Forecast Variance</div>', unsafe_allow_html=True)
                 sv_df = q2f.sort_values("sales_var_pct")
-                sv_colors = [RED if v < -0.05 else (ORANGE if v < 0 else "#66BB6A") for v in sv_df["sales_var_pct"]]
+                sv_colors = [RED if v < -0.05 else (ORANGE if v < 0 else "#2E7D32") for v in sv_df["sales_var_pct"]]
                 fig_sv = go.Figure(go.Bar(
                     x=sv_df["short_name"],
                     y=sv_df["sales_var_pct"] * 100,
                     marker_color=sv_colors,
                     hovertemplate="%{x}<br>Sales Var: %{y:+.1f}%<extra></extra>",
                 ))
-                fig_sv.add_hline(y=0, line_color="#616161", line_width=1)
+                fig_sv.add_hline(y=0, line_color="#BDBDBD", line_width=1)
                 fig_sv.update_layout(**CHART_LAYOUT, height=370,
                                      yaxis_title="Sales Variance %", xaxis_tickangle=-45)
                 st.plotly_chart(fig_sv, use_container_width=True, key="q2_sv")
@@ -1050,7 +1103,7 @@ with tab_q2:
                     **CHART_LAYOUT, height=350,
                     yaxis_title="Labor %",
                     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
-                                font=dict(color="#BDBDBD")),
+                                font=dict(color="#333333")),
                 )
                 st.plotly_chart(fig_wk, use_container_width=True, key="q2_wk")
 
@@ -1085,4 +1138,4 @@ with tab_q2:
             st.dataframe(detail, use_container_width=True, hide_index=True)
 
 st.markdown("---")
-st.markdown('<p style="color:#616161; font-size:0.75rem; text-align:center;">FL Wingmen Dashboard &nbsp;|&nbsp; Smart Kitchen Performance &amp; Forecast Data</p>', unsafe_allow_html=True)
+st.markdown('<p style="color:#999999; font-size:0.75rem; text-align:center;">FL Wingmen Dashboard &nbsp;|&nbsp; Smart Kitchen Performance &amp; Forecast Data</p>', unsafe_allow_html=True)
