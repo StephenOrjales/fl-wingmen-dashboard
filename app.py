@@ -391,7 +391,9 @@ if kds_df_all.empty and q2_store.empty:
 with st.sidebar:
     st.markdown("# FL Wingmen")
     st.markdown("---")
-    st.markdown('<div style="background:#F0FDF4; border-left:3px solid #059669; padding:0.4rem 0.6rem; border-radius:4px; margin-bottom:0.5rem;"><span style="color:#1A3C34; font-weight:700; font-size:0.85rem;">Filters</span></div>', unsafe_allow_html=True)
+    st.markdown('<div style="border:2px solid #1A3C34; border-radius:8px; padding:0.6rem; margin-bottom:0.5rem;">'
+                '<div style="background:#F0FDF4; border-left:3px solid #059669; padding:0.4rem 0.6rem; border-radius:4px; margin-bottom:0.5rem;">'
+                '<span style="color:#1A3C34; font-weight:700; font-size:0.85rem;">Filters</span></div>', unsafe_allow_html=True)
 
     district_options = ["All Districts"] + sorted(DISTRICTS.keys())
     selected_district = st.selectbox("District", district_options, label_visibility="collapsed")
@@ -410,7 +412,7 @@ with st.sidebar:
     store_options = ["All Stores"] + store_list
     selected_store = st.selectbox("Store", store_options, label_visibility="collapsed")
 
-    st.markdown("---")
+    st.markdown('</div>', unsafe_allow_html=True)
 
     nav_options = ["Daily KDS Snapshot", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance"]
     selected_tab = st.radio("Navigation", nav_options, label_visibility="collapsed")
