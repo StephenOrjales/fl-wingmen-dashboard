@@ -1648,19 +1648,27 @@ elif selected_tab == "District Comparison":
             dc_labor["store_num"] = dc_labor["store"].apply(forecast_store_num)
             labor_agg = dc_labor.groupby("store_num").agg(
                 actual_sales=("actual_sales", "sum"),
+                forecast_sales=("forecast_sales", "sum"),
                 actual_labor=("actual_labor", "sum"),
+                schedule_labor=("schedule_labor", "sum"),
                 ovt_hours=("ovt_hours", "sum"),
             ).reset_index()
             labor_agg["labor_pct"] = labor_agg["actual_labor"] / labor_agg["actual_sales"]
+            labor_agg["sched_labor_pct"] = labor_agg["schedule_labor"] / labor_agg["forecast_sales"]
+            labor_agg["labor_variance"] = labor_agg["labor_pct"] - labor_agg["sched_labor_pct"]
             labor_map = dict(zip(labor_agg["store_num"].astype(str), labor_agg["labor_pct"]))
+            lv_map = dict(zip(labor_agg["store_num"].astype(str), labor_agg["labor_variance"]))
             ot_map = dict(zip(labor_agg["store_num"].astype(str), labor_agg["ovt_hours"]))
             comp_df["labor_pct"] = comp_df["store_num"].map(labor_map)
+            comp_df["labor_variance"] = comp_df["store_num"].map(lv_map)
             comp_df["overtime"] = comp_df["store_num"].map(ot_map).fillna(0)
         else:
             comp_df["labor_pct"] = None
+            comp_df["labor_variance"] = None
             comp_df["overtime"] = 0
     else:
         comp_df["labor_pct"] = None
+        comp_df["labor_variance"] = None
         comp_df["overtime"] = 0
 
     # Real KDS data
@@ -1685,6 +1693,7 @@ elif selected_tab == "District Comparison":
         avg_sales=("net_sales", "mean"),
         avg_sss=("sss_growth", "mean"),
         avg_labor=("labor_pct", "mean"),
+        avg_labor_var=("labor_variance", "mean"),
         total_ot=("overtime", "sum"),
         avg_osat=("osat", "mean"),
         avg_sos=("sos_min", "mean"),
@@ -1704,7 +1713,7 @@ elif selected_tab == "District Comparison":
     fig_ds.update_layout(**CHART_LAYOUT, height=350, yaxis_title="Total Sales ($)")
     st.plotly_chart(fig_ds, use_container_width=True, key="dist_sales", config=CHART_CONFIG)
 
-    dl, dm, dr = st.columns(3)
+    dl, dlv, dm, dr = st.columns(4)
     with dl:
         st.markdown('<div class="section-title">Avg Labor % by District</div>', unsafe_allow_html=True)
         lb_colors = [RED if v > 0.20 else (ORANGE if v > 0.18 else GREEN) for v in district_agg["avg_labor"]]
@@ -1716,6 +1725,18 @@ elif selected_tab == "District Comparison":
         fig_dl.add_hline(y=18, line_dash="dash", line_color=RED, line_width=1.5)
         fig_dl.update_layout(**CHART_LAYOUT, height=350, yaxis_title="Labor %")
         st.plotly_chart(fig_dl, use_container_width=True, key="dist_labor", config=CHART_CONFIG)
+
+    with dlv:
+        st.markdown('<div class="section-title">Labor Variance % by District</div>', unsafe_allow_html=True)
+        lv_colors = [RED if v > 0.02 else (ORANGE if v > 0 else GREEN) for v in district_agg["avg_labor_var"]]
+        fig_dlv = go.Figure(go.Bar(
+            x=district_agg["district"], y=district_agg["avg_labor_var"] * 100,
+            marker_color=lv_colors,
+            hovertemplate="%{x}<br>Variance: %{y:+.2f}%<extra></extra>",
+        ))
+        fig_dlv.add_hline(y=0, line_color="#BDBDBD", line_width=1)
+        fig_dlv.update_layout(**CHART_LAYOUT, height=350, yaxis_title="Labor Variance %")
+        st.plotly_chart(fig_dlv, use_container_width=True, key="dist_labor_var", config=CHART_CONFIG)
 
     with dm:
         st.markdown('<div class="section-title">Avg OSAT by District</div>', unsafe_allow_html=True)
@@ -1743,11 +1764,12 @@ elif selected_tab == "District Comparison":
 
     st.markdown('<div class="section-title">District Summary Table</div>', unsafe_allow_html=True)
     dtbl = district_agg.copy()
-    dtbl.columns = ["District", "Stores", "Total Sales", "Avg Sales/Store", "Avg SSS %", "Avg Labor %", "Total OT Hrs", "Avg OSAT %", "Avg SOS (min)"]
+    dtbl.columns = ["District", "Stores", "Total Sales", "Avg Sales/Store", "Avg SSS %", "Avg Labor %", "Labor Variance %", "Total OT Hrs", "Avg OSAT %", "Avg SOS (min)"]
     dtbl["Total Sales"] = dtbl["Total Sales"].apply(lambda x: f"${x:,.0f}")
     dtbl["Avg Sales/Store"] = dtbl["Avg Sales/Store"].apply(lambda x: f"${x:,.0f}")
     dtbl["Avg SSS %"] = dtbl["Avg SSS %"].apply(lambda x: f"{x:+.1f}%")
     dtbl["Avg Labor %"] = dtbl["Avg Labor %"].apply(lambda x: f"{x:.1%}")
+    dtbl["Labor Variance %"] = dtbl["Labor Variance %"].apply(lambda x: f"{x:+.2%}" if pd.notna(x) else "—")
     dtbl["Total OT Hrs"] = dtbl["Total OT Hrs"].apply(lambda x: f"{x:.0f}")
     dtbl["Avg OSAT %"] = dtbl["Avg OSAT %"].apply(lambda x: f"{x:.1f}%")
     dtbl["Avg SOS (min)"] = dtbl["Avg SOS (min)"].apply(lambda x: f"{x:.1f}")
