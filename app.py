@@ -1423,29 +1423,28 @@ elif selected_tab == "Labor Dashboard":
 
             ll, lr = st.columns(2)
             with ll:
-                st.markdown('<div class="section-title">Overtime Hours by Store</div>', unsafe_allow_html=True)
-                ot_sorted = labor_df.sort_values("overtime_hours", ascending=False)
-                ot_colors = [RED if v > 25 else (ORANGE if v > 10 else GREEN) for v in ot_sorted["overtime_hours"]]
-                fig_ot = go.Figure(go.Bar(
-                    x=ot_sorted["short_name"], y=ot_sorted["overtime_hours"],
-                    marker_color=ot_colors,
-                    hovertemplate="%{x}<br>OT: %{y:.1f} hrs<extra></extra>",
+                st.markdown('<div class="section-title">Labor Variance % by Store</div>', unsafe_allow_html=True)
+                lv_sorted = labor_df.sort_values("labor_variance", ascending=False)
+                lv_colors = [RED if v > 0.02 else (ORANGE if v > 0 else GREEN) for v in lv_sorted["labor_variance"]]
+                fig_lv = go.Figure(go.Bar(
+                    x=lv_sorted["short_name"], y=lv_sorted["labor_variance"] * 100,
+                    marker_color=lv_colors,
+                    hovertemplate="%{x}<br>Variance: %{y:+.2f}%<extra></extra>",
                 ))
-                fig_ot.update_layout(**CHART_LAYOUT, height=370, yaxis_title="OT Hours", xaxis_tickangle=-45)
-                st.plotly_chart(fig_ot, use_container_width=True, key="labor_ot", config=CHART_CONFIG)
+                fig_lv.add_hline(y=0, line_color="#BDBDBD", line_width=1)
+                fig_lv.update_layout(**CHART_LAYOUT, height=370, yaxis_title="Labor Variance %", xaxis_tickangle=-45)
+                st.plotly_chart(fig_lv, use_container_width=True, key="labor_var_chart", config=CHART_CONFIG)
 
             with lr:
-                st.markdown('<div class="section-title">Actual vs Guide Hours</div>', unsafe_allow_html=True)
-                hv_sorted = labor_df.sort_values("hours_variance")
-                hv_colors = [RED if v > 20 else (ORANGE if v > 0 else GREEN) for v in hv_sorted["hours_variance"]]
-                fig_hv = go.Figure(go.Bar(
-                    x=hv_sorted["short_name"], y=hv_sorted["hours_variance"],
-                    marker_color=hv_colors,
-                    hovertemplate="%{x}<br>Var: %{y:+.0f} hrs<extra></extra>",
-                ))
-                fig_hv.add_hline(y=0, line_color="#BDBDBD", line_width=1)
-                fig_hv.update_layout(**CHART_LAYOUT, height=370, yaxis_title="Hours vs Guide", xaxis_tickangle=-45)
-                st.plotly_chart(fig_hv, use_container_width=True, key="labor_hv", config=CHART_CONFIG)
+                st.markdown('<div class="section-title">Overtime Hours by Store</div>', unsafe_allow_html=True)
+                ot_tbl = labor_df[["short_name", "config_district", "overtime_hours", "actual_hours"]].copy()
+                ot_tbl["ot_pct"] = ot_tbl["overtime_hours"] / ot_tbl["actual_hours"]
+                ot_tbl = ot_tbl.sort_values("overtime_hours", ascending=False)
+                ot_tbl.columns = ["Store", "District", "OT Hours", "Total Hours", "OT %"]
+                ot_tbl["OT Hours"] = ot_tbl["OT Hours"].apply(lambda x: f"{x:.1f}")
+                ot_tbl["Total Hours"] = ot_tbl["Total Hours"].apply(lambda x: f"{x:,.0f}")
+                ot_tbl["OT %"] = ot_tbl["OT %"].apply(lambda x: f"{x:.1%}")
+                st.dataframe(ot_tbl, use_container_width=True, hide_index=True, height=370)
 
             # Weekly labor trend
             if selected_period != "All Periods":
