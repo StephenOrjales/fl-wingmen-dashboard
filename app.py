@@ -1453,8 +1453,9 @@ elif selected_tab == "Labor Dashboard":
                     textposition="outside", textfont=dict(size=10, color="#374151"),
                     hovertemplate="%{y}<br>OT: %{x:.1f} hrs<extra></extra>",
                 ))
-                fig_ot.update_layout(**CHART_LAYOUT, height=max(370, len(ot_sorted) * 22), xaxis_title="OT Hours",
-                                     yaxis=dict(tickfont=dict(size=10)), margin=dict(l=100, r=40, t=10, b=30))
+                ot_layout = {**CHART_LAYOUT, "margin": dict(l=100, r=40, t=10, b=30),
+                             "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, tickfont=dict(size=10))}
+                fig_ot.update_layout(**ot_layout, height=max(370, len(ot_sorted) * 22), xaxis_title="OT Hours")
                 st.plotly_chart(fig_ot, use_container_width=True, key="labor_ot", config=CHART_CONFIG)
 
             # Weekly labor trend
