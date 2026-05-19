@@ -1319,27 +1319,40 @@ elif selected_tab == "Labor Dashboard":
             available_periods = sorted(labor_raw["period"].unique())
             period_labels = {p: f"Period {p}" for p in available_periods}
 
-            fp1, fp2 = st.columns(2)
-            with fp1:
-                period_options = ["All Periods"] + available_periods
+            fq1, fq2, fq3 = st.columns(3)
+            with fq1:
+                quarter_options = ["All Quarters", "Q1 (P1-P3)", "Q2 (P4-P6)"]
+                selected_quarter = st.selectbox("Quarter", quarter_options, key="labor_quarter")
+            q_periods = {"Q1 (P1-P3)": [1, 2, 3], "Q2 (P4-P6)": [4, 5, 6]}
+            if selected_quarter in q_periods:
+                qtr_filtered = labor_raw[labor_raw["period"].isin(q_periods[selected_quarter])]
+                qtr_available = sorted(p for p in available_periods if p in q_periods[selected_quarter])
+            else:
+                qtr_filtered = labor_raw
+                qtr_available = available_periods
+
+            with fq2:
+                period_options = ["All Periods"] + qtr_available
                 selected_period = st.selectbox(
                     "Period", period_options,
                     format_func=lambda p: "All Periods" if p == "All Periods" else period_labels.get(p, str(p)),
                     index=len(period_options) - 1,
                     key="labor_period",
                 )
-            with fp2:
+            with fq3:
                 if selected_period == "All Periods":
-                    week_choices = sorted(labor_raw["week_d"].unique())
+                    week_choices = sorted(qtr_filtered["week_d"].unique())
                 else:
-                    week_choices = sorted(labor_raw[labor_raw["period"] == selected_period]["week_d"].unique())
+                    week_choices = sorted(qtr_filtered[qtr_filtered["period"] == selected_period]["week_d"].unique())
                 week_options = ["All Weeks"] + list(week_choices)
                 selected_labor_week = st.selectbox("Week", week_options, key="labor_week")
 
-            if selected_period != "All Periods":
-                lf = labor_raw[labor_raw["period"] == selected_period].copy()
+            if selected_quarter in q_periods:
+                lf = labor_raw[labor_raw["period"].isin(q_periods[selected_quarter])].copy()
             else:
                 lf = labor_raw.copy()
+            if selected_period != "All Periods":
+                lf = lf[lf["period"] == selected_period]
             if selected_labor_week != "All Weeks":
                 lf = lf[lf["week_d"] == selected_labor_week]
 
