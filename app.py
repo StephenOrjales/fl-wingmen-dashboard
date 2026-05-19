@@ -391,7 +391,7 @@ if kds_df_all.empty and q2_store.empty:
 with st.sidebar:
     st.markdown("# FL Wingmen")
     st.markdown("---")
-    st.markdown("**Filters**")
+    st.markdown('<div style="background:#F0FDF4; border-left:3px solid #059669; padding:0.4rem 0.6rem; border-radius:4px; margin-bottom:0.5rem;"><span style="color:#1A3C34; font-weight:700; font-size:0.85rem;">Filters</span></div>', unsafe_allow_html=True)
 
     district_options = ["All Districts"] + sorted(DISTRICTS.keys())
     selected_district = st.selectbox("District", district_options, label_visibility="collapsed")
