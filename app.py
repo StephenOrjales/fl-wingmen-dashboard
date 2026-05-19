@@ -458,29 +458,49 @@ if selected_tab == "Daily KDS Snapshot":
             week_map.setdefault(label, []).append(d)
 
         week_options = list(week_map.keys())
+        default_week_idx = 1 if "Current Week" in week_options else 0
+
+        quarter_map = {}
+        for d in available_dates:
+            _, wl = fiscal_week_label(d)
+            wnum = int(wl[1:])
+            if wnum <= 13:
+                quarter_map.setdefault("Q1 (W1-W13)", []).append(d)
+            else:
+                quarter_map.setdefault("Q2 (W14-W26)", []).append(d)
+
+        period_options = list(quarter_map.keys()) + ["All Weeks"] + week_options
 
         fw1, fw2 = st.columns(2)
         with fw1:
-            selected_week = st.selectbox("Fiscal Week", ["All Weeks"] + week_options, key="fiscal_week_picker")
+            selected_week = st.selectbox(
+                "Fiscal Week", period_options,
+                index=period_options.index("Current Week") if "Current Week" in period_options else 0,
+                key="fiscal_week_picker",
+            )
         with fw2:
-            if selected_week == "All Weeks":
+            if selected_week in quarter_map:
+                date_choices = sorted(quarter_map[selected_week], reverse=True)
+            elif selected_week == "All Weeks":
                 date_choices = available_dates
             else:
                 date_choices = sorted(week_map[selected_week], reverse=True)
             date_labels = {d: f"{d.strftime('%A')}, {d.strftime('%B')} {d.day}, {d.year}" for d in date_choices}
-            date_options = ["Entire Week"] + list(date_choices) if selected_week != "All Weeks" else list(date_choices)
+            is_group = selected_week != "All Weeks"
+            group_label = "Entire Quarter" if selected_week in quarter_map else "Entire Week"
+            date_options = [group_label] + list(date_choices) if is_group else list(date_choices)
             selected_date_option = st.selectbox(
                 "Date", date_options,
-                format_func=lambda d: "Entire Week" if d == "Entire Week" else date_labels.get(d, str(d)),
+                format_func=lambda d: d if d in ("Entire Week", "Entire Quarter") else date_labels.get(d, str(d)),
                 key="daily_date_picker",
             )
 
-        if selected_date_option == "Entire Week":
+        if selected_date_option in ("Entire Week", "Entire Quarter"):
             filter_dates = set(date_choices)
-            is_week_view = True
+            is_agg_view = True
         else:
             filter_dates = {selected_date_option}
-            is_week_view = False
+            is_agg_view = False
 
         kds = daily_df_all[daily_df_all["data_date"].isin(filter_dates)].copy()
         if selected_store != "All Stores":
@@ -490,7 +510,7 @@ if selected_tab == "Daily KDS Snapshot":
             d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
             kds = kds[kds["store_num"].isin(d_nums)]
 
-        if is_week_view and len(filter_dates) > 1:
+        if is_agg_view and len(filter_dates) > 1:
             kds = kds.groupby(["store_num", "district", "short_name", "STORE FULL NAME"], dropna=False).agg(
                 sos_min=("sos_min", "mean"), sos_lunch=("sos_lunch", "mean"),
                 sos_snack=("sos_snack", "mean"), sos_dinner=("sos_dinner", "mean"),
@@ -510,9 +530,12 @@ if selected_tab == "Daily KDS Snapshot":
         else:
             fresh_tag = ""
 
-        if is_week_view:
+        if is_agg_view:
             date_range = sorted(filter_dates)
-            date_display = f"{selected_week} ({date_range[0].strftime('%m/%d')} - {date_range[-1].strftime('%m/%d')})" if date_range else selected_week
+            if date_range:
+                date_display = f"{selected_week} ({date_range[0].strftime('%m/%d')} - {date_range[-1].strftime('%m/%d')}) &mdash; {len(date_range)} day avg"
+            else:
+                date_display = selected_week
         else:
             date_display = date_labels.get(selected_date_option, str(selected_date_option))
         st.markdown(f'<p style="color:#666666; font-size:0.85rem;">Data as of <span style="color:#2E7D32; font-weight:600;">{date_display}</span> &nbsp;|&nbsp; {len(kds)} stores{fresh_tag}</p>', unsafe_allow_html=True)
