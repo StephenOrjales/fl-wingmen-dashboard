@@ -1303,102 +1303,181 @@ elif selected_tab == "Sales Performance":
 # LABOR DASHBOARD
 # ════════════════════════════════
 elif selected_tab == "Labor Dashboard":
-    import numpy as np
-    np.random.seed(99)
+    forecast_path = DATA_DIR / "forecast.xlsm"
+    if not forecast_path.exists():
+        st.warning("No forecast data found. Place forecast.xlsm in the data/ folder.")
+    else:
+        @st.cache_data(ttl=300)
+        def load_labor_data():
+            raw = pd.read_excel(DATA_DIR / "forecast.xlsm", sheet_name="Forecast_Data")
+            return raw[raw["year"] == 2026].copy()
 
-    all_stores = []
-    for dist, stores in DISTRICTS.items():
-        for s in stores:
-            snum = s.split(" - ")[0].strip().lstrip("0")
-            sname = s.split("-", 2)[2].strip()[:22] if len(s.split("-", 2)) >= 3 else s[:22]
-            all_stores.append({"store": s, "store_num": snum, "short_name": sname, "district": dist})
-    labor_df = pd.DataFrame(all_stores)
+        labor_raw = load_labor_data()
+        if labor_raw.empty:
+            st.warning("No 2026 labor data found in forecast file.")
+        else:
+            available_periods = sorted(labor_raw["period"].unique())
+            period_labels = {p: f"Period {p}" for p in available_periods}
 
-    labor_df["actual_labor_pct"] = np.random.uniform(0.14, 0.24, len(labor_df))
-    labor_df["target_labor_pct"] = 0.18
-    labor_df["labor_variance"] = labor_df["actual_labor_pct"] - labor_df["target_labor_pct"]
-    labor_df["scheduled_hours"] = np.random.uniform(280, 520, len(labor_df)).round(0)
-    labor_df["actual_hours"] = (labor_df["scheduled_hours"] * np.random.uniform(0.95, 1.12, len(labor_df))).round(0)
-    labor_df["overtime_hours"] = np.random.uniform(0, 35, len(labor_df)).round(1)
-    labor_df["guide_hours"] = (labor_df["scheduled_hours"] * np.random.uniform(0.92, 1.02, len(labor_df))).round(0)
-    labor_df["hours_variance"] = labor_df["actual_hours"] - labor_df["guide_hours"]
-    labor_df["labor_cost"] = (labor_df["actual_hours"] * np.random.uniform(14, 18, len(labor_df))).round(0)
+            fp1, fp2 = st.columns(2)
+            with fp1:
+                period_options = ["All Periods"] + available_periods
+                selected_period = st.selectbox(
+                    "Period", period_options,
+                    format_func=lambda p: "All Periods" if p == "All Periods" else period_labels.get(p, str(p)),
+                    index=len(period_options) - 1,
+                    key="labor_period",
+                )
+            with fp2:
+                if selected_period == "All Periods":
+                    week_choices = sorted(labor_raw["week_d"].unique())
+                else:
+                    week_choices = sorted(labor_raw[labor_raw["period"] == selected_period]["week_d"].unique())
+                week_options = ["All Weeks"] + list(week_choices)
+                selected_labor_week = st.selectbox("Week", week_options, key="labor_week")
 
-    if selected_store != "All Stores":
-        sk_num = extract_store_number(selected_store)
-        labor_df = labor_df[labor_df["store_num"] == sk_num]
-    elif selected_district != "All Districts":
-        d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
-        labor_df = labor_df[labor_df["store_num"].isin(d_nums)]
+            if selected_period != "All Periods":
+                lf = labor_raw[labor_raw["period"] == selected_period].copy()
+            else:
+                lf = labor_raw.copy()
+            if selected_labor_week != "All Weeks":
+                lf = lf[lf["week_d"] == selected_labor_week]
 
-    st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">Weekly Labor Dashboard &nbsp;|&nbsp; {len(labor_df)} stores &nbsp;|&nbsp; <span style="color:#D97706; font-weight:600;">Sample Data</span></p>', unsafe_allow_html=True)
+            lf["store_num"] = lf["store"].apply(forecast_store_num)
+            lf["short_name"] = lf["store"].apply(forecast_short_name)
+            lf["config_district"] = lf["store_num"].map(STORE_TO_DISTRICT)
 
-    k1, k2, k3, k4, k5 = st.columns(5)
-    avg_labor = labor_df["actual_labor_pct"].mean()
-    avg_var = labor_df["labor_variance"].mean()
-    total_ot = labor_df["overtime_hours"].sum()
-    total_hours = labor_df["actual_hours"].sum()
-    total_cost = labor_df["labor_cost"].sum()
+            if selected_store != "All Stores":
+                sk_num = extract_store_number(selected_store)
+                lf = lf[lf["store_num"] == sk_num]
+            elif selected_district != "All Districts":
+                d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
+                lf = lf[lf["store_num"].isin(d_nums)]
 
-    labor_c = "green" if avg_labor <= 0.18 else ("orange" if avg_labor <= 0.20 else "red")
-    var_c = "green" if avg_var <= 0 else ("orange" if avg_var < 0.02 else "red")
-    ot_c = "green" if total_ot < 200 else ("orange" if total_ot < 400 else "red")
+            labor_df = lf.groupby(["store_num", "short_name", "config_district"]).agg(
+                forecast_sales=("forecast_sales", "sum"),
+                actual_sales=("actual_sales", "sum"),
+                guide_hours=("guide_hours", "sum"),
+                scheduled_hours=("schedule_hours", "sum"),
+                actual_hours=("actual_crew_hours", "sum"),
+                overtime_hours=("ovt_hours", "sum"),
+                schedule_labor=("schedule_labor", "sum"),
+                actual_labor_cost=("actual_labor", "sum"),
+            ).reset_index()
 
-    k1.markdown(kpi_card("Avg Labor %", f"{avg_labor:.1%}", labor_c), unsafe_allow_html=True)
-    k2.markdown(kpi_card("Labor Variance", f"{avg_var:+.2%}", var_c), unsafe_allow_html=True)
-    k3.markdown(kpi_card("Total OT Hours", f"{total_ot:.0f}", ot_c), unsafe_allow_html=True)
-    k4.markdown(kpi_card("Total Crew Hours", f"{total_hours:,.0f}"), unsafe_allow_html=True)
-    k5.markdown(kpi_card("Total Labor Cost", f"${total_cost:,.0f}"), unsafe_allow_html=True)
+            labor_df["actual_labor_pct"] = labor_df["actual_labor_cost"] / labor_df["actual_sales"]
+            labor_df["schedule_labor_pct"] = labor_df["schedule_labor"] / labor_df["forecast_sales"]
+            labor_df["labor_variance"] = labor_df["actual_labor_pct"] - labor_df["schedule_labor_pct"]
+            labor_df["hours_variance"] = labor_df["actual_hours"] - labor_df["guide_hours"]
 
-    st.markdown("")
+            period_display = f"Period {selected_period}" if selected_period != "All Periods" else "All Periods"
+            week_display = selected_labor_week if selected_labor_week != "All Weeks" else ""
+            time_display = f"{period_display} {week_display}".strip()
 
-    st.markdown('<div class="section-title">Labor % by Store (vs 18% Target)</div>', unsafe_allow_html=True)
-    lb_sorted = labor_df.sort_values("actual_labor_pct", ascending=False)
-    lb_colors = [RED if v > 0.20 else (ORANGE if v > 0.18 else GREEN) for v in lb_sorted["actual_labor_pct"]]
-    fig_lb = go.Figure(go.Bar(
-        x=lb_sorted["short_name"], y=lb_sorted["actual_labor_pct"] * 100,
-        marker_color=lb_colors,
-        hovertemplate="%{x}<br>Labor: %{y:.1f}%<extra></extra>",
-    ))
-    fig_lb.add_hline(y=18, line_dash="dash", line_color=RED, line_width=1.5,
-                     annotation_text="18% target", annotation_font=dict(color="#DC2626", size=10))
-    fig_lb.update_layout(**CHART_LAYOUT, height=380, yaxis_title="Labor %", xaxis_tickangle=-45)
-    st.plotly_chart(fig_lb, use_container_width=True, key="labor_pct", config=CHART_CONFIG)
+            st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">Labor Dashboard &nbsp;|&nbsp; {time_display} &nbsp;|&nbsp; {len(labor_df)} stores</p>', unsafe_allow_html=True)
 
-    ll, lr = st.columns(2)
-    with ll:
-        st.markdown('<div class="section-title">Overtime Hours by Store</div>', unsafe_allow_html=True)
-        ot_sorted = labor_df.sort_values("overtime_hours", ascending=False)
-        ot_colors = [RED if v > 25 else (ORANGE if v > 10 else GREEN) for v in ot_sorted["overtime_hours"]]
-        fig_ot = go.Figure(go.Bar(
-            x=ot_sorted["short_name"], y=ot_sorted["overtime_hours"],
-            marker_color=ot_colors,
-            hovertemplate="%{x}<br>OT: %{y:.1f} hrs<extra></extra>",
-        ))
-        fig_ot.update_layout(**CHART_LAYOUT, height=370, yaxis_title="OT Hours", xaxis_tickangle=-45)
-        st.plotly_chart(fig_ot, use_container_width=True, key="labor_ot", config=CHART_CONFIG)
+            k1, k2, k3, k4, k5 = st.columns(5)
+            avg_labor = labor_df["actual_labor_pct"].mean()
+            avg_var = labor_df["labor_variance"].mean()
+            total_ot = labor_df["overtime_hours"].sum()
+            total_hours = labor_df["actual_hours"].sum()
+            total_cost = labor_df["actual_labor_cost"].sum()
 
-    with lr:
-        st.markdown('<div class="section-title">Hours vs Guide</div>', unsafe_allow_html=True)
-        hv_sorted = labor_df.sort_values("hours_variance")
-        hv_colors = [RED if v > 20 else (ORANGE if v > 0 else GREEN) for v in hv_sorted["hours_variance"]]
-        fig_hv = go.Figure(go.Bar(
-            x=hv_sorted["short_name"], y=hv_sorted["hours_variance"],
-            marker_color=hv_colors,
-            hovertemplate="%{x}<br>Var: %{y:+.0f} hrs<extra></extra>",
-        ))
-        fig_hv.add_hline(y=0, line_color="#BDBDBD", line_width=1)
-        fig_hv.update_layout(**CHART_LAYOUT, height=370, yaxis_title="Hours vs Guide", xaxis_tickangle=-45)
-        st.plotly_chart(fig_hv, use_container_width=True, key="labor_hv", config=CHART_CONFIG)
+            labor_c = "green" if avg_labor <= 0.18 else ("orange" if avg_labor <= 0.20 else "red")
+            var_c = "green" if avg_var <= 0 else ("orange" if avg_var < 0.02 else "red")
+            ot_c = "green" if total_ot < 200 else ("orange" if total_ot < 400 else "red")
 
-    st.markdown('<div class="section-title">Labor Detail Table</div>', unsafe_allow_html=True)
-    ltbl = labor_df[["short_name", "district", "actual_labor_pct", "labor_variance", "scheduled_hours", "actual_hours", "guide_hours", "overtime_hours", "labor_cost"]].copy()
-    ltbl.columns = ["Store", "District", "Labor %", "Variance", "Sched Hrs", "Actual Hrs", "Guide Hrs", "OT Hrs", "Labor Cost"]
-    ltbl["Labor %"] = ltbl["Labor %"].apply(lambda x: f"{x:.1%}")
-    ltbl["Variance"] = ltbl["Variance"].apply(lambda x: f"{x:+.2%}")
-    ltbl["Labor Cost"] = ltbl["Labor Cost"].apply(lambda x: f"${x:,.0f}")
-    ltbl = ltbl.sort_values("Store")
-    st.dataframe(ltbl, use_container_width=True, hide_index=True)
+            k1.markdown(kpi_card("Avg Labor %", f"{avg_labor:.1%}", labor_c), unsafe_allow_html=True)
+            k2.markdown(kpi_card("Labor Variance", f"{avg_var:+.2%}", var_c), unsafe_allow_html=True)
+            k3.markdown(kpi_card("Total OT Hours", f"{total_ot:,.0f}", ot_c), unsafe_allow_html=True)
+            k4.markdown(kpi_card("Total Crew Hours", f"{total_hours:,.0f}"), unsafe_allow_html=True)
+            k5.markdown(kpi_card("Total Labor Cost", f"${total_cost:,.0f}"), unsafe_allow_html=True)
+
+            st.markdown("")
+
+            st.markdown('<div class="section-title">Labor % by Store (vs Schedule)</div>', unsafe_allow_html=True)
+            lb_sorted = labor_df.sort_values("actual_labor_pct", ascending=False)
+            lb_colors = [RED if v > 0.20 else (ORANGE if v > 0.18 else GREEN) for v in lb_sorted["actual_labor_pct"]]
+            fig_lb = go.Figure(go.Bar(
+                x=lb_sorted["short_name"], y=lb_sorted["actual_labor_pct"] * 100,
+                marker_color=lb_colors,
+                hovertemplate="%{x}<br>Labor: %{y:.1f}%<extra></extra>",
+            ))
+            fig_lb.add_hline(y=18, line_dash="dash", line_color=RED, line_width=1.5,
+                             annotation_text="18% target", annotation_font=dict(color="#DC2626", size=10))
+            fig_lb.update_layout(**CHART_LAYOUT, height=380, yaxis_title="Labor %", xaxis_tickangle=-45)
+            st.plotly_chart(fig_lb, use_container_width=True, key="labor_pct", config=CHART_CONFIG)
+
+            ll, lr = st.columns(2)
+            with ll:
+                st.markdown('<div class="section-title">Overtime Hours by Store</div>', unsafe_allow_html=True)
+                ot_sorted = labor_df.sort_values("overtime_hours", ascending=False)
+                ot_colors = [RED if v > 25 else (ORANGE if v > 10 else GREEN) for v in ot_sorted["overtime_hours"]]
+                fig_ot = go.Figure(go.Bar(
+                    x=ot_sorted["short_name"], y=ot_sorted["overtime_hours"],
+                    marker_color=ot_colors,
+                    hovertemplate="%{x}<br>OT: %{y:.1f} hrs<extra></extra>",
+                ))
+                fig_ot.update_layout(**CHART_LAYOUT, height=370, yaxis_title="OT Hours", xaxis_tickangle=-45)
+                st.plotly_chart(fig_ot, use_container_width=True, key="labor_ot", config=CHART_CONFIG)
+
+            with lr:
+                st.markdown('<div class="section-title">Actual vs Guide Hours</div>', unsafe_allow_html=True)
+                hv_sorted = labor_df.sort_values("hours_variance")
+                hv_colors = [RED if v > 20 else (ORANGE if v > 0 else GREEN) for v in hv_sorted["hours_variance"]]
+                fig_hv = go.Figure(go.Bar(
+                    x=hv_sorted["short_name"], y=hv_sorted["hours_variance"],
+                    marker_color=hv_colors,
+                    hovertemplate="%{x}<br>Var: %{y:+.0f} hrs<extra></extra>",
+                ))
+                fig_hv.add_hline(y=0, line_color="#BDBDBD", line_width=1)
+                fig_hv.update_layout(**CHART_LAYOUT, height=370, yaxis_title="Hours vs Guide", xaxis_tickangle=-45)
+                st.plotly_chart(fig_hv, use_container_width=True, key="labor_hv", config=CHART_CONFIG)
+
+            # Weekly labor trend
+            if selected_period != "All Periods":
+                wk_trend = lf.groupby("week_d").agg(
+                    actual_labor=("actual_labor", "sum"),
+                    actual_sales=("actual_sales", "sum"),
+                    schedule_labor=("schedule_labor", "sum"),
+                    forecast_sales=("forecast_sales", "sum"),
+                ).reset_index()
+                wk_trend["actual_pct"] = wk_trend["actual_labor"] / wk_trend["actual_sales"] * 100
+                wk_trend["sched_pct"] = wk_trend["schedule_labor"] / wk_trend["forecast_sales"] * 100
+
+                if len(wk_trend) > 1:
+                    st.markdown('<div class="section-title">Weekly Labor % Trend</div>', unsafe_allow_html=True)
+                    fig_wt = go.Figure()
+                    fig_wt.add_trace(go.Scatter(
+                        x=wk_trend["week_d"], y=wk_trend["actual_pct"],
+                        name="Actual Labor %", mode="lines+markers",
+                        line=dict(color=ORANGE, width=2), marker=dict(size=8),
+                    ))
+                    fig_wt.add_trace(go.Scatter(
+                        x=wk_trend["week_d"], y=wk_trend["sched_pct"],
+                        name="Scheduled Labor %", mode="lines+markers",
+                        line=dict(color=TEAL, width=2, dash="dash"), marker=dict(size=8),
+                    ))
+                    fig_wt.update_layout(
+                        **CHART_LAYOUT, height=350, yaxis_title="Labor %",
+                        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
+                                    font=dict(color="#374151")),
+                    )
+                    st.plotly_chart(fig_wt, use_container_width=True, key="labor_trend", config=CHART_CONFIG)
+
+            st.markdown('<div class="section-title">Labor Detail Table</div>', unsafe_allow_html=True)
+            ltbl = labor_df[["short_name", "config_district", "actual_sales", "actual_labor_pct", "schedule_labor_pct",
+                             "labor_variance", "guide_hours", "scheduled_hours", "actual_hours", "overtime_hours", "actual_labor_cost"]].copy()
+            ltbl.columns = ["Store", "District", "Actual Sales", "Labor %", "Sched Labor %",
+                            "Variance", "Guide Hrs", "Sched Hrs", "Actual Hrs", "OT Hrs", "Labor Cost"]
+            ltbl["Actual Sales"] = ltbl["Actual Sales"].apply(lambda x: f"${x:,.0f}")
+            ltbl["Labor %"] = ltbl["Labor %"].apply(lambda x: f"{x:.1%}")
+            ltbl["Sched Labor %"] = ltbl["Sched Labor %"].apply(lambda x: f"{x:.1%}")
+            ltbl["Variance"] = ltbl["Variance"].apply(lambda x: f"{x:+.2%}")
+            ltbl["Labor Cost"] = ltbl["Labor Cost"].apply(lambda x: f"${x:,.0f}")
+            ltbl["OT Hrs"] = ltbl["OT Hrs"].apply(lambda x: f"{x:.1f}")
+            ltbl = ltbl.sort_values("Store")
+            st.dataframe(ltbl, use_container_width=True, hide_index=True)
 
 # ════════════════════════════════
 # SMG (GUEST SATISFACTION)
