@@ -1,0 +1,27 @@
+# Data files (contain store-level business data)
+data/
+*.xlsx
+*.xls
+*.xlsm
+*.csv
+
+# Chrome automation profile
+chrome_profile/
+
+# Debug screenshots
+debug_screenshots/
+*.png
+
+# Task scheduler XML
+task_schedule.xml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Claude config
+.claude/
+
+# Misc
+config.json
