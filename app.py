@@ -385,7 +385,7 @@ with st.sidebar:
     st.markdown("# FL Wingmen")
     st.markdown("---")
 
-    nav_options = ["Daily KDS Snapshot", "Q1 Performance", "Q2 Performance"]
+    nav_options = ["Daily KDS Snapshot", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance"]
     selected_tab = st.radio("Navigation", nav_options, label_visibility="collapsed")
 
     st.markdown("---")
@@ -1206,6 +1206,423 @@ elif selected_tab == "Q2 Performance":
                               "Waste %", "% 7-10 min", "Quadrant"]
             detail = detail.sort_values("SOS (min)")
             st.dataframe(detail, use_container_width=True, hide_index=True)
+
+# ════════════════════════════════
+# SALES PERFORMANCE
+# ════════════════════════════════
+elif selected_tab == "Sales Performance":
+    import numpy as np
+    np.random.seed(42)
+
+    all_stores = []
+    for dist, stores in DISTRICTS.items():
+        for s in stores:
+            snum = s.split(" - ")[0].strip().lstrip("0")
+            sname = s.split("-", 2)[2].strip()[:22] if len(s.split("-", 2)) >= 3 else s[:22]
+            all_stores.append({"store": s, "store_num": snum, "short_name": sname, "district": dist})
+    sales_df = pd.DataFrame(all_stores)
+
+    sales_df["net_sales"] = np.random.uniform(28000, 65000, len(sales_df)).round(0)
+    sales_df["transactions"] = np.random.randint(400, 1100, len(sales_df))
+    sales_df["avg_ticket"] = (sales_df["net_sales"] / sales_df["transactions"]).round(2)
+    sales_df["sales_ly"] = (sales_df["net_sales"] * np.random.uniform(0.88, 1.05, len(sales_df))).round(0)
+    sales_df["sss_growth"] = ((sales_df["net_sales"] - sales_df["sales_ly"]) / sales_df["sales_ly"] * 100).round(1)
+    sales_df["digital_pct"] = np.random.uniform(35, 72, len(sales_df)).round(1)
+
+    if selected_store != "All Stores":
+        sk_num = extract_store_number(selected_store)
+        sales_df = sales_df[sales_df["store_num"] == sk_num]
+    elif selected_district != "All Districts":
+        d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
+        sales_df = sales_df[sales_df["store_num"].isin(d_nums)]
+
+    st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">Weekly Sales Performance &nbsp;|&nbsp; {len(sales_df)} stores &nbsp;|&nbsp; <span style="color:#D97706; font-weight:600;">Sample Data</span></p>', unsafe_allow_html=True)
+
+    k1, k2, k3, k4, k5 = st.columns(5)
+    total_sales = sales_df["net_sales"].sum()
+    avg_sss = sales_df["sss_growth"].mean()
+    avg_ticket = sales_df["avg_ticket"].mean()
+    total_txn = sales_df["transactions"].sum()
+    avg_digital = sales_df["digital_pct"].mean()
+
+    sss_c = "green" if avg_sss >= 0 else "red"
+    k1.markdown(kpi_card("Total Net Sales", f"${total_sales:,.0f}"), unsafe_allow_html=True)
+    k2.markdown(kpi_card("SSS Growth", f"{avg_sss:+.1f}%", sss_c), unsafe_allow_html=True)
+    k3.markdown(kpi_card("Avg Ticket", f"${avg_ticket:.2f}"), unsafe_allow_html=True)
+    k4.markdown(kpi_card("Transactions", f"{total_txn:,}"), unsafe_allow_html=True)
+    k5.markdown(kpi_card("Digital Mix", f"{avg_digital:.1f}%"), unsafe_allow_html=True)
+
+    st.markdown("")
+
+    st.markdown('<div class="section-title">Net Sales by Store</div>', unsafe_allow_html=True)
+    s_sorted = sales_df.sort_values("net_sales", ascending=False)
+    fig_ns = go.Figure(go.Bar(
+        x=s_sorted["short_name"], y=s_sorted["net_sales"],
+        marker_color=TEAL,
+        hovertemplate="%{x}<br>Sales: $%{y:,.0f}<extra></extra>",
+    ))
+    fig_ns.update_layout(**CHART_LAYOUT, height=380, yaxis_title="Net Sales ($)", xaxis_tickangle=-45)
+    st.plotly_chart(fig_ns, use_container_width=True, key="sales_ns", config=CHART_CONFIG)
+
+    sl, sr = st.columns(2)
+    with sl:
+        st.markdown('<div class="section-title">Same-Store Sales Growth %</div>', unsafe_allow_html=True)
+        sss_sorted = sales_df.sort_values("sss_growth")
+        sss_colors = [RED if v < -3 else (ORANGE if v < 0 else GREEN) for v in sss_sorted["sss_growth"]]
+        fig_sss = go.Figure(go.Bar(
+            x=sss_sorted["short_name"], y=sss_sorted["sss_growth"],
+            marker_color=sss_colors,
+            hovertemplate="%{x}<br>SSS: %{y:+.1f}%<extra></extra>",
+        ))
+        fig_sss.add_hline(y=0, line_color="#BDBDBD", line_width=1)
+        fig_sss.update_layout(**CHART_LAYOUT, height=370, yaxis_title="SSS Growth %", xaxis_tickangle=-45)
+        st.plotly_chart(fig_sss, use_container_width=True, key="sales_sss", config=CHART_CONFIG)
+
+    with sr:
+        st.markdown('<div class="section-title">Average Ticket by Store</div>', unsafe_allow_html=True)
+        tk_sorted = sales_df.sort_values("avg_ticket", ascending=False)
+        fig_tk = go.Figure(go.Bar(
+            x=tk_sorted["short_name"], y=tk_sorted["avg_ticket"],
+            marker_color=GOLD,
+            hovertemplate="%{x}<br>Avg Ticket: $%{y:.2f}<extra></extra>",
+        ))
+        fig_tk.update_layout(**CHART_LAYOUT, height=370, yaxis_title="Avg Ticket ($)", xaxis_tickangle=-45)
+        st.plotly_chart(fig_tk, use_container_width=True, key="sales_tk", config=CHART_CONFIG)
+
+    st.markdown('<div class="section-title">Sales Detail Table</div>', unsafe_allow_html=True)
+    stbl = sales_df[["short_name", "district", "net_sales", "transactions", "avg_ticket", "sss_growth", "digital_pct"]].copy()
+    stbl.columns = ["Store", "District", "Net Sales", "Transactions", "Avg Ticket", "SSS Growth %", "Digital %"]
+    stbl["Net Sales"] = stbl["Net Sales"].apply(lambda x: f"${x:,.0f}")
+    stbl["Avg Ticket"] = stbl["Avg Ticket"].apply(lambda x: f"${x:.2f}")
+    stbl["SSS Growth %"] = stbl["SSS Growth %"].apply(lambda x: f"{x:+.1f}%")
+    stbl["Digital %"] = stbl["Digital %"].apply(lambda x: f"{x:.1f}%")
+    stbl = stbl.sort_values("Store")
+    st.dataframe(stbl, use_container_width=True, hide_index=True)
+
+# ════════════════════════════════
+# LABOR DASHBOARD
+# ════════════════════════════════
+elif selected_tab == "Labor Dashboard":
+    import numpy as np
+    np.random.seed(99)
+
+    all_stores = []
+    for dist, stores in DISTRICTS.items():
+        for s in stores:
+            snum = s.split(" - ")[0].strip().lstrip("0")
+            sname = s.split("-", 2)[2].strip()[:22] if len(s.split("-", 2)) >= 3 else s[:22]
+            all_stores.append({"store": s, "store_num": snum, "short_name": sname, "district": dist})
+    labor_df = pd.DataFrame(all_stores)
+
+    labor_df["actual_labor_pct"] = np.random.uniform(0.14, 0.24, len(labor_df))
+    labor_df["target_labor_pct"] = 0.18
+    labor_df["labor_variance"] = labor_df["actual_labor_pct"] - labor_df["target_labor_pct"]
+    labor_df["scheduled_hours"] = np.random.uniform(280, 520, len(labor_df)).round(0)
+    labor_df["actual_hours"] = (labor_df["scheduled_hours"] * np.random.uniform(0.95, 1.12, len(labor_df))).round(0)
+    labor_df["overtime_hours"] = np.random.uniform(0, 35, len(labor_df)).round(1)
+    labor_df["guide_hours"] = (labor_df["scheduled_hours"] * np.random.uniform(0.92, 1.02, len(labor_df))).round(0)
+    labor_df["hours_variance"] = labor_df["actual_hours"] - labor_df["guide_hours"]
+    labor_df["labor_cost"] = (labor_df["actual_hours"] * np.random.uniform(14, 18, len(labor_df))).round(0)
+
+    if selected_store != "All Stores":
+        sk_num = extract_store_number(selected_store)
+        labor_df = labor_df[labor_df["store_num"] == sk_num]
+    elif selected_district != "All Districts":
+        d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
+        labor_df = labor_df[labor_df["store_num"].isin(d_nums)]
+
+    st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">Weekly Labor Dashboard &nbsp;|&nbsp; {len(labor_df)} stores &nbsp;|&nbsp; <span style="color:#D97706; font-weight:600;">Sample Data</span></p>', unsafe_allow_html=True)
+
+    k1, k2, k3, k4, k5 = st.columns(5)
+    avg_labor = labor_df["actual_labor_pct"].mean()
+    avg_var = labor_df["labor_variance"].mean()
+    total_ot = labor_df["overtime_hours"].sum()
+    total_hours = labor_df["actual_hours"].sum()
+    total_cost = labor_df["labor_cost"].sum()
+
+    labor_c = "green" if avg_labor <= 0.18 else ("orange" if avg_labor <= 0.20 else "red")
+    var_c = "green" if avg_var <= 0 else ("orange" if avg_var < 0.02 else "red")
+    ot_c = "green" if total_ot < 200 else ("orange" if total_ot < 400 else "red")
+
+    k1.markdown(kpi_card("Avg Labor %", f"{avg_labor:.1%}", labor_c), unsafe_allow_html=True)
+    k2.markdown(kpi_card("Labor Variance", f"{avg_var:+.2%}", var_c), unsafe_allow_html=True)
+    k3.markdown(kpi_card("Total OT Hours", f"{total_ot:.0f}", ot_c), unsafe_allow_html=True)
+    k4.markdown(kpi_card("Total Crew Hours", f"{total_hours:,.0f}"), unsafe_allow_html=True)
+    k5.markdown(kpi_card("Total Labor Cost", f"${total_cost:,.0f}"), unsafe_allow_html=True)
+
+    st.markdown("")
+
+    st.markdown('<div class="section-title">Labor % by Store (vs 18% Target)</div>', unsafe_allow_html=True)
+    lb_sorted = labor_df.sort_values("actual_labor_pct", ascending=False)
+    lb_colors = [RED if v > 0.20 else (ORANGE if v > 0.18 else GREEN) for v in lb_sorted["actual_labor_pct"]]
+    fig_lb = go.Figure(go.Bar(
+        x=lb_sorted["short_name"], y=lb_sorted["actual_labor_pct"] * 100,
+        marker_color=lb_colors,
+        hovertemplate="%{x}<br>Labor: %{y:.1f}%<extra></extra>",
+    ))
+    fig_lb.add_hline(y=18, line_dash="dash", line_color=RED, line_width=1.5,
+                     annotation_text="18% target", annotation_font=dict(color="#DC2626", size=10))
+    fig_lb.update_layout(**CHART_LAYOUT, height=380, yaxis_title="Labor %", xaxis_tickangle=-45)
+    st.plotly_chart(fig_lb, use_container_width=True, key="labor_pct", config=CHART_CONFIG)
+
+    ll, lr = st.columns(2)
+    with ll:
+        st.markdown('<div class="section-title">Overtime Hours by Store</div>', unsafe_allow_html=True)
+        ot_sorted = labor_df.sort_values("overtime_hours", ascending=False)
+        ot_colors = [RED if v > 25 else (ORANGE if v > 10 else GREEN) for v in ot_sorted["overtime_hours"]]
+        fig_ot = go.Figure(go.Bar(
+            x=ot_sorted["short_name"], y=ot_sorted["overtime_hours"],
+            marker_color=ot_colors,
+            hovertemplate="%{x}<br>OT: %{y:.1f} hrs<extra></extra>",
+        ))
+        fig_ot.update_layout(**CHART_LAYOUT, height=370, yaxis_title="OT Hours", xaxis_tickangle=-45)
+        st.plotly_chart(fig_ot, use_container_width=True, key="labor_ot", config=CHART_CONFIG)
+
+    with lr:
+        st.markdown('<div class="section-title">Hours vs Guide</div>', unsafe_allow_html=True)
+        hv_sorted = labor_df.sort_values("hours_variance")
+        hv_colors = [RED if v > 20 else (ORANGE if v > 0 else GREEN) for v in hv_sorted["hours_variance"]]
+        fig_hv = go.Figure(go.Bar(
+            x=hv_sorted["short_name"], y=hv_sorted["hours_variance"],
+            marker_color=hv_colors,
+            hovertemplate="%{x}<br>Var: %{y:+.0f} hrs<extra></extra>",
+        ))
+        fig_hv.add_hline(y=0, line_color="#BDBDBD", line_width=1)
+        fig_hv.update_layout(**CHART_LAYOUT, height=370, yaxis_title="Hours vs Guide", xaxis_tickangle=-45)
+        st.plotly_chart(fig_hv, use_container_width=True, key="labor_hv", config=CHART_CONFIG)
+
+    st.markdown('<div class="section-title">Labor Detail Table</div>', unsafe_allow_html=True)
+    ltbl = labor_df[["short_name", "district", "actual_labor_pct", "labor_variance", "scheduled_hours", "actual_hours", "guide_hours", "overtime_hours", "labor_cost"]].copy()
+    ltbl.columns = ["Store", "District", "Labor %", "Variance", "Sched Hrs", "Actual Hrs", "Guide Hrs", "OT Hrs", "Labor Cost"]
+    ltbl["Labor %"] = ltbl["Labor %"].apply(lambda x: f"{x:.1%}")
+    ltbl["Variance"] = ltbl["Variance"].apply(lambda x: f"{x:+.2%}")
+    ltbl["Labor Cost"] = ltbl["Labor Cost"].apply(lambda x: f"${x:,.0f}")
+    ltbl = ltbl.sort_values("Store")
+    st.dataframe(ltbl, use_container_width=True, hide_index=True)
+
+# ════════════════════════════════
+# SMG (GUEST SATISFACTION)
+# ════════════════════════════════
+elif selected_tab == "SMG (Guest Satisfaction)":
+    import numpy as np
+    np.random.seed(77)
+
+    all_stores = []
+    for dist, stores in DISTRICTS.items():
+        for s in stores:
+            snum = s.split(" - ")[0].strip().lstrip("0")
+            sname = s.split("-", 2)[2].strip()[:22] if len(s.split("-", 2)) >= 3 else s[:22]
+            all_stores.append({"store": s, "store_num": snum, "short_name": sname, "district": dist})
+    smg_df = pd.DataFrame(all_stores)
+
+    smg_df["osat"] = np.random.uniform(55, 95, len(smg_df)).round(1)
+    smg_df["food_quality"] = np.random.uniform(60, 96, len(smg_df)).round(1)
+    smg_df["speed_of_service"] = np.random.uniform(40, 90, len(smg_df)).round(1)
+    smg_df["friendliness"] = np.random.uniform(65, 98, len(smg_df)).round(1)
+    smg_df["order_accuracy"] = np.random.uniform(70, 99, len(smg_df)).round(1)
+    smg_df["cleanliness"] = np.random.uniform(55, 95, len(smg_df)).round(1)
+    smg_df["responses"] = np.random.randint(8, 85, len(smg_df))
+
+    if selected_store != "All Stores":
+        sk_num = extract_store_number(selected_store)
+        smg_df = smg_df[smg_df["store_num"] == sk_num]
+    elif selected_district != "All Districts":
+        d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
+        smg_df = smg_df[smg_df["store_num"].isin(d_nums)]
+
+    st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">Guest Satisfaction (SMG) &nbsp;|&nbsp; {len(smg_df)} stores &nbsp;|&nbsp; <span style="color:#D97706; font-weight:600;">Sample Data</span></p>', unsafe_allow_html=True)
+
+    k1, k2, k3, k4, k5 = st.columns(5)
+    avg_osat = smg_df["osat"].mean()
+    avg_food = smg_df["food_quality"].mean()
+    avg_speed = smg_df["speed_of_service"].mean()
+    avg_friend = smg_df["friendliness"].mean()
+    avg_accuracy = smg_df["order_accuracy"].mean()
+
+    osat_c = "green" if avg_osat >= 80 else ("orange" if avg_osat >= 70 else "red")
+    food_c = "green" if avg_food >= 80 else ("orange" if avg_food >= 70 else "red")
+    speed_c = "green" if avg_speed >= 75 else ("orange" if avg_speed >= 60 else "red")
+
+    k1.markdown(kpi_card("Overall OSAT", f"{avg_osat:.1f}%", osat_c), unsafe_allow_html=True)
+    k2.markdown(kpi_card("Food Quality", f"{avg_food:.1f}%", food_c), unsafe_allow_html=True)
+    k3.markdown(kpi_card("Speed of Service", f"{avg_speed:.1f}%", speed_c), unsafe_allow_html=True)
+    k4.markdown(kpi_card("Friendliness", f"{avg_friend:.1f}%"), unsafe_allow_html=True)
+    k5.markdown(kpi_card("Order Accuracy", f"{avg_accuracy:.1f}%"), unsafe_allow_html=True)
+
+    st.markdown("")
+
+    st.markdown('<div class="section-title">Overall OSAT by Store</div>', unsafe_allow_html=True)
+    osat_sorted = smg_df.sort_values("osat")
+    osat_colors = [RED if v < 70 else (ORANGE if v < 80 else GREEN) for v in osat_sorted["osat"]]
+    fig_osat = go.Figure(go.Bar(
+        x=osat_sorted["short_name"], y=osat_sorted["osat"],
+        marker_color=osat_colors,
+        hovertemplate="%{x}<br>OSAT: %{y:.1f}%<extra></extra>",
+    ))
+    fig_osat.add_hline(y=80, line_dash="dash", line_color=GREEN, line_width=1.5,
+                       annotation_text="80% target", annotation_font=dict(color="#059669", size=10))
+    fig_osat.update_layout(**CHART_LAYOUT, height=380, yaxis_title="OSAT %", xaxis_tickangle=-45)
+    st.plotly_chart(fig_osat, use_container_width=True, key="smg_osat", config=CHART_CONFIG)
+
+    sl, sr = st.columns(2)
+    with sl:
+        st.markdown('<div class="section-title">Food Quality Score</div>', unsafe_allow_html=True)
+        fq_sorted = smg_df.sort_values("food_quality")
+        fq_colors = [RED if v < 70 else (ORANGE if v < 80 else GREEN) for v in fq_sorted["food_quality"]]
+        fig_fq = go.Figure(go.Bar(
+            x=fq_sorted["short_name"], y=fq_sorted["food_quality"],
+            marker_color=fq_colors,
+            hovertemplate="%{x}<br>Food: %{y:.1f}%<extra></extra>",
+        ))
+        fig_fq.update_layout(**CHART_LAYOUT, height=370, yaxis_title="Food Quality %", xaxis_tickangle=-45)
+        st.plotly_chart(fig_fq, use_container_width=True, key="smg_food", config=CHART_CONFIG)
+
+    with sr:
+        st.markdown('<div class="section-title">Speed of Service Score</div>', unsafe_allow_html=True)
+        sp_sorted = smg_df.sort_values("speed_of_service")
+        sp_colors = [RED if v < 60 else (ORANGE if v < 75 else GREEN) for v in sp_sorted["speed_of_service"]]
+        fig_sp = go.Figure(go.Bar(
+            x=sp_sorted["short_name"], y=sp_sorted["speed_of_service"],
+            marker_color=sp_colors,
+            hovertemplate="%{x}<br>Speed: %{y:.1f}%<extra></extra>",
+        ))
+        fig_sp.update_layout(**CHART_LAYOUT, height=370, yaxis_title="Speed Score %", xaxis_tickangle=-45)
+        st.plotly_chart(fig_sp, use_container_width=True, key="smg_speed", config=CHART_CONFIG)
+
+    cl, cr = st.columns(2)
+    with cl:
+        st.markdown('<div class="section-title">Friendliness Score</div>', unsafe_allow_html=True)
+        fr_sorted = smg_df.sort_values("friendliness")
+        fig_fr = go.Figure(go.Bar(
+            x=fr_sorted["short_name"], y=fr_sorted["friendliness"],
+            marker_color=TEAL,
+            hovertemplate="%{x}<br>Friendliness: %{y:.1f}%<extra></extra>",
+        ))
+        fig_fr.update_layout(**CHART_LAYOUT, height=370, yaxis_title="Friendliness %", xaxis_tickangle=-45)
+        st.plotly_chart(fig_fr, use_container_width=True, key="smg_friend", config=CHART_CONFIG)
+
+    with cr:
+        st.markdown('<div class="section-title">Order Accuracy Score</div>', unsafe_allow_html=True)
+        oa_sorted = smg_df.sort_values("order_accuracy")
+        fig_oa = go.Figure(go.Bar(
+            x=oa_sorted["short_name"], y=oa_sorted["order_accuracy"],
+            marker_color=TEAL,
+            hovertemplate="%{x}<br>Accuracy: %{y:.1f}%<extra></extra>",
+        ))
+        fig_oa.update_layout(**CHART_LAYOUT, height=370, yaxis_title="Accuracy %", xaxis_tickangle=-45)
+        st.plotly_chart(fig_oa, use_container_width=True, key="smg_accuracy", config=CHART_CONFIG)
+
+    st.markdown('<div class="section-title">SMG Detail Table</div>', unsafe_allow_html=True)
+    smg_tbl = smg_df[["short_name", "district", "osat", "food_quality", "speed_of_service", "friendliness", "order_accuracy", "cleanliness", "responses"]].copy()
+    smg_tbl.columns = ["Store", "District", "OSAT %", "Food %", "Speed %", "Friendly %", "Accuracy %", "Clean %", "Responses"]
+    smg_tbl = smg_tbl.sort_values("OSAT %", ascending=False)
+    st.dataframe(smg_tbl, use_container_width=True, hide_index=True)
+
+# ════════════════════════════════
+# DISTRICT COMPARISON
+# ════════════════════════════════
+elif selected_tab == "District Comparison":
+    import numpy as np
+    np.random.seed(42)
+
+    all_stores = []
+    for dist, stores in DISTRICTS.items():
+        for s in stores:
+            snum = s.split(" - ")[0].strip().lstrip("0")
+            sname = s.split("-", 2)[2].strip()[:22] if len(s.split("-", 2)) >= 3 else s[:22]
+            all_stores.append({"store": s, "store_num": snum, "short_name": sname, "district": dist})
+    comp_df = pd.DataFrame(all_stores)
+
+    np.random.seed(42)
+    comp_df["net_sales"] = np.random.uniform(28000, 65000, len(comp_df)).round(0)
+    comp_df["sss_growth"] = np.random.uniform(-5, 15, len(comp_df)).round(1)
+    np.random.seed(99)
+    comp_df["labor_pct"] = np.random.uniform(0.14, 0.24, len(comp_df))
+    comp_df["overtime"] = np.random.uniform(0, 35, len(comp_df)).round(1)
+    np.random.seed(77)
+    comp_df["osat"] = np.random.uniform(55, 95, len(comp_df)).round(1)
+
+    if not daily_df_all.empty:
+        latest_date = daily_df_all["data_date"].max()
+        daily_latest = daily_df_all[daily_df_all["data_date"] == latest_date]
+        sos_map = dict(zip(daily_latest["store_num"].astype(str), daily_latest["sos_min"]))
+        comp_df["sos_min"] = comp_df["store_num"].map(sos_map)
+    else:
+        comp_df["sos_min"] = np.random.uniform(7, 18, len(comp_df)).round(1)
+
+    district_agg = comp_df.groupby("district").agg(
+        stores=("store", "count"),
+        total_sales=("net_sales", "sum"),
+        avg_sales=("net_sales", "mean"),
+        avg_sss=("sss_growth", "mean"),
+        avg_labor=("labor_pct", "mean"),
+        total_ot=("overtime", "sum"),
+        avg_osat=("osat", "mean"),
+        avg_sos=("sos_min", "mean"),
+    ).reset_index()
+    district_agg = district_agg.sort_values("district")
+
+    st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">District Comparison &nbsp;|&nbsp; {len(district_agg)} districts &nbsp;|&nbsp; <span style="color:#D97706; font-weight:600;">Sample Data (Sales, Labor, SMG)</span></p>', unsafe_allow_html=True)
+
+    dist_colors = [GREEN, TEAL, GOLD, ORANGE, "#7C3AED", "#0EA5E9"]
+
+    st.markdown('<div class="section-title">Total Sales by District</div>', unsafe_allow_html=True)
+    fig_ds = go.Figure(go.Bar(
+        x=district_agg["district"], y=district_agg["total_sales"],
+        marker_color=dist_colors[:len(district_agg)],
+        hovertemplate="%{x}<br>Sales: $%{y:,.0f}<extra></extra>",
+    ))
+    fig_ds.update_layout(**CHART_LAYOUT, height=350, yaxis_title="Total Sales ($)")
+    st.plotly_chart(fig_ds, use_container_width=True, key="dist_sales", config=CHART_CONFIG)
+
+    dl, dm, dr = st.columns(3)
+    with dl:
+        st.markdown('<div class="section-title">Avg Labor % by District</div>', unsafe_allow_html=True)
+        lb_colors = [RED if v > 0.20 else (ORANGE if v > 0.18 else GREEN) for v in district_agg["avg_labor"]]
+        fig_dl = go.Figure(go.Bar(
+            x=district_agg["district"], y=district_agg["avg_labor"] * 100,
+            marker_color=lb_colors,
+            hovertemplate="%{x}<br>Labor: %{y:.1f}%<extra></extra>",
+        ))
+        fig_dl.add_hline(y=18, line_dash="dash", line_color=RED, line_width=1.5)
+        fig_dl.update_layout(**CHART_LAYOUT, height=350, yaxis_title="Labor %")
+        st.plotly_chart(fig_dl, use_container_width=True, key="dist_labor", config=CHART_CONFIG)
+
+    with dm:
+        st.markdown('<div class="section-title">Avg OSAT by District</div>', unsafe_allow_html=True)
+        osat_colors = [RED if v < 70 else (ORANGE if v < 80 else GREEN) for v in district_agg["avg_osat"]]
+        fig_do = go.Figure(go.Bar(
+            x=district_agg["district"], y=district_agg["avg_osat"],
+            marker_color=osat_colors,
+            hovertemplate="%{x}<br>OSAT: %{y:.1f}%<extra></extra>",
+        ))
+        fig_do.add_hline(y=80, line_dash="dash", line_color=GREEN, line_width=1.5)
+        fig_do.update_layout(**CHART_LAYOUT, height=350, yaxis_title="OSAT %")
+        st.plotly_chart(fig_do, use_container_width=True, key="dist_osat", config=CHART_CONFIG)
+
+    with dr:
+        st.markdown('<div class="section-title">Avg SOS by District</div>', unsafe_allow_html=True)
+        sos_colors = [RED if v > 12 else (ORANGE if v > 10 else GREEN) for v in district_agg["avg_sos"]]
+        fig_dsos = go.Figure(go.Bar(
+            x=district_agg["district"], y=district_agg["avg_sos"],
+            marker_color=sos_colors,
+            hovertemplate="%{x}<br>SOS: %{y:.1f} min<extra></extra>",
+        ))
+        fig_dsos.add_hline(y=10, line_dash="dash", line_color=RED, line_width=1.5)
+        fig_dsos.update_layout(**CHART_LAYOUT, height=350, yaxis_title="SOS (min)")
+        st.plotly_chart(fig_dsos, use_container_width=True, key="dist_sos", config=CHART_CONFIG)
+
+    st.markdown('<div class="section-title">District Summary Table</div>', unsafe_allow_html=True)
+    dtbl = district_agg.copy()
+    dtbl.columns = ["District", "Stores", "Total Sales", "Avg Sales/Store", "Avg SSS %", "Avg Labor %", "Total OT Hrs", "Avg OSAT %", "Avg SOS (min)"]
+    dtbl["Total Sales"] = dtbl["Total Sales"].apply(lambda x: f"${x:,.0f}")
+    dtbl["Avg Sales/Store"] = dtbl["Avg Sales/Store"].apply(lambda x: f"${x:,.0f}")
+    dtbl["Avg SSS %"] = dtbl["Avg SSS %"].apply(lambda x: f"{x:+.1f}%")
+    dtbl["Avg Labor %"] = dtbl["Avg Labor %"].apply(lambda x: f"{x:.1%}")
+    dtbl["Total OT Hrs"] = dtbl["Total OT Hrs"].apply(lambda x: f"{x:.0f}")
+    dtbl["Avg OSAT %"] = dtbl["Avg OSAT %"].apply(lambda x: f"{x:.1f}%")
+    dtbl["Avg SOS (min)"] = dtbl["Avg SOS (min)"].apply(lambda x: f"{x:.1f}")
+    st.dataframe(dtbl, use_container_width=True, hide_index=True)
 
 st.markdown("---")
 st.markdown('<p style="color:#999999; font-size:0.75rem; text-align:center;">FL Wingmen Dashboard &nbsp;|&nbsp; Smart Kitchen Performance &amp; Forecast Data</p>', unsafe_allow_html=True)
