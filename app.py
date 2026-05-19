@@ -165,8 +165,14 @@ CHART_LAYOUT = dict(
     paper_bgcolor=CHART_BG,
     font=dict(color=FONT_COLOR, size=11),
     margin=dict(l=50, r=20, t=30, b=90),
-    xaxis=dict(gridcolor=GRID_COLOR, tickfont=dict(size=9)),
-    yaxis=dict(gridcolor=GRID_COLOR),
+    xaxis=dict(gridcolor=GRID_COLOR, tickfont=dict(size=9), fixedrange=True),
+    yaxis=dict(gridcolor=GRID_COLOR, fixedrange=True),
+    dragmode=False,
+)
+
+CHART_CONFIG = dict(
+    displayModeBar=False,
+    scrollZoom=False,
 )
 
 
@@ -575,7 +581,7 @@ if selected_tab == "Daily KDS Snapshot":
                             annotation_text="10 min target", annotation_font=dict(color="#C62828", size=10))
         fig_sos_k.update_layout(**CHART_LAYOUT, height=380,
                                 yaxis_title="Minutes", xaxis_tickangle=-45)
-        st.plotly_chart(fig_sos_k, use_container_width=True, key="kds_sos")
+        st.plotly_chart(fig_sos_k, use_container_width=True, key="kds_sos", config=CHART_CONFIG)
 
         # ── SOS by Daypart ──
         st.markdown('<div class="section-title">SOS by Daypart</div>', unsafe_allow_html=True)
@@ -602,7 +608,7 @@ if selected_tab == "Daily KDS Snapshot":
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
                         font=dict(color="#333333")),
         )
-        st.plotly_chart(fig_dp, use_container_width=True, key="kds_daypart")
+        st.plotly_chart(fig_dp, use_container_width=True, key="kds_daypart", config=CHART_CONFIG)
 
         # ── Pre-Bump Rate & Cook Adoption ──
         pb_l, pb_r = st.columns(2)
@@ -617,7 +623,7 @@ if selected_tab == "Daily KDS Snapshot":
             ))
             fig_pb.update_layout(**CHART_LAYOUT, height=370,
                                  yaxis_title="Pre-Bump %", xaxis_tickangle=-45)
-            st.plotly_chart(fig_pb, use_container_width=True, key="kds_pb")
+            st.plotly_chart(fig_pb, use_container_width=True, key="kds_pb", config=CHART_CONFIG)
 
         with pb_r:
             st.markdown('<div class="section-title">Adoption of Cooks by Store</div>', unsafe_allow_html=True)
@@ -632,7 +638,7 @@ if selected_tab == "Daily KDS Snapshot":
                              annotation_text="100%", annotation_font=dict(color="#2E7D32", size=10))
             fig_ad.update_layout(**CHART_LAYOUT, height=370,
                                  yaxis_title="Adoption %", xaxis_tickangle=-45)
-            st.plotly_chart(fig_ad, use_container_width=True, key="kds_adopt")
+            st.plotly_chart(fig_ad, use_container_width=True, key="kds_adopt", config=CHART_CONFIG)
 
         # ── Make Ahead & Waste ──
         ma_l, ma_r = st.columns(2)
@@ -647,7 +653,7 @@ if selected_tab == "Daily KDS Snapshot":
             ))
             fig_ma.update_layout(**CHART_LAYOUT, height=370,
                                  yaxis_title="Make Ahead %", xaxis_tickangle=-45)
-            st.plotly_chart(fig_ma, use_container_width=True, key="kds_ma")
+            st.plotly_chart(fig_ma, use_container_width=True, key="kds_ma", config=CHART_CONFIG)
 
         with ma_r:
             st.markdown('<div class="section-title">Waste % by Store</div>', unsafe_allow_html=True)
@@ -660,7 +666,7 @@ if selected_tab == "Daily KDS Snapshot":
             ))
             fig_w.update_layout(**CHART_LAYOUT, height=370,
                                 yaxis_title="Waste %", xaxis_tickangle=-45)
-            st.plotly_chart(fig_w, use_container_width=True, key="kds_waste")
+            st.plotly_chart(fig_w, use_container_width=True, key="kds_waste", config=CHART_CONFIG)
 
         # ── Bone-In Accuracy & % Orders 7-10 min ──
         ex1, ex2 = st.columns(2)
@@ -676,7 +682,7 @@ if selected_tab == "Daily KDS Snapshot":
                               annotation_text="100%", annotation_font=dict(color="#2E7D32", size=10))
             fig_acc.update_layout(**CHART_LAYOUT, height=350,
                                   yaxis_title="Accuracy %", xaxis_tickangle=-45)
-            st.plotly_chart(fig_acc, use_container_width=True, key="kds_acc")
+            st.plotly_chart(fig_acc, use_container_width=True, key="kds_acc", config=CHART_CONFIG)
 
         with ex2:
             st.markdown('<div class="section-title">% Orders Between 7-10 Minutes</div>', unsafe_allow_html=True)
@@ -688,7 +694,7 @@ if selected_tab == "Daily KDS Snapshot":
             ))
             fig_pct.update_layout(**CHART_LAYOUT, height=350,
                                   yaxis_title="% Orders 7-10 min", xaxis_tickangle=-45)
-            st.plotly_chart(fig_pct, use_container_width=True, key="kds_pct")
+            st.plotly_chart(fig_pct, use_container_width=True, key="kds_pct", config=CHART_CONFIG)
 
         # ── Daily KDS Detail Table ──
         st.markdown('<div class="section-title">Daily Store Details</div>', unsafe_allow_html=True)
@@ -791,7 +797,7 @@ elif selected_tab == "Q1 Performance":
                                  annotation_text="10 min target", annotation_font=dict(color="#C62828", size=10))
             fig_sos_q1.update_layout(**CHART_LAYOUT, height=380,
                                      yaxis_title="Minutes", xaxis_tickangle=-45)
-            st.plotly_chart(fig_sos_q1, use_container_width=True, key="q1_sos")
+            st.plotly_chart(fig_sos_q1, use_container_width=True, key="q1_sos", config=CHART_CONFIG)
 
             # ── Pre-Bump & Bone-In Adoption ──
             pb_l, pb_r = st.columns(2)
@@ -806,7 +812,7 @@ elif selected_tab == "Q1 Performance":
                 ))
                 fig_pb_q1.update_layout(**CHART_LAYOUT, height=370,
                                         yaxis_title="Pre-Bump %", xaxis_tickangle=-45)
-                st.plotly_chart(fig_pb_q1, use_container_width=True, key="q1_pb")
+                st.plotly_chart(fig_pb_q1, use_container_width=True, key="q1_pb", config=CHART_CONFIG)
 
             with pb_r:
                 st.markdown('<div class="section-title">Q1 Bone-In Adoption</div>', unsafe_allow_html=True)
@@ -821,7 +827,7 @@ elif selected_tab == "Q1 Performance":
                                     annotation_text="100%", annotation_font=dict(color="#2E7D32", size=10))
                 fig_ad_q1.update_layout(**CHART_LAYOUT, height=370,
                                         yaxis_title="Adoption %", xaxis_tickangle=-45)
-                st.plotly_chart(fig_ad_q1, use_container_width=True, key="q1_adopt")
+                st.plotly_chart(fig_ad_q1, use_container_width=True, key="q1_adopt", config=CHART_CONFIG)
 
             # ── Qty Variance & Make Ahead ──
             qv_l, qv_r = st.columns(2)
@@ -837,7 +843,7 @@ elif selected_tab == "Q1 Performance":
                 fig_qv_q1.add_hline(y=0, line_color="#BDBDBD", line_width=1)
                 fig_qv_q1.update_layout(**CHART_LAYOUT, height=370,
                                         yaxis_title="Qty Variance %", xaxis_tickangle=-45)
-                st.plotly_chart(fig_qv_q1, use_container_width=True, key="q1_qv")
+                st.plotly_chart(fig_qv_q1, use_container_width=True, key="q1_qv", config=CHART_CONFIG)
 
             with qv_r:
                 st.markdown('<div class="section-title">Q1 Make Ahead Rate</div>', unsafe_allow_html=True)
@@ -850,7 +856,7 @@ elif selected_tab == "Q1 Performance":
                 ))
                 fig_ma_q1.update_layout(**CHART_LAYOUT, height=370,
                                         yaxis_title="Make Ahead %", xaxis_tickangle=-45)
-                st.plotly_chart(fig_ma_q1, use_container_width=True, key="q1_ma")
+                st.plotly_chart(fig_ma_q1, use_container_width=True, key="q1_ma", config=CHART_CONFIG)
 
         # ── Labor Variance by Store ──
         if not q1f.empty:
@@ -866,7 +872,7 @@ elif selected_tab == "Q1 Performance":
             fig_lv_q1.add_hline(y=0, line_color="#BDBDBD", line_width=1)
             fig_lv_q1.update_layout(**CHART_LAYOUT, height=400,
                                     yaxis_title="Labor Variance %", xaxis_tickangle=-45)
-            st.plotly_chart(fig_lv_q1, use_container_width=True, key="q1_lv")
+            st.plotly_chart(fig_lv_q1, use_container_width=True, key="q1_lv", config=CHART_CONFIG)
 
             # ── Sales Variance & Actual Labor % ──
             sv_l, sv_r = st.columns(2)
@@ -883,7 +889,7 @@ elif selected_tab == "Q1 Performance":
                 fig_sv_q1.add_hline(y=0, line_color="#BDBDBD", line_width=1)
                 fig_sv_q1.update_layout(**CHART_LAYOUT, height=370,
                                         yaxis_title="Sales Variance %", xaxis_tickangle=-45)
-                st.plotly_chart(fig_sv_q1, use_container_width=True, key="q1_sv")
+                st.plotly_chart(fig_sv_q1, use_container_width=True, key="q1_sv", config=CHART_CONFIG)
 
             with sv_r:
                 st.markdown('<div class="section-title">Q1 Actual Labor % by Store</div>', unsafe_allow_html=True)
@@ -897,7 +903,7 @@ elif selected_tab == "Q1 Performance":
                 ))
                 fig_al_q1.update_layout(**CHART_LAYOUT, height=370,
                                         yaxis_title="Labor %", xaxis_tickangle=-45)
-                st.plotly_chart(fig_al_q1, use_container_width=True, key="q1_al")
+                st.plotly_chart(fig_al_q1, use_container_width=True, key="q1_al", config=CHART_CONFIG)
 
             # ── Weekly Labor Trend ──
             if not q1w.empty:
@@ -928,7 +934,7 @@ elif selected_tab == "Q1 Performance":
                     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
                                 font=dict(color="#333333")),
                 )
-                st.plotly_chart(fig_wk_q1, use_container_width=True, key="q1_wk")
+                st.plotly_chart(fig_wk_q1, use_container_width=True, key="q1_wk", config=CHART_CONFIG)
 
             # ── Q1 Detail Table ──
             st.markdown('<div class="section-title">Q1 Store Details (Labor)</div>', unsafe_allow_html=True)
@@ -1044,7 +1050,7 @@ elif selected_tab == "Q2 Performance":
                                  annotation_text="10 min target", annotation_font=dict(color="#C62828", size=10))
             fig_sos_q2.update_layout(**CHART_LAYOUT, height=380,
                                      yaxis_title="Minutes", xaxis_tickangle=-45)
-            st.plotly_chart(fig_sos_q2, use_container_width=True, key="q2_sos")
+            st.plotly_chart(fig_sos_q2, use_container_width=True, key="q2_sos", config=CHART_CONFIG)
 
             # ── Pre-Bump & Bone-In Adoption ──
             pb_l, pb_r = st.columns(2)
@@ -1059,7 +1065,7 @@ elif selected_tab == "Q2 Performance":
                 ))
                 fig_pb_q2.update_layout(**CHART_LAYOUT, height=370,
                                         yaxis_title="Pre-Bump %", xaxis_tickangle=-45)
-                st.plotly_chart(fig_pb_q2, use_container_width=True, key="q2_pb")
+                st.plotly_chart(fig_pb_q2, use_container_width=True, key="q2_pb", config=CHART_CONFIG)
 
             with pb_r:
                 st.markdown('<div class="section-title">Q2 Bone-In Adoption</div>', unsafe_allow_html=True)
@@ -1074,7 +1080,7 @@ elif selected_tab == "Q2 Performance":
                                     annotation_text="100%", annotation_font=dict(color="#2E7D32", size=10))
                 fig_ad_q2.update_layout(**CHART_LAYOUT, height=370,
                                         yaxis_title="Adoption %", xaxis_tickangle=-45)
-                st.plotly_chart(fig_ad_q2, use_container_width=True, key="q2_adopt")
+                st.plotly_chart(fig_ad_q2, use_container_width=True, key="q2_adopt", config=CHART_CONFIG)
 
             # ── Qty Variance & Make Ahead ──
             qv_l, qv_r = st.columns(2)
@@ -1090,7 +1096,7 @@ elif selected_tab == "Q2 Performance":
                 fig_qv_q2.add_hline(y=0, line_color="#BDBDBD", line_width=1)
                 fig_qv_q2.update_layout(**CHART_LAYOUT, height=370,
                                         yaxis_title="Qty Variance %", xaxis_tickangle=-45)
-                st.plotly_chart(fig_qv_q2, use_container_width=True, key="q2_qv")
+                st.plotly_chart(fig_qv_q2, use_container_width=True, key="q2_qv", config=CHART_CONFIG)
 
             with qv_r:
                 st.markdown('<div class="section-title">Q2 Make Ahead Rate</div>', unsafe_allow_html=True)
@@ -1103,7 +1109,7 @@ elif selected_tab == "Q2 Performance":
                 ))
                 fig_ma_q2.update_layout(**CHART_LAYOUT, height=370,
                                         yaxis_title="Make Ahead %", xaxis_tickangle=-45)
-                st.plotly_chart(fig_ma_q2, use_container_width=True, key="q2_ma")
+                st.plotly_chart(fig_ma_q2, use_container_width=True, key="q2_ma", config=CHART_CONFIG)
 
         # ── Labor Variance by Store ──
         if not q2f.empty:
@@ -1119,7 +1125,7 @@ elif selected_tab == "Q2 Performance":
             fig_lv.add_hline(y=0, line_color="#BDBDBD", line_width=1)
             fig_lv.update_layout(**CHART_LAYOUT, height=400,
                                  yaxis_title="Labor Variance %", xaxis_tickangle=-45)
-            st.plotly_chart(fig_lv, use_container_width=True, key="q2_lv")
+            st.plotly_chart(fig_lv, use_container_width=True, key="q2_lv", config=CHART_CONFIG)
 
             # ── Sales Variance & Actual Labor % ──
             sv_l, sv_r = st.columns(2)
@@ -1136,7 +1142,7 @@ elif selected_tab == "Q2 Performance":
                 fig_sv.add_hline(y=0, line_color="#BDBDBD", line_width=1)
                 fig_sv.update_layout(**CHART_LAYOUT, height=370,
                                      yaxis_title="Sales Variance %", xaxis_tickangle=-45)
-                st.plotly_chart(fig_sv, use_container_width=True, key="q2_sv")
+                st.plotly_chart(fig_sv, use_container_width=True, key="q2_sv", config=CHART_CONFIG)
 
             with sv_r:
                 st.markdown('<div class="section-title">Q2 Actual Labor % by Store</div>', unsafe_allow_html=True)
@@ -1150,7 +1156,7 @@ elif selected_tab == "Q2 Performance":
                 ))
                 fig_al.update_layout(**CHART_LAYOUT, height=370,
                                      yaxis_title="Labor %", xaxis_tickangle=-45)
-                st.plotly_chart(fig_al, use_container_width=True, key="q2_al")
+                st.plotly_chart(fig_al, use_container_width=True, key="q2_al", config=CHART_CONFIG)
 
             # ── Weekly Labor Trend ──
             if not q2w.empty:
@@ -1181,7 +1187,7 @@ elif selected_tab == "Q2 Performance":
                     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
                                 font=dict(color="#333333")),
                 )
-                st.plotly_chart(fig_wk, use_container_width=True, key="q2_wk")
+                st.plotly_chart(fig_wk, use_container_width=True, key="q2_wk", config=CHART_CONFIG)
 
             # ── Q2 Detail Table (Labor) ──
             st.markdown('<div class="section-title">Q2 Store Details (Labor)</div>', unsafe_allow_html=True)
