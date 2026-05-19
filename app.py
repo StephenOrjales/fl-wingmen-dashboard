@@ -84,6 +84,13 @@ st.markdown("""
     section[data-testid="stSidebar"] .stSelectbox > div > div { font-size: 0.82rem; }
 
     .stDataFrame { border-radius: 8px; overflow: hidden; }
+    .stDataFrame [data-testid="stDataFrameResizable"] { background: #FFFFFF; border: 1px solid #E8ECF0; border-radius: 8px; }
+    .stDataFrame th { background: #F0FDF4 !important; color: #1F2937 !important; font-size: 0.78rem !important; font-weight: 600 !important; border-bottom: 2px solid #2D6A4F !important; }
+    .stDataFrame td { color: #374151 !important; font-size: 0.78rem !important; background: #FFFFFF !important; }
+    .stDataFrame tr:hover td { background: #F9FAFB !important; }
+    [data-testid="glideDataEditor"] { border: 1px solid #E8ECF0 !important; border-radius: 8px !important; }
+    [data-testid="glideDataEditor"] th, [data-testid="glideDataEditor"] .header-cell { background: #F0FDF4 !important; color: #1F2937 !important; }
+    [data-testid="stDataFrame"] > div { background: #FFFFFF; border-radius: 8px; }
 
     div[data-testid="stExpander"] { background: #FFFFFF; border: 1px solid #E8ECF0; border-radius: 8px; }
     div[data-testid="stExpander"] summary span { color: #374151 !important; }
@@ -1437,14 +1444,18 @@ elif selected_tab == "Labor Dashboard":
 
             with lr:
                 st.markdown('<div class="section-title">Overtime Hours by Store</div>', unsafe_allow_html=True)
-                ot_tbl = labor_df[["short_name", "config_district", "overtime_hours", "actual_hours"]].copy()
-                ot_tbl["ot_pct"] = ot_tbl["overtime_hours"] / ot_tbl["actual_hours"]
-                ot_tbl = ot_tbl.sort_values("overtime_hours", ascending=False)
-                ot_tbl.columns = ["Store", "District", "OT Hours", "Total Hours", "OT %"]
-                ot_tbl["OT Hours"] = ot_tbl["OT Hours"].apply(lambda x: f"{x:.1f}")
-                ot_tbl["Total Hours"] = ot_tbl["Total Hours"].apply(lambda x: f"{x:,.0f}")
-                ot_tbl["OT %"] = ot_tbl["OT %"].apply(lambda x: f"{x:.1%}")
-                st.dataframe(ot_tbl, use_container_width=True, hide_index=True, height=370)
+                ot_sorted = labor_df.sort_values("overtime_hours", ascending=True)
+                ot_colors = [RED if v > 25 else (ORANGE if v > 10 else GREEN) for v in ot_sorted["overtime_hours"]]
+                fig_ot = go.Figure(go.Bar(
+                    y=ot_sorted["short_name"], x=ot_sorted["overtime_hours"],
+                    orientation="h", marker_color=ot_colors,
+                    text=ot_sorted["overtime_hours"].apply(lambda x: f"{x:.1f}"),
+                    textposition="outside", textfont=dict(size=10, color="#374151"),
+                    hovertemplate="%{y}<br>OT: %{x:.1f} hrs<extra></extra>",
+                ))
+                fig_ot.update_layout(**CHART_LAYOUT, height=max(370, len(ot_sorted) * 22), xaxis_title="OT Hours",
+                                     yaxis=dict(tickfont=dict(size=10)), margin=dict(l=100, r=40, t=10, b=30))
+                st.plotly_chart(fig_ot, use_container_width=True, key="labor_ot", config=CHART_CONFIG)
 
             # Weekly labor trend
             if selected_period != "All Periods":
