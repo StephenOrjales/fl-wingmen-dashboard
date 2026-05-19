@@ -1638,13 +1638,54 @@ elif selected_tab == "District Comparison":
 
     # Real labor data from forecast
     forecast_path = DATA_DIR / "forecast.xlsm"
+    has_labor = False
     if forecast_path.exists():
         @st.cache_data(ttl=300)
         def load_district_labor():
             raw = pd.read_excel(forecast_path, sheet_name="Forecast_Data")
             return raw[raw["year"] == 2026].copy()
-        dc_labor = load_district_labor()
-        if not dc_labor.empty:
+        dc_labor_raw = load_district_labor()
+        if not dc_labor_raw.empty:
+            has_labor = True
+            dc_available_periods = sorted(dc_labor_raw["period"].unique())
+            dc_period_labels = {p: f"Period {p}" for p in dc_available_periods}
+
+            dcq1, dcq2, dcq3 = st.columns(3)
+            with dcq1:
+                dc_quarter_options = ["All Quarters", "Q1 (P1-P3)", "Q2 (P4-P6)"]
+                dc_selected_quarter = st.selectbox("Quarter", dc_quarter_options, key="dc_quarter")
+            dc_q_periods = {"Q1 (P1-P3)": [1, 2, 3], "Q2 (P4-P6)": [4, 5, 6]}
+            if dc_selected_quarter in dc_q_periods:
+                dc_qtr_filtered = dc_labor_raw[dc_labor_raw["period"].isin(dc_q_periods[dc_selected_quarter])]
+                dc_qtr_available = sorted(p for p in dc_available_periods if p in dc_q_periods[dc_selected_quarter])
+            else:
+                dc_qtr_filtered = dc_labor_raw
+                dc_qtr_available = dc_available_periods
+
+            with dcq2:
+                dc_period_options = ["All Periods"] + dc_qtr_available
+                dc_selected_period = st.selectbox(
+                    "Period", dc_period_options,
+                    format_func=lambda p: "All Periods" if p == "All Periods" else dc_period_labels.get(p, str(p)),
+                    index=len(dc_period_options) - 1,
+                    key="dc_period",
+                )
+            with dcq3:
+                if dc_selected_period == "All Periods":
+                    dc_week_choices = sorted(dc_qtr_filtered["week_d"].unique())
+                else:
+                    dc_week_choices = sorted(dc_qtr_filtered[dc_qtr_filtered["period"] == dc_selected_period]["week_d"].unique())
+                dc_week_options = ["All Weeks"] + list(dc_week_choices)
+                dc_selected_week = st.selectbox("Week", dc_week_options, key="dc_week")
+
+            dc_labor = dc_labor_raw.copy()
+            if dc_selected_quarter in dc_q_periods:
+                dc_labor = dc_labor[dc_labor["period"].isin(dc_q_periods[dc_selected_quarter])]
+            if dc_selected_period != "All Periods":
+                dc_labor = dc_labor[dc_labor["period"] == dc_selected_period]
+            if dc_selected_week != "All Weeks":
+                dc_labor = dc_labor[dc_labor["week_d"] == dc_selected_week]
+
             dc_labor["store_num"] = dc_labor["store"].apply(forecast_store_num)
             labor_agg = dc_labor.groupby("store_num").agg(
                 actual_sales=("actual_sales", "sum"),
@@ -1662,11 +1703,8 @@ elif selected_tab == "District Comparison":
             comp_df["labor_pct"] = comp_df["store_num"].map(labor_map)
             comp_df["labor_variance"] = comp_df["store_num"].map(lv_map)
             comp_df["overtime"] = comp_df["store_num"].map(ot_map).fillna(0)
-        else:
-            comp_df["labor_pct"] = None
-            comp_df["labor_variance"] = None
-            comp_df["overtime"] = 0
-    else:
+
+    if not has_labor:
         comp_df["labor_pct"] = None
         comp_df["labor_variance"] = None
         comp_df["overtime"] = 0
