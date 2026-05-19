@@ -171,13 +171,13 @@ CHART_LAYOUT = dict(
 
 
 def fiscal_week_label(d):
-    """Wingstop fiscal weeks run Saturday-Friday. Returns (week_start_date, label)."""
+    """Wingstop fiscal weeks run Sunday-Saturday. Returns (week_start_date, label)."""
     from datetime import date
     if not isinstance(d, date):
         return None, "Unknown"
-    days_since_sat = (d.weekday() + 2) % 7
-    week_start = d - timedelta(days=days_since_sat)
-    fy_start = date(2025, 12, 27)
+    days_since_sun = (d.weekday() + 1) % 7
+    week_start = d - timedelta(days=days_since_sun)
+    fy_start = date(2025, 12, 28)
     week_num = ((week_start - fy_start).days // 7) + 1
     return week_start, f"W{week_num}"
 
