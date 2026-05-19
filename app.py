@@ -99,8 +99,14 @@ st.markdown("""
         cursor: pointer;
         transition: all 0.15s;
     }
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label p {
+        color: #374151 !important;
+    }
     section[data-testid="stSidebar"] div[data-testid="stRadio"] label:hover {
         background: #F0FDF4;
+        color: #2D6A4F !important;
+    }
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:hover p {
         color: #2D6A4F !important;
     }
     section[data-testid="stSidebar"] div[data-testid="stRadio"] label[data-checked="true"],
@@ -108,6 +114,10 @@ st.markdown("""
         background: #2D6A4F;
         color: #FFFFFF !important;
         font-weight: 600;
+    }
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label[data-checked="true"] p,
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) p {
+        color: #FFFFFF !important;
     }
     section[data-testid="stSidebar"] div[data-testid="stRadio"] label span p { margin: 0; }
 </style>
