@@ -551,10 +551,10 @@ if selected_tab == "Daily KDS Snapshot":
         avg_waste = kds["waste"].mean() if kds["waste"].notna().any() else 0
 
         sos_c = "green" if avg_sos < 10 else ("orange" if avg_sos < 13 else "red")
-        pb_c = "green" if avg_prebump < 1 else ("orange" if avg_prebump < 3 else "red")
-        adopt_c = "green" if avg_adopt >= 97 else ("orange" if avg_adopt >= 90 else "red")
-        ma_c = "green" if avg_make >= 80 else ("orange" if avg_make >= 50 else "red")
-        waste_c = "green" if avg_waste < 2 else ("orange" if avg_waste < 5 else "red")
+        pb_c = "green" if avg_prebump <= 0.5 else ("orange" if avg_prebump <= 1.5 else "red")
+        adopt_c = "green" if avg_adopt >= 85 else "red"
+        ma_c = "green" if avg_make <= 10 else "red"
+        waste_c = "green" if avg_waste <= 5 else "red"
 
         k1.markdown(kpi_card("Avg SOS", f"{avg_sos:.1f} min", sos_c), unsafe_allow_html=True)
         k2.markdown(kpi_card("Pre-Bump Rate", f"{avg_prebump:.2f}%", pb_c), unsafe_allow_html=True)
@@ -567,7 +567,7 @@ if selected_tab == "Daily KDS Snapshot":
         # ── SOS Overall by Store ──
         st.markdown('<div class="section-title">Speed of Service (Overall) by Store</div>', unsafe_allow_html=True)
         sos_kds = kds[kds["sos_min"].notna()].sort_values("sos_min")
-        sos_colors = [RED if v > 12 else (ORANGE if v > 10 else TEAL) for v in sos_kds["sos_min"]]
+        sos_colors = [RED if v >= 13 else (ORANGE if v >= 10 else TEAL) for v in sos_kds["sos_min"]]
         fig_sos_k = go.Figure(go.Bar(
             x=sos_kds["short_name"], y=sos_kds["sos_min"],
             marker_color=sos_colors,
@@ -611,7 +611,7 @@ if selected_tab == "Daily KDS Snapshot":
         with pb_l:
             st.markdown('<div class="section-title">Pre-Bump Rate by Store</div>', unsafe_allow_html=True)
             pb_kds = kds[kds["pre_bump"].notna()].sort_values("pre_bump", ascending=False)
-            pb_colors = [RED if v > 3 else (ORANGE if v > 1 else TEAL) for v in pb_kds["pre_bump"]]
+            pb_colors = [RED if v > 1.5 else (ORANGE if v > 0.5 else TEAL) for v in pb_kds["pre_bump"]]
             fig_pb = go.Figure(go.Bar(
                 x=pb_kds["short_name"], y=pb_kds["pre_bump"],
                 marker_color=pb_colors,
@@ -624,7 +624,7 @@ if selected_tab == "Daily KDS Snapshot":
         with pb_r:
             st.markdown('<div class="section-title">Adoption of Cooks by Store</div>', unsafe_allow_html=True)
             ad_kds = kds[kds["bone_in_adopt"].notna()].sort_values("bone_in_adopt")
-            ad_colors = [RED if v < 90 else (ORANGE if v < 97 else "#059669") for v in ad_kds["bone_in_adopt"]]
+            ad_colors = [RED if v < 85 else "#059669" for v in ad_kds["bone_in_adopt"]]
             fig_ad = go.Figure(go.Bar(
                 x=ad_kds["short_name"], y=ad_kds["bone_in_adopt"],
                 marker_color=ad_colors,
@@ -641,7 +641,7 @@ if selected_tab == "Daily KDS Snapshot":
         with ma_l:
             st.markdown('<div class="section-title">Make Ahead Rate by Store</div>', unsafe_allow_html=True)
             ma_kds = kds[kds["make_ahead_rate"].notna()].sort_values("make_ahead_rate")
-            ma_colors = [RED if v < 50 else (ORANGE if v < 80 else "#059669") for v in ma_kds["make_ahead_rate"]]
+            ma_colors = [RED if v > 10 else "#059669" for v in ma_kds["make_ahead_rate"]]
             fig_ma = go.Figure(go.Bar(
                 x=ma_kds["short_name"], y=ma_kds["make_ahead_rate"],
                 marker_color=ma_colors,
@@ -654,7 +654,7 @@ if selected_tab == "Daily KDS Snapshot":
         with ma_r:
             st.markdown('<div class="section-title">Waste % by Store</div>', unsafe_allow_html=True)
             w_kds = kds[kds["waste"].notna()].sort_values("waste", ascending=False)
-            w_colors = [RED if v > 5 else (ORANGE if v > 2 else TEAL) for v in w_kds["waste"]]
+            w_colors = [RED if v > 5 else TEAL for v in w_kds["waste"]]
             fig_w = go.Figure(go.Bar(
                 x=w_kds["short_name"], y=w_kds["waste"],
                 marker_color=w_colors,
