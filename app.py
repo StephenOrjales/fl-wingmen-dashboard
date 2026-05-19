@@ -91,8 +91,6 @@ st.markdown("""
     [data-testid="glideDataEditor"] { border: 1px solid #E8ECF0 !important; border-radius: 8px !important; }
     [data-testid="glideDataEditor"] th, [data-testid="glideDataEditor"] .header-cell { background: #F0FDF4 !important; color: #1F2937 !important; }
     [data-testid="stDataFrame"] > div { background: #FFFFFF; border-radius: 8px; }
-    [data-testid="stDataFrame"] * { color: #1F2937 !important; --gdg-text-dark: #1F2937 !important; --gdg-text-medium: #374151 !important; --gdg-text-light: #6B7280 !important; --gdg-bg-cell: #FFFFFF !important; --gdg-bg-header: #F0FDF4 !important; --gdg-text-header: #1F2937 !important; --gdg-border-color: #E8ECF0 !important; }
-    [data-testid="stDataFrame"] canvas + div { color: #1F2937 !important; }
 
     div[data-testid="stExpander"] { background: #FFFFFF; border: 1px solid #E8ECF0; border-radius: 8px; }
     div[data-testid="stExpander"] summary span { color: #374151 !important; }
