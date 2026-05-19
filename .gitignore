@@ -1,10 +1,3 @@
-# Data files (contain store-level business data)
-data/
-*.xlsx
-*.xls
-*.xlsm
-*.csv
-
 # Chrome automation profile
 chrome_profile/
 
@@ -23,5 +16,8 @@ __pycache__/
 # Claude config
 .claude/
 
-# Misc
-config.json
+# Local-only files
+fetch_outlook.py
+scraper.py
+parse_pdfs.py
+inspect_app.py

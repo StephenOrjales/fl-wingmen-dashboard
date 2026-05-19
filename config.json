@@ -1,0 +1,61 @@
+{
+    "nbo_url": "https://anywhere.ncrbackoffice.com/NCRBackOffice/firehouse/",
+    "username": "stephen.orales",
+    "password": "Stephen29...",
+    "stores": {
+        "District 1": [
+            "0346 - FL - Miami Old Cutler Road",
+            "0871 - FL - Florida City",
+            "1677 - FL - Palmetto Bay SW 160th",
+            "1771 - FL - Miami - SW 152nd Street",
+            "2118 - FL - Naranja",
+            "3013 - FL - Quail Roost Dr"
+        ],
+        "District 2": [
+            "1848 - FL - Miami - SW 107 Ave",
+            "1891 - FL - Miami SW 137th Ave",
+            "1972 - FL - Miami 40th St",
+            "2627 - FL - Hialeah Drive",
+            "2766 - FL - Miami SW 40th Street",
+            "4032 - FL - Airpark Plaza"
+        ],
+        "District 3": [
+            "1864 - FL - Hialeah Gardens",
+            "1954 - FL - Miami - N Kendall Dr",
+            "2042 - FL - Miami Flagler",
+            "2602 - FL - Doral",
+            "2890 - FL - North Miami NW 119 Street",
+            "2893 - FL - Wynwood"
+        ],
+        "District 4": [
+            "0205 - FL - LAUDERHILL - Oakland Park",
+            "0420 - FL - Deerfield",
+            "0883 - FL - Hallandale Beach - W Hallandale Beach Blvd",
+            "1252 - FL - Fort Lauderdale Broward Blvd",
+            "1726 - FL - Fort Lauderdale E. Commercial",
+            "1841 - FL - Fort Lauderdale S Federal",
+            "1847 - FL - Pompano Beach"
+        ],
+        "District 5": [
+            "0079 - FL - Plantation - W Sunrise",
+            "0183 - FL - Margate - Atlantic",
+            "1096 - FL - Tamarac",
+            "1167 - FL - Pembroke Pines Pines Blvd",
+            "2048 - FL - Coral Springs",
+            "2290 - FL - Flamingo Pines",
+            "2976 - FL - Weston"
+        ],
+        "District 6": [
+            "2013 - FL - Palm Springs",
+            "2497 - FL - Royal Palm Beach",
+            "2696 - FL - Okeechobee Jog",
+            "2885 - FL - Lantana",
+            "2974 - FL - Delray",
+            "3200 - FL - Jupiter",
+            "3317 - FL - Boca Raton"
+        ]
+    },
+    "reports": ["2.05", "2.04"],
+    "export_format": "csv",
+    "data_dir": "data"
+}
