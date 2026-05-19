@@ -1627,7 +1627,6 @@ elif selected_tab == "SMG (Guest Satisfaction)":
 # ════════════════════════════════
 elif selected_tab == "District Comparison":
     import numpy as np
-    np.random.seed(42)
 
     all_stores = []
     for dist, stores in DISTRICTS.items():
@@ -1637,22 +1636,48 @@ elif selected_tab == "District Comparison":
             all_stores.append({"store": s, "store_num": snum, "short_name": sname, "district": dist})
     comp_df = pd.DataFrame(all_stores)
 
-    np.random.seed(42)
-    comp_df["net_sales"] = np.random.uniform(28000, 65000, len(comp_df)).round(0)
-    comp_df["sss_growth"] = np.random.uniform(-5, 15, len(comp_df)).round(1)
-    np.random.seed(99)
-    comp_df["labor_pct"] = np.random.uniform(0.14, 0.24, len(comp_df))
-    comp_df["overtime"] = np.random.uniform(0, 35, len(comp_df)).round(1)
-    np.random.seed(77)
-    comp_df["osat"] = np.random.uniform(55, 95, len(comp_df)).round(1)
+    # Real labor data from forecast
+    forecast_path = DATA_DIR / "forecast.xlsm"
+    if forecast_path.exists():
+        @st.cache_data(ttl=300)
+        def load_district_labor():
+            raw = pd.read_excel(forecast_path, sheet_name="Forecast_Data")
+            return raw[raw["year"] == 2026].copy()
+        dc_labor = load_district_labor()
+        if not dc_labor.empty:
+            dc_labor["store_num"] = dc_labor["store"].apply(forecast_store_num)
+            labor_agg = dc_labor.groupby("store_num").agg(
+                actual_sales=("actual_sales", "sum"),
+                actual_labor=("actual_labor", "sum"),
+                ovt_hours=("ovt_hours", "sum"),
+            ).reset_index()
+            labor_agg["labor_pct"] = labor_agg["actual_labor"] / labor_agg["actual_sales"]
+            labor_map = dict(zip(labor_agg["store_num"].astype(str), labor_agg["labor_pct"]))
+            ot_map = dict(zip(labor_agg["store_num"].astype(str), labor_agg["ovt_hours"]))
+            comp_df["labor_pct"] = comp_df["store_num"].map(labor_map)
+            comp_df["overtime"] = comp_df["store_num"].map(ot_map).fillna(0)
+        else:
+            comp_df["labor_pct"] = None
+            comp_df["overtime"] = 0
+    else:
+        comp_df["labor_pct"] = None
+        comp_df["overtime"] = 0
 
+    # Real KDS data
     if not daily_df_all.empty:
         latest_date = daily_df_all["data_date"].max()
         daily_latest = daily_df_all[daily_df_all["data_date"] == latest_date]
         sos_map = dict(zip(daily_latest["store_num"].astype(str), daily_latest["sos_min"]))
         comp_df["sos_min"] = comp_df["store_num"].map(sos_map)
     else:
-        comp_df["sos_min"] = np.random.uniform(7, 18, len(comp_df)).round(1)
+        comp_df["sos_min"] = None
+
+    # Sales & SMG still sample until real data provided
+    np.random.seed(42)
+    comp_df["net_sales"] = np.random.uniform(28000, 65000, len(comp_df)).round(0)
+    comp_df["sss_growth"] = np.random.uniform(-5, 15, len(comp_df)).round(1)
+    np.random.seed(77)
+    comp_df["osat"] = np.random.uniform(55, 95, len(comp_df)).round(1)
 
     district_agg = comp_df.groupby("district").agg(
         stores=("store", "count"),
@@ -1666,7 +1691,7 @@ elif selected_tab == "District Comparison":
     ).reset_index()
     district_agg = district_agg.sort_values("district")
 
-    st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">District Comparison &nbsp;|&nbsp; {len(district_agg)} districts &nbsp;|&nbsp; <span style="color:#D97706; font-weight:600;">Sample Data (Sales, Labor, SMG)</span></p>', unsafe_allow_html=True)
+    st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">District Comparison &nbsp;|&nbsp; {len(district_agg)} districts &nbsp;|&nbsp; <span style="color:#059669; font-weight:600;">Labor &amp; KDS: Real Data</span> &nbsp;|&nbsp; <span style="color:#D97706; font-weight:600;">Sales &amp; SMG: Sample</span></p>', unsafe_allow_html=True)
 
     dist_colors = [GREEN, TEAL, GOLD, ORANGE, "#7C3AED", "#0EA5E9"]
 
