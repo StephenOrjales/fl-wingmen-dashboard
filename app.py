@@ -391,11 +391,6 @@ if kds_df_all.empty and q2_store.empty:
 with st.sidebar:
     st.markdown("# FL Wingmen")
     st.markdown("---")
-
-    nav_options = ["Daily KDS Snapshot", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance"]
-    selected_tab = st.radio("Navigation", nav_options, label_visibility="collapsed")
-
-    st.markdown("---")
     st.markdown("**Filters**")
 
     district_options = ["All Districts"] + sorted(DISTRICTS.keys())
@@ -414,6 +409,11 @@ with st.sidebar:
 
     store_options = ["All Stores"] + store_list
     selected_store = st.selectbox("Store", store_options, label_visibility="collapsed")
+
+    st.markdown("---")
+
+    nav_options = ["Daily KDS Snapshot", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance"]
+    selected_tab = st.radio("Navigation", nav_options, label_visibility="collapsed")
 
     st.markdown("---")
     st.markdown(f"**{len(store_src)}** stores | **{len(DISTRICTS)}** districts")
