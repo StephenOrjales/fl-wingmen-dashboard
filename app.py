@@ -413,7 +413,7 @@ with st.sidebar:
         store_options = ["All Stores"] + store_list
         selected_store = st.selectbox("Store", store_options, label_visibility="collapsed")
 
-    nav_options = ["Daily KDS Snapshot", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance"]
+    nav_options = ["Scorecard", "Watch List", "Trends", "Daily KDS Snapshot", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance"]
     selected_tab = st.radio("Navigation", nav_options, label_visibility="collapsed")
 
     st.markdown("---")
@@ -1849,6 +1849,490 @@ elif selected_tab == "District Comparison":
     dtbl["Avg OSAT %"] = dtbl["Avg OSAT %"].apply(lambda x: f"{x:.1f}%")
     dtbl["Avg SOS (min)"] = dtbl["Avg SOS (min)"].apply(lambda x: f"{x:.1f}")
     st.dataframe(dtbl, use_container_width=True, hide_index=True)
+
+# ════════════════════════════════
+# SCORECARD
+# ════════════════════════════════
+elif selected_tab == "Scorecard":
+    import numpy as np
+
+    all_stores = []
+    for dist, stores in DISTRICTS.items():
+        for s in stores:
+            snum = s.split(" - ")[0].strip().lstrip("0")
+            sname = s.split("-", 2)[2].strip()[:22] if len(s.split("-", 2)) >= 3 else s[:22]
+            all_stores.append({"store_num": snum, "short_name": sname, "district": dist})
+    sc_df = pd.DataFrame(all_stores)
+
+    # KDS data (latest date)
+    if not daily_df_all.empty:
+        latest = daily_df_all[daily_df_all["data_date"] == daily_df_all["data_date"].max()]
+        kds_map = latest.set_index("store_num")[["sos_min", "pre_bump", "bone_in_adopt", "make_ahead_rate", "waste"]].to_dict("index")
+        for col in ["sos_min", "pre_bump", "bone_in_adopt", "make_ahead_rate", "waste"]:
+            sc_df[col] = sc_df["store_num"].map(lambda s, c=col: kds_map.get(s, {}).get(c))
+
+    # Labor data
+    forecast_path = DATA_DIR / "forecast.xlsm"
+    if forecast_path.exists():
+        @st.cache_data(ttl=300)
+        def load_sc_labor():
+            raw = pd.read_excel(forecast_path, sheet_name="Forecast_Data")
+            return raw[raw["year"] == 2026].copy()
+        sc_labor = load_sc_labor()
+        if not sc_labor.empty:
+            sc_labor["store_num"] = sc_labor["store"].apply(forecast_store_num)
+            la = sc_labor.groupby("store_num").agg(
+                actual_sales=("actual_sales", "sum"), forecast_sales=("forecast_sales", "sum"),
+                actual_labor=("actual_labor", "sum"), schedule_labor=("schedule_labor", "sum"),
+                ovt_hours=("ovt_hours", "sum"),
+            ).reset_index()
+            la["labor_pct"] = la["actual_labor"] / la["actual_sales"]
+            la["sched_labor_pct"] = la["schedule_labor"] / la["forecast_sales"]
+            la["labor_var"] = la["labor_pct"] - la["sched_labor_pct"]
+            for col in ["labor_pct", "labor_var", "ovt_hours"]:
+                sc_df[col] = sc_df["store_num"].map(dict(zip(la["store_num"].astype(str), la[col])))
+
+    # SMG data
+    smg_path = DATA_DIR / "smg_q1.xlsx"
+    if smg_path.exists():
+        @st.cache_data(ttl=300)
+        def load_sc_smg():
+            raw = pd.read_excel(smg_path, header=None, skiprows=2)
+            raw.columns = ["Store", "Measure", "Current", "LastYear", "Difference", "Count", "Count_Current", "Count_LastYear"]
+            raw = raw[(raw["Measure"] != "Measure") & (raw["Store"] != "Combined")].copy()
+            raw["Current"] = pd.to_numeric(raw["Current"], errors="coerce")
+            store_pat = raw["Store"].str.extract(r"^(\d+)\s*-\s*(.*)")
+            raw["store_num"] = store_pat[0].str.lstrip("0")
+            return raw
+        sc_smg = load_sc_smg()
+        dissat = sc_smg[sc_smg["Measure"] == "Dissatisfaction"]
+        sc_df["dissat_pct"] = sc_df["store_num"].map(dict(zip(dissat["store_num"], dissat["Current"] * 100)))
+
+    # Scoring: each metric gets 0-100 points
+    def score_sos(v):
+        if pd.isna(v): return None
+        if v < 10: return 100
+        if v < 13: return 70
+        return max(0, 100 - (v - 10) * 10)
+
+    def score_lower_better(v, good, bad):
+        if pd.isna(v): return None
+        if v <= good: return 100
+        if v >= bad: return 0
+        return max(0, 100 - (v - good) / (bad - good) * 100)
+
+    def score_higher_better(v, bad, good):
+        if pd.isna(v): return None
+        if v >= good: return 100
+        if v <= bad: return 0
+        return (v - bad) / (good - bad) * 100
+
+    sc_df["score_sos"] = sc_df["sos_min"].apply(score_sos) if "sos_min" in sc_df.columns else None
+    sc_df["score_prebump"] = sc_df["pre_bump"].apply(lambda v: score_lower_better(v, 0.5, 3)) if "pre_bump" in sc_df.columns else None
+    sc_df["score_adopt"] = sc_df["bone_in_adopt"].apply(lambda v: score_higher_better(v, 70, 95)) if "bone_in_adopt" in sc_df.columns else None
+    sc_df["score_waste"] = sc_df["waste"].apply(lambda v: score_lower_better(v, 2, 8)) if "waste" in sc_df.columns else None
+    sc_df["score_labor"] = sc_df["labor_pct"].apply(lambda v: score_lower_better(v * 100, 18, 24) if pd.notna(v) else None) if "labor_pct" in sc_df.columns else None
+    sc_df["score_dissat"] = sc_df["dissat_pct"].apply(lambda v: score_lower_better(v, 3, 12)) if "dissat_pct" in sc_df.columns else None
+
+    score_cols = [c for c in sc_df.columns if c.startswith("score_")]
+    sc_df["composite"] = sc_df[score_cols].mean(axis=1)
+    sc_df["rank"] = sc_df["composite"].rank(ascending=False, method="min").astype("Int64")
+    sc_df = sc_df.sort_values("composite", ascending=False)
+
+    if selected_store != "All Stores":
+        sk_num = extract_store_number(selected_store)
+        sc_df = sc_df[sc_df["store_num"] == sk_num]
+    elif selected_district != "All Districts":
+        d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
+        sc_df = sc_df[sc_df["store_num"].isin(d_nums)]
+
+    st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">Store Scorecard &nbsp;|&nbsp; {len(sc_df)} stores &nbsp;|&nbsp; Composite score across KDS, Labor &amp; SMG</p>', unsafe_allow_html=True)
+
+    # Top 5 / Bottom 5
+    if len(sc_df) > 5:
+        t5, b5 = st.columns(2)
+        with t5:
+            st.markdown('<div class="section-title">Top 5 Stores</div>', unsafe_allow_html=True)
+            top5 = sc_df.head(5)
+            for _, row in top5.iterrows():
+                score = row["composite"]
+                color = GREEN if score >= 75 else (ORANGE if score >= 50 else RED)
+                st.markdown(f'<div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem 0.8rem; margin:0.3rem 0; background:#FFFFFF; border-left:4px solid {color}; border-radius:4px; border:1px solid #E8ECF0;">'
+                            f'<span style="color:#1F2937; font-weight:600;">#{int(row["rank"])} {row["short_name"]}</span>'
+                            f'<span style="color:{color}; font-weight:700; font-size:1.1rem;">{score:.0f}</span></div>', unsafe_allow_html=True)
+        with b5:
+            st.markdown('<div class="section-title">Bottom 5 Stores</div>', unsafe_allow_html=True)
+            bot5 = sc_df.tail(5).iloc[::-1]
+            for _, row in bot5.iterrows():
+                score = row["composite"]
+                color = GREEN if score >= 75 else (ORANGE if score >= 50 else RED)
+                st.markdown(f'<div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem 0.8rem; margin:0.3rem 0; background:#FFFFFF; border-left:4px solid {color}; border-radius:4px; border:1px solid #E8ECF0;">'
+                            f'<span style="color:#1F2937; font-weight:600;">#{int(row["rank"])} {row["short_name"]}</span>'
+                            f'<span style="color:{color}; font-weight:700; font-size:1.1rem;">{score:.0f}</span></div>', unsafe_allow_html=True)
+
+    # Composite score chart
+    st.markdown('<div class="section-title">Composite Score by Store</div>', unsafe_allow_html=True)
+    sc_colors = [GREEN if v >= 75 else (ORANGE if v >= 50 else RED) for v in sc_df["composite"]]
+    fig_sc = go.Figure(go.Bar(
+        x=sc_df["short_name"], y=sc_df["composite"],
+        marker_color=sc_colors,
+        text=sc_df["composite"].apply(lambda x: f"{x:.0f}"),
+        textposition="outside", textfont=dict(size=9, color="#374151"),
+        hovertemplate="%{x}<br>Score: %{y:.1f}<extra></extra>",
+    ))
+    fig_sc.update_layout(**CHART_LAYOUT, height=400, yaxis_title="Composite Score", xaxis_tickangle=-45,
+                         yaxis=dict(range=[0, 110], gridcolor=GRID_COLOR, fixedrange=True))
+    st.plotly_chart(fig_sc, use_container_width=True, key="sc_composite", config=CHART_CONFIG)
+
+    # Stoplight table
+    st.markdown('<div class="section-title">Scorecard Detail</div>', unsafe_allow_html=True)
+
+    def stoplight(val, good, warn_fn="lower"):
+        if pd.isna(val): return "—"
+        if warn_fn == "lower":
+            color = GREEN if val <= good else (ORANGE if val <= good * 1.3 else RED)
+        else:
+            color = GREEN if val >= good else (ORANGE if val >= good * 0.85 else RED)
+        return f'<span style="color:{color}; font-weight:600;">{val:.1f}</span>'
+
+    sc_tbl = sc_df[["rank", "short_name", "district"]].copy()
+    sc_tbl["Composite"] = sc_df["composite"].apply(lambda x: f"{x:.0f}" if pd.notna(x) else "—")
+    sc_tbl["SOS"] = sc_df["sos_min"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "—") if "sos_min" in sc_df.columns else "—"
+    sc_tbl["Pre-Bump"] = sc_df["pre_bump"].apply(lambda x: f"{x:.2f}%" if pd.notna(x) else "—") if "pre_bump" in sc_df.columns else "—"
+    sc_tbl["Adoption"] = sc_df["bone_in_adopt"].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "—") if "bone_in_adopt" in sc_df.columns else "—"
+    sc_tbl["Waste"] = sc_df["waste"].apply(lambda x: f"{x:.2f}%" if pd.notna(x) else "—") if "waste" in sc_df.columns else "—"
+    sc_tbl["Labor %"] = sc_df["labor_pct"].apply(lambda x: f"{x:.1%}" if pd.notna(x) else "—") if "labor_pct" in sc_df.columns else "—"
+    sc_tbl["Dissat %"] = sc_df["dissat_pct"].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "—") if "dissat_pct" in sc_df.columns else "—"
+    sc_tbl.columns = ["Rank", "Store", "District", "Score", "SOS (min)", "Pre-Bump %", "Adoption %", "Waste %", "Labor %", "Dissat %"]
+    st.dataframe(sc_tbl, use_container_width=True, hide_index=True)
+
+    # District scorecard
+    if len(sc_df) > 5:
+        st.markdown('<div class="section-title">District Average Scores</div>', unsafe_allow_html=True)
+        dist_sc = sc_df.groupby("district")["composite"].mean().reset_index()
+        dist_sc = dist_sc.sort_values("composite", ascending=False)
+        dist_sc.columns = ["District", "Avg Score"]
+        dist_colors = [GREEN if v >= 75 else (ORANGE if v >= 50 else RED) for v in dist_sc["Avg Score"]]
+        fig_dsc = go.Figure(go.Bar(
+            x=dist_sc["District"], y=dist_sc["Avg Score"],
+            marker_color=dist_colors,
+            text=dist_sc["Avg Score"].apply(lambda x: f"{x:.0f}"),
+            textposition="outside", textfont=dict(size=11, color="#374151"),
+            hovertemplate="%{x}<br>Score: %{y:.1f}<extra></extra>",
+        ))
+        fig_dsc.update_layout(**CHART_LAYOUT, height=350, yaxis_title="Avg Composite Score",
+                              yaxis=dict(range=[0, 110], gridcolor=GRID_COLOR, fixedrange=True))
+        st.plotly_chart(fig_dsc, use_container_width=True, key="sc_district", config=CHART_CONFIG)
+
+# ════════════════════════════════
+# WATCH LIST
+# ════════════════════════════════
+elif selected_tab == "Watch List":
+    st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">Watch List &nbsp;|&nbsp; Stores exceeding key thresholds &nbsp;|&nbsp; Auto-generated alerts</p>', unsafe_allow_html=True)
+
+    alerts = []
+
+    # KDS alerts
+    if not daily_df_all.empty:
+        latest_date = daily_df_all["data_date"].max()
+        latest = daily_df_all[daily_df_all["data_date"] == latest_date].copy()
+        if selected_store != "All Stores":
+            sk_num = extract_store_number(selected_store)
+            latest = latest[latest["store_num"] == sk_num]
+        elif selected_district != "All Districts":
+            d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
+            latest = latest[latest["store_num"].isin(d_nums)]
+
+        sos_fail = latest[latest["sos_min"] >= 13]
+        for _, r in sos_fail.iterrows():
+            alerts.append({"Store": r["short_name"], "District": r.get("district", ""), "Metric": "SOS", "Value": f"{r['sos_min']:.1f} min", "Threshold": ">= 13 min", "Severity": "Critical"})
+
+        sos_warn = latest[(latest["sos_min"] >= 10) & (latest["sos_min"] < 13)]
+        for _, r in sos_warn.iterrows():
+            alerts.append({"Store": r["short_name"], "District": r.get("district", ""), "Metric": "SOS", "Value": f"{r['sos_min']:.1f} min", "Threshold": "10-13 min", "Severity": "Warning"})
+
+        waste_fail = latest[latest["waste"] > 5]
+        for _, r in waste_fail.iterrows():
+            alerts.append({"Store": r["short_name"], "District": r.get("district", ""), "Metric": "Waste", "Value": f"{r['waste']:.2f}%", "Threshold": "> 5%", "Severity": "Critical"})
+
+        adopt_fail = latest[latest["bone_in_adopt"] < 85]
+        for _, r in adopt_fail.iterrows():
+            alerts.append({"Store": r["short_name"], "District": r.get("district", ""), "Metric": "Bone-In Adoption", "Value": f"{r['bone_in_adopt']:.1f}%", "Threshold": "< 85%", "Severity": "Critical"})
+
+        ma_fail = latest[latest["make_ahead_rate"] > 10]
+        for _, r in ma_fail.iterrows():
+            alerts.append({"Store": r["short_name"], "District": r.get("district", ""), "Metric": "Make Ahead", "Value": f"{r['make_ahead_rate']:.1f}%", "Threshold": "> 10%", "Severity": "Critical"})
+
+        pb_crit = latest[latest["pre_bump"] > 1.5]
+        for _, r in pb_crit.iterrows():
+            alerts.append({"Store": r["short_name"], "District": r.get("district", ""), "Metric": "Pre-Bump", "Value": f"{r['pre_bump']:.2f}%", "Threshold": "> 1.5%", "Severity": "Critical"})
+
+        pb_warn = latest[(latest["pre_bump"] > 0.5) & (latest["pre_bump"] <= 1.5)]
+        for _, r in pb_warn.iterrows():
+            alerts.append({"Store": r["short_name"], "District": r.get("district", ""), "Metric": "Pre-Bump", "Value": f"{r['pre_bump']:.2f}%", "Threshold": "0.5-1.5%", "Severity": "Warning"})
+
+    # Labor alerts
+    forecast_path = DATA_DIR / "forecast.xlsm"
+    if forecast_path.exists():
+        @st.cache_data(ttl=300)
+        def load_wl_labor():
+            raw = pd.read_excel(forecast_path, sheet_name="Forecast_Data")
+            return raw[raw["year"] == 2026].copy()
+        wl_labor = load_wl_labor()
+        if not wl_labor.empty:
+            wl_labor["store_num"] = wl_labor["store"].apply(forecast_store_num)
+            wl_labor["short_name"] = wl_labor["store"].apply(forecast_short_name)
+            wl_labor["config_district"] = wl_labor["store_num"].map(STORE_TO_DISTRICT)
+            la = wl_labor.groupby(["store_num", "short_name", "config_district"]).agg(
+                actual_sales=("actual_sales", "sum"), forecast_sales=("forecast_sales", "sum"),
+                actual_labor=("actual_labor", "sum"), schedule_labor=("schedule_labor", "sum"),
+                ovt_hours=("ovt_hours", "sum"),
+            ).reset_index()
+            la["labor_pct"] = la["actual_labor"] / la["actual_sales"]
+            la["labor_var"] = la["labor_pct"] - (la["schedule_labor"] / la["forecast_sales"])
+
+            if selected_store != "All Stores":
+                sk_num = extract_store_number(selected_store)
+                la = la[la["store_num"] == sk_num]
+            elif selected_district != "All Districts":
+                d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
+                la = la[la["store_num"].isin(d_nums)]
+
+            labor_high = la[la["labor_pct"] > 0.20]
+            for _, r in labor_high.iterrows():
+                alerts.append({"Store": r["short_name"], "District": r.get("config_district", ""), "Metric": "Labor %", "Value": f"{r['labor_pct']:.1%}", "Threshold": "> 20%", "Severity": "Critical"})
+
+            labor_warn = la[(la["labor_pct"] > 0.18) & (la["labor_pct"] <= 0.20)]
+            for _, r in labor_warn.iterrows():
+                alerts.append({"Store": r["short_name"], "District": r.get("config_district", ""), "Metric": "Labor %", "Value": f"{r['labor_pct']:.1%}", "Threshold": "18-20%", "Severity": "Warning"})
+
+            var_high = la[la["labor_var"] > 0.02]
+            for _, r in var_high.iterrows():
+                alerts.append({"Store": r["short_name"], "District": r.get("config_district", ""), "Metric": "Labor Variance", "Value": f"{r['labor_var']:+.2%}", "Threshold": "> +2%", "Severity": "Critical"})
+
+            ot_high = la[la["ovt_hours"] > 25]
+            for _, r in ot_high.iterrows():
+                alerts.append({"Store": r["short_name"], "District": r.get("config_district", ""), "Metric": "Overtime", "Value": f"{r['ovt_hours']:.1f} hrs", "Threshold": "> 25 hrs", "Severity": "Warning"})
+
+    if not alerts:
+        st.success("All stores within thresholds. No alerts.")
+    else:
+        alert_df = pd.DataFrame(alerts)
+
+        # Summary KPIs
+        critical_count = len(alert_df[alert_df["Severity"] == "Critical"])
+        warning_count = len(alert_df[alert_df["Severity"] == "Warning"])
+        stores_flagged = alert_df["Store"].nunique()
+        top_metric = alert_df["Metric"].value_counts().index[0] if len(alert_df) > 0 else "—"
+
+        wk1, wk2, wk3, wk4 = st.columns(4)
+        wk1.markdown(kpi_card("Critical Alerts", str(critical_count), "red"), unsafe_allow_html=True)
+        wk2.markdown(kpi_card("Warnings", str(warning_count), "orange"), unsafe_allow_html=True)
+        wk3.markdown(kpi_card("Stores Flagged", f"{stores_flagged} / {len(STORE_TO_DISTRICT)}"), unsafe_allow_html=True)
+        wk4.markdown(kpi_card("Top Issue", top_metric), unsafe_allow_html=True)
+
+        st.markdown("")
+
+        # Alerts by metric
+        st.markdown('<div class="section-title">Alert Breakdown by Metric</div>', unsafe_allow_html=True)
+        metric_counts = alert_df.groupby(["Metric", "Severity"]).size().unstack(fill_value=0).reset_index()
+        if "Critical" not in metric_counts.columns:
+            metric_counts["Critical"] = 0
+        if "Warning" not in metric_counts.columns:
+            metric_counts["Warning"] = 0
+        metric_counts = metric_counts.sort_values("Critical", ascending=False)
+
+        fig_mc = go.Figure()
+        fig_mc.add_trace(go.Bar(x=metric_counts["Metric"], y=metric_counts["Critical"], name="Critical", marker_color=RED))
+        fig_mc.add_trace(go.Bar(x=metric_counts["Metric"], y=metric_counts["Warning"], name="Warning", marker_color=ORANGE))
+        fig_mc.update_layout(**CHART_LAYOUT, barmode="stack", height=320, yaxis_title="Count",
+                             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color="#374151")))
+        st.plotly_chart(fig_mc, use_container_width=True, key="wl_metrics", config=CHART_CONFIG)
+
+        # Alerts by district
+        st.markdown('<div class="section-title">Alerts by District</div>', unsafe_allow_html=True)
+        dist_alerts = alert_df.groupby(["District", "Severity"]).size().unstack(fill_value=0).reset_index()
+        if "Critical" not in dist_alerts.columns:
+            dist_alerts["Critical"] = 0
+        if "Warning" not in dist_alerts.columns:
+            dist_alerts["Warning"] = 0
+        dist_alerts["Total"] = dist_alerts["Critical"] + dist_alerts["Warning"]
+        dist_alerts = dist_alerts.sort_values("Total", ascending=False)
+
+        fig_da = go.Figure()
+        fig_da.add_trace(go.Bar(x=dist_alerts["District"], y=dist_alerts["Critical"], name="Critical", marker_color=RED))
+        fig_da.add_trace(go.Bar(x=dist_alerts["District"], y=dist_alerts["Warning"], name="Warning", marker_color=ORANGE))
+        fig_da.update_layout(**CHART_LAYOUT, barmode="stack", height=320, yaxis_title="Count",
+                             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color="#374151")))
+        st.plotly_chart(fig_da, use_container_width=True, key="wl_districts", config=CHART_CONFIG)
+
+        # Full alert table
+        st.markdown('<div class="section-title">All Alerts</div>', unsafe_allow_html=True)
+        alert_display = alert_df.sort_values(["Severity", "Metric", "Store"])
+        st.dataframe(alert_display, use_container_width=True, hide_index=True)
+
+# ════════════════════════════════
+# TRENDS
+# ════════════════════════════════
+elif selected_tab == "Trends":
+    st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">Trends &nbsp;|&nbsp; Week-over-week metric movement</p>', unsafe_allow_html=True)
+
+    if daily_df_all.empty:
+        st.warning("No KDS history data available for trends.")
+    else:
+        trend_data = daily_df_all.copy()
+        if selected_store != "All Stores":
+            sk_num = extract_store_number(selected_store)
+            trend_data = trend_data[trend_data["store_num"] == sk_num]
+        elif selected_district != "All Districts":
+            d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
+            trend_data = trend_data[trend_data["store_num"].isin(d_nums)]
+
+        daily_avg = trend_data.groupby("data_date").agg(
+            sos_min=("sos_min", "mean"),
+            pre_bump=("pre_bump", "mean"),
+            bone_in_adopt=("bone_in_adopt", "mean"),
+            make_ahead_rate=("make_ahead_rate", "mean"),
+            waste=("waste", "mean"),
+        ).reset_index()
+        daily_avg = daily_avg.sort_values("data_date")
+        daily_avg["date_str"] = daily_avg["data_date"].apply(lambda d: d.strftime("%m/%d") if hasattr(d, "strftime") else str(d)[-5:])
+
+        # SOS Trend
+        st.markdown('<div class="section-title">Speed of Service Trend</div>', unsafe_allow_html=True)
+        fig_sos_t = go.Figure()
+        fig_sos_t.add_trace(go.Scatter(
+            x=daily_avg["date_str"], y=daily_avg["sos_min"],
+            mode="lines+markers", name="Avg SOS",
+            line=dict(color=TEAL, width=3), marker=dict(size=8),
+            hovertemplate="%{x}<br>SOS: %{y:.1f} min<extra></extra>",
+        ))
+        fig_sos_t.add_hline(y=10, line_dash="dash", line_color=ORANGE, line_width=1.5, annotation_text="10 min target", annotation_font=dict(color=ORANGE, size=10))
+        fig_sos_t.add_hline(y=13, line_dash="dash", line_color=RED, line_width=1.5, annotation_text="13 min critical", annotation_font=dict(color=RED, size=10))
+        fig_sos_t.update_layout(**CHART_LAYOUT, height=350, yaxis_title="Minutes")
+        st.plotly_chart(fig_sos_t, use_container_width=True, key="trend_sos", config=CHART_CONFIG)
+
+        # Pre-bump & Waste trends
+        tl, tr = st.columns(2)
+        with tl:
+            st.markdown('<div class="section-title">Pre-Bump Rate Trend</div>', unsafe_allow_html=True)
+            fig_pb_t = go.Figure()
+            fig_pb_t.add_trace(go.Scatter(
+                x=daily_avg["date_str"], y=daily_avg["pre_bump"],
+                mode="lines+markers", name="Pre-Bump %",
+                line=dict(color=ORANGE, width=3), marker=dict(size=8),
+            ))
+            fig_pb_t.add_hline(y=0.5, line_dash="dash", line_color=ORANGE, line_width=1)
+            fig_pb_t.add_hline(y=1.5, line_dash="dash", line_color=RED, line_width=1)
+            fig_pb_t.update_layout(**CHART_LAYOUT, height=320, yaxis_title="Pre-Bump %")
+            st.plotly_chart(fig_pb_t, use_container_width=True, key="trend_pb", config=CHART_CONFIG)
+
+        with tr:
+            st.markdown('<div class="section-title">Waste % Trend</div>', unsafe_allow_html=True)
+            fig_w_t = go.Figure()
+            fig_w_t.add_trace(go.Scatter(
+                x=daily_avg["date_str"], y=daily_avg["waste"],
+                mode="lines+markers", name="Waste %",
+                line=dict(color=RED, width=3), marker=dict(size=8),
+            ))
+            fig_w_t.add_hline(y=5, line_dash="dash", line_color=RED, line_width=1, annotation_text="5% threshold", annotation_font=dict(color=RED, size=10))
+            fig_w_t.update_layout(**CHART_LAYOUT, height=320, yaxis_title="Waste %")
+            st.plotly_chart(fig_w_t, use_container_width=True, key="trend_waste", config=CHART_CONFIG)
+
+        # Adoption & Make Ahead trends
+        al, ar = st.columns(2)
+        with al:
+            st.markdown('<div class="section-title">Bone-In Adoption Trend</div>', unsafe_allow_html=True)
+            fig_ad_t = go.Figure()
+            fig_ad_t.add_trace(go.Scatter(
+                x=daily_avg["date_str"], y=daily_avg["bone_in_adopt"],
+                mode="lines+markers", name="Adoption %",
+                line=dict(color=GREEN, width=3), marker=dict(size=8),
+            ))
+            fig_ad_t.add_hline(y=85, line_dash="dash", line_color=RED, line_width=1, annotation_text="85% minimum", annotation_font=dict(color=RED, size=10))
+            fig_ad_t.update_layout(**CHART_LAYOUT, height=320, yaxis_title="Adoption %")
+            st.plotly_chart(fig_ad_t, use_container_width=True, key="trend_adopt", config=CHART_CONFIG)
+
+        with ar:
+            st.markdown('<div class="section-title">Make Ahead Rate Trend</div>', unsafe_allow_html=True)
+            fig_ma_t = go.Figure()
+            fig_ma_t.add_trace(go.Scatter(
+                x=daily_avg["date_str"], y=daily_avg["make_ahead_rate"],
+                mode="lines+markers", name="Make Ahead %",
+                line=dict(color=GOLD, width=3), marker=dict(size=8),
+            ))
+            fig_ma_t.add_hline(y=10, line_dash="dash", line_color=RED, line_width=1, annotation_text="10% max", annotation_font=dict(color=RED, size=10))
+            fig_ma_t.update_layout(**CHART_LAYOUT, height=320, yaxis_title="Make Ahead %")
+            st.plotly_chart(fig_ma_t, use_container_width=True, key="trend_ma", config=CHART_CONFIG)
+
+        # Store-level SOS trend (top 5 worst)
+        if selected_store == "All Stores":
+            st.markdown('<div class="section-title">SOS Trend — Top 5 Worst Stores</div>', unsafe_allow_html=True)
+            latest_date = trend_data["data_date"].max()
+            worst5 = trend_data[trend_data["data_date"] == latest_date].nlargest(5, "sos_min")["store_num"].tolist()
+            worst_trend = trend_data[trend_data["store_num"].isin(worst5)].copy()
+            worst_trend["date_str"] = worst_trend["data_date"].apply(lambda d: d.strftime("%m/%d") if hasattr(d, "strftime") else str(d)[-5:])
+
+            fig_w5 = go.Figure()
+            colors = [RED, ORANGE, GOLD, TEAL, DARK]
+            for i, snum in enumerate(worst5):
+                sdata = worst_trend[worst_trend["store_num"] == snum].sort_values("data_date")
+                name = sdata["short_name"].iloc[0] if len(sdata) > 0 else snum
+                fig_w5.add_trace(go.Scatter(
+                    x=sdata["date_str"], y=sdata["sos_min"],
+                    mode="lines+markers", name=name,
+                    line=dict(color=colors[i % len(colors)], width=2), marker=dict(size=6),
+                ))
+            fig_w5.add_hline(y=13, line_dash="dash", line_color=RED, line_width=1)
+            fig_w5.update_layout(**CHART_LAYOUT, height=380, yaxis_title="SOS (min)",
+                                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color="#374151")))
+            st.plotly_chart(fig_w5, use_container_width=True, key="trend_worst5", config=CHART_CONFIG)
+
+        # Labor trend by period
+        forecast_path = DATA_DIR / "forecast.xlsm"
+        if forecast_path.exists():
+            @st.cache_data(ttl=300)
+            def load_trend_labor():
+                raw = pd.read_excel(forecast_path, sheet_name="Forecast_Data")
+                return raw[raw["year"] == 2026].copy()
+            tr_labor = load_trend_labor()
+            if not tr_labor.empty:
+                tr_labor["store_num"] = tr_labor["store"].apply(forecast_store_num)
+                tr_labor["config_district"] = tr_labor["store_num"].map(STORE_TO_DISTRICT)
+
+                if selected_store != "All Stores":
+                    sk_num = extract_store_number(selected_store)
+                    tr_labor = tr_labor[tr_labor["store_num"] == sk_num]
+                elif selected_district != "All Districts":
+                    d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
+                    tr_labor = tr_labor[tr_labor["store_num"].isin(d_nums)]
+
+                period_trend = tr_labor.groupby("week_d").agg(
+                    actual_labor=("actual_labor", "sum"),
+                    actual_sales=("actual_sales", "sum"),
+                    schedule_labor=("schedule_labor", "sum"),
+                    forecast_sales=("forecast_sales", "sum"),
+                ).reset_index()
+                period_trend["actual_pct"] = period_trend["actual_labor"] / period_trend["actual_sales"] * 100
+                period_trend["sched_pct"] = period_trend["schedule_labor"] / period_trend["forecast_sales"] * 100
+                period_trend = period_trend.sort_values("week_d")
+
+                st.markdown('<div class="section-title">Labor % Trend by Week</div>', unsafe_allow_html=True)
+                fig_lt = go.Figure()
+                fig_lt.add_trace(go.Scatter(
+                    x=period_trend["week_d"], y=period_trend["actual_pct"],
+                    name="Actual Labor %", mode="lines+markers",
+                    line=dict(color=ORANGE, width=3), marker=dict(size=8),
+                ))
+                fig_lt.add_trace(go.Scatter(
+                    x=period_trend["week_d"], y=period_trend["sched_pct"],
+                    name="Scheduled Labor %", mode="lines+markers",
+                    line=dict(color=TEAL, width=2, dash="dash"), marker=dict(size=6),
+                ))
+                fig_lt.add_hline(y=18, line_dash="dash", line_color=RED, line_width=1)
+                fig_lt.update_layout(**CHART_LAYOUT, height=380, yaxis_title="Labor %",
+                                     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color="#374151")))
+                st.plotly_chart(fig_lt, use_container_width=True, key="trend_labor", config=CHART_CONFIG)
 
 st.markdown("---")
 st.markdown('<p style="color:#999999; font-size:0.75rem; text-align:center;">FL Wingmen Dashboard &nbsp;|&nbsp; Smart Kitchen Performance &amp; Forecast Data</p>', unsafe_allow_html=True)
