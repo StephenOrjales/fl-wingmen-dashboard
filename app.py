@@ -413,7 +413,7 @@ with st.sidebar:
         store_options = ["All Stores"] + store_list
         selected_store = st.selectbox("Store", store_options, label_visibility="collapsed")
 
-    nav_options = ["Daily KDS Snapshot", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance", "Scorecard", "Watch List", "Trends"]
+    nav_options = ["Daily KDS Snapshot", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance", "Scorecard", "Watch List", "Trends", "Wing Worm"]
     selected_tab = st.radio("Navigation", nav_options, label_visibility="collapsed")
 
     st.markdown("---")
@@ -2348,6 +2348,237 @@ elif selected_tab == "Trends":
                 fig_lt.update_layout(**CHART_LAYOUT, height=380, yaxis_title="Labor %",
                                      legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color="#374151")))
                 st.plotly_chart(fig_lt, use_container_width=True, key="trend_labor", config=CHART_CONFIG)
+
+# ════════════════════════════════
+# WING WORM
+# ════════════════════════════════
+elif selected_tab == "Wing Worm":
+    st.markdown('<div class="section-title">Wing Worm</div>', unsafe_allow_html=True)
+    st.markdown('<p style="color:#6B7280; font-size:0.85rem;">Guide the worm to eat boneless wings! Use arrow keys or WASD to move.</p>', unsafe_allow_html=True)
+
+    import streamlit.components.v1 as components
+    game_html = """
+    <div id="game-wrapper" style="display:flex; flex-direction:column; align-items:center;">
+        <div style="display:flex; justify-content:space-between; width:400px; margin-bottom:8px;">
+            <span id="score" style="color:#1F2937; font-weight:700; font-size:1rem;">Score: 0</span>
+            <span id="high-score" style="color:#059669; font-weight:700; font-size:1rem;">Best: 0</span>
+        </div>
+        <canvas id="game" width="400" height="400" style="border:2px solid #1A3C34; border-radius:8px; background:#FAFBFC;"></canvas>
+        <div id="game-over" style="display:none; margin-top:12px; text-align:center;">
+            <p style="color:#DC2626; font-weight:700; font-size:1.2rem; margin:0;">Game Over!</p>
+            <p style="color:#6B7280; font-size:0.85rem; margin:4px 0;">Press Space or tap to restart</p>
+        </div>
+        <div id="start-msg" style="margin-top:12px; text-align:center;">
+            <p style="color:#059669; font-weight:600; font-size:0.95rem; margin:0;">Press any arrow key or tap to start!</p>
+        </div>
+    </div>
+    <script>
+    (function() {
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const GRID = 20;
+        const COLS = canvas.width / GRID;
+        const ROWS = canvas.height / GRID;
+
+        let snake, dir, nextDir, food, score, highScore, gameOver, started, speed, gameLoop;
+
+        highScore = parseInt(localStorage.getItem('wingworm_high') || '0');
+        document.getElementById('high-score').textContent = 'Best: ' + highScore;
+
+        function init() {
+            snake = [{x:10, y:10}, {x:9, y:10}, {x:8, y:10}];
+            dir = {x:1, y:0};
+            nextDir = {x:1, y:0};
+            score = 0;
+            gameOver = false;
+            started = false;
+            speed = 120;
+            placeFood();
+            updateScore();
+            document.getElementById('game-over').style.display = 'none';
+            document.getElementById('start-msg').style.display = 'block';
+            draw();
+            if (gameLoop) clearInterval(gameLoop);
+        }
+
+        function placeFood() {
+            do {
+                food = {x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS)};
+            } while (snake.some(s => s.x === food.x && s.y === food.y));
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = 'Score: ' + score;
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('wingworm_high', highScore);
+                document.getElementById('high-score').textContent = 'Best: ' + highScore;
+            }
+        }
+
+        function drawRoundRect(x, y, w, h, r, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(x+r, y);
+            ctx.arcTo(x+w, y, x+w, y+h, r);
+            ctx.arcTo(x+w, y+h, x, y+h, r);
+            ctx.arcTo(x, y+h, x, y, r);
+            ctx.arcTo(x, y, x+w, y, r);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Grid
+            ctx.strokeStyle = '#F1F5F9';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i < COLS; i++) {
+                ctx.beginPath(); ctx.moveTo(i*GRID, 0); ctx.lineTo(i*GRID, canvas.height); ctx.stroke();
+            }
+            for (let i = 0; i < ROWS; i++) {
+                ctx.beginPath(); ctx.moveTo(0, i*GRID); ctx.lineTo(canvas.width, i*GRID); ctx.stroke();
+            }
+
+            // Food (boneless wing)
+            const fx = food.x * GRID, fy = food.y * GRID;
+            ctx.fillStyle = '#D97706';
+            ctx.beginPath();
+            ctx.ellipse(fx + GRID/2, fy + GRID/2, GRID/2.2, GRID/2.8, 0, 0, Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle = '#F59E0B';
+            ctx.beginPath();
+            ctx.ellipse(fx + GRID/2, fy + GRID/2.5, GRID/3.5, GRID/4, 0, 0, Math.PI*2);
+            ctx.fill();
+
+            // Snake
+            snake.forEach((seg, i) => {
+                const color = i === 0 ? '#059669' : (i % 2 === 0 ? '#10B981' : '#34D399');
+                drawRoundRect(seg.x * GRID + 1, seg.y * GRID + 1, GRID - 2, GRID - 2, 4, color);
+            });
+
+            // Eyes on head
+            const head = snake[0];
+            const eyeSize = 3;
+            ctx.fillStyle = '#FFFFFF';
+            if (dir.x === 1) {
+                ctx.beginPath(); ctx.arc(head.x*GRID+15, head.y*GRID+6, eyeSize, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(head.x*GRID+15, head.y*GRID+14, eyeSize, 0, Math.PI*2); ctx.fill();
+            } else if (dir.x === -1) {
+                ctx.beginPath(); ctx.arc(head.x*GRID+5, head.y*GRID+6, eyeSize, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(head.x*GRID+5, head.y*GRID+14, eyeSize, 0, Math.PI*2); ctx.fill();
+            } else if (dir.y === -1) {
+                ctx.beginPath(); ctx.arc(head.x*GRID+6, head.y*GRID+5, eyeSize, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(head.x*GRID+14, head.y*GRID+5, eyeSize, 0, Math.PI*2); ctx.fill();
+            } else {
+                ctx.beginPath(); ctx.arc(head.x*GRID+6, head.y*GRID+15, eyeSize, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(head.x*GRID+14, head.y*GRID+15, eyeSize, 0, Math.PI*2); ctx.fill();
+            }
+            ctx.fillStyle = '#1A3C34';
+            if (dir.x === 1) {
+                ctx.beginPath(); ctx.arc(head.x*GRID+16, head.y*GRID+6, 1.5, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(head.x*GRID+16, head.y*GRID+14, 1.5, 0, Math.PI*2); ctx.fill();
+            } else if (dir.x === -1) {
+                ctx.beginPath(); ctx.arc(head.x*GRID+4, head.y*GRID+6, 1.5, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(head.x*GRID+4, head.y*GRID+14, 1.5, 0, Math.PI*2); ctx.fill();
+            } else if (dir.y === -1) {
+                ctx.beginPath(); ctx.arc(head.x*GRID+6, head.y*GRID+4, 1.5, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(head.x*GRID+14, head.y*GRID+4, 1.5, 0, Math.PI*2); ctx.fill();
+            } else {
+                ctx.beginPath(); ctx.arc(head.x*GRID+6, head.y*GRID+16, 1.5, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(head.x*GRID+14, head.y*GRID+16, 1.5, 0, Math.PI*2); ctx.fill();
+            }
+        }
+
+        function step() {
+            if (gameOver) return;
+            dir = nextDir;
+            const head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
+
+            if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) { die(); return; }
+            if (snake.some(s => s.x === head.x && s.y === head.y)) { die(); return; }
+
+            snake.unshift(head);
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                updateScore();
+                placeFood();
+                if (speed > 60) speed -= 2;
+                clearInterval(gameLoop);
+                gameLoop = setInterval(step, speed);
+            } else {
+                snake.pop();
+            }
+            draw();
+        }
+
+        function die() {
+            gameOver = true;
+            document.getElementById('game-over').style.display = 'block';
+            draw();
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 28px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Game Over!', canvas.width/2, canvas.height/2 - 10);
+            ctx.font = '16px sans-serif';
+            ctx.fillText('Score: ' + score + '  |  Wings eaten!', canvas.width/2, canvas.height/2 + 20);
+        }
+
+        function startGame() {
+            if (!started) {
+                started = true;
+                document.getElementById('start-msg').style.display = 'none';
+                gameLoop = setInterval(step, speed);
+            }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d',' '].includes(e.key)) {
+                e.preventDefault();
+            }
+            if (gameOver && (e.key === ' ' || e.key === 'Enter')) { init(); return; }
+            if (e.key === 'ArrowUp' || e.key === 'w') { if (dir.y !== 1) { nextDir = {x:0,y:-1}; startGame(); } }
+            else if (e.key === 'ArrowDown' || e.key === 's') { if (dir.y !== -1) { nextDir = {x:0,y:1}; startGame(); } }
+            else if (e.key === 'ArrowLeft' || e.key === 'a') { if (dir.x !== 1) { nextDir = {x:-1,y:0}; startGame(); } }
+            else if (e.key === 'ArrowRight' || e.key === 'd') { if (dir.x !== -1) { nextDir = {x:1,y:0}; startGame(); } }
+        });
+
+        // Touch controls for mobile
+        let touchStart = null;
+        canvas.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            if (gameOver) { init(); return; }
+            touchStart = {x: e.touches[0].clientX, y: e.touches[0].clientY};
+            startGame();
+        });
+        canvas.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+            if (!touchStart) return;
+            const dx = e.touches[0].clientX - touchStart.x;
+            const dy = e.touches[0].clientY - touchStart.y;
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (dx > 20 && dir.x !== -1) nextDir = {x:1, y:0};
+                else if (dx < -20 && dir.x !== 1) nextDir = {x:-1, y:0};
+            } else {
+                if (dy > 20 && dir.y !== -1) nextDir = {x:0, y:1};
+                else if (dy < -20 && dir.y !== 1) nextDir = {x:0, y:-1};
+            }
+            touchStart = {x: e.touches[0].clientX, y: e.touches[0].clientY};
+        });
+
+        canvas.addEventListener('click', function() {
+            if (gameOver) init();
+            else startGame();
+        });
+
+        init();
+    })();
+    </script>
+    """
+    components.html(game_html, height=500)
 
 st.markdown("---")
 st.markdown('<p style="color:#999999; font-size:0.75rem; text-align:center;">FL Wingmen Dashboard &nbsp;|&nbsp; Smart Kitchen Performance &amp; Forecast Data</p>', unsafe_allow_html=True)
