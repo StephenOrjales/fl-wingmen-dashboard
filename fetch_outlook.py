@@ -139,11 +139,31 @@ def append_to_history():
     print(f"  Dates: {', '.join(dates_in_history[:5])}{'...' if len(dates_in_history) > 5 else ''}")
 
 
+def git_push():
+    import subprocess
+    repo_dir = Path(__file__).parent
+    try:
+        subprocess.run(["git", "add", "data/kds_history.csv", "data/smart_kitchen_daily.xlsx"],
+                       cwd=repo_dir, check=True, capture_output=True, text=True)
+        result = subprocess.run(["git", "status", "--porcelain"], cwd=repo_dir, capture_output=True, text=True)
+        if not result.stdout.strip():
+            print("  No changes to commit.")
+            return
+        subprocess.run(["git", "commit", "-m", "Auto-update KDS data"],
+                       cwd=repo_dir, check=True, capture_output=True, text=True)
+        subprocess.run(["git", "push", "origin", "master"],
+                       cwd=repo_dir, check=True, capture_output=True, text=True)
+        print("  Pushed to GitHub.")
+    except subprocess.CalledProcessError as e:
+        print(f"  Git push failed: {e.stderr or e.stdout}")
+
+
 if __name__ == "__main__":
     import sys
     success = fetch_latest_report()
     if success:
         print("\nDone! Dashboard data updated.")
+        git_push()
     else:
         print("\nNo update available.")
         sys.exit(1)
