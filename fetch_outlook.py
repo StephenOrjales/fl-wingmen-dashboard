@@ -78,31 +78,59 @@ def append_to_history():
     df.columns = [str(c).strip() for c in df.columns]
     df = df.dropna(subset=["STORE FULL NAME"])
 
+    n_stores = df["STORE FULL NAME"].nunique()
+    n_days = len(df) // n_stores if n_stores > 0 else 0
     file_mod = datetime.fromtimestamp(DAILY_FILE.stat().st_mtime)
-    recent_date = (file_mod - timedelta(days=1)).strftime("%Y-%m-%d")
-    prior_date = (file_mod - timedelta(days=2)).strftime("%Y-%m-%d")
-    df["data_date"] = df.groupby("STORE FULL NAME").cumcount().map({0: recent_date, 1: prior_date})
 
     if HISTORY_FILE.exists():
         history = pd.read_csv(HISTORY_FILE)
         history = history.loc[:, ~history.columns.str.startswith("Unnamed")]
         history.columns = [str(c).strip() for c in history.columns]
         existing_dates = set(history["data_date"].unique())
-        new_dates = {recent_date, prior_date}
-        dates_to_add = new_dates - existing_dates
 
-        if not dates_to_add:
-            print(f"  History already has {recent_date} and {prior_date}. No update needed.")
+        data_cols = [c for c in df.columns if c != "data_date"]
+        history_data_cols = [c for c in data_cols if c in history.columns]
+
+        new_day = file_mod - timedelta(days=1)
+        new_date = new_day.strftime("%Y-%m-%d")
+
+        if new_date in existing_dates:
+            print(f"  History already has {new_date}. No update needed.")
             return
 
-        new_rows = df[df["data_date"].isin(dates_to_add)]
-        shared_cols = list(dict.fromkeys(c for c in df.columns if c in history.columns))
+        prev_count = len(history[history["data_date"] == max(existing_dates)])
+        curr_total = len(df)
+        new_rows_count = curr_total - (curr_total - n_stores)
+
+        merged = df.merge(
+            history[history_data_cols].drop_duplicates(),
+            how="left", indicator=True, on=history_data_cols,
+        )
+        new_rows = merged[merged["_merge"] == "left_only"].drop("_merge", axis=1).copy()
+
+        if len(new_rows) == 0:
+            print(f"  No new rows found for {new_date}.")
+            return
+
+        new_rows = new_rows.drop_duplicates(subset=["STORE FULL NAME"], keep="first")
+        new_rows["data_date"] = new_date
+        print(f"  Found {len(new_rows)} new rows for {new_date}")
+
+        shared_cols = list(dict.fromkeys(c for c in new_rows.columns if c in history.columns))
         new_rows = new_rows[shared_cols]
         history = history[shared_cols]
         history = pd.concat([history, new_rows], ignore_index=True)
         history = history.drop_duplicates(subset=["STORE FULL NAME", "data_date"], keep="last")
     else:
-        history = df
+        recent_date = (file_mod - timedelta(days=1)).strftime("%Y-%m-%d")
+        prior_date = (file_mod - timedelta(days=2)).strftime("%Y-%m-%d")
+        df["_rank"] = df.groupby("STORE FULL NAME").cumcount()
+        day1 = df[df["_rank"] == 0].drop("_rank", axis=1).copy()
+        day2 = df[df["_rank"] == 1].drop("_rank", axis=1).copy()
+        day1["data_date"] = recent_date
+        day2["data_date"] = prior_date
+        history = pd.concat([day1, day2], ignore_index=True)
+        history = history.drop_duplicates(subset=["STORE FULL NAME", "data_date"], keep="last")
 
     history = history.sort_values(["data_date", "STORE FULL NAME"], ascending=[False, True])
     history.to_csv(HISTORY_FILE, index=False)
