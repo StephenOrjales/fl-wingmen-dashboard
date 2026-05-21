@@ -1509,8 +1509,8 @@ elif selected_tab == "Labor Dashboard":
 # ════════════════════════════════
 elif selected_tab == "SMG (Guest Satisfaction)":
     @st.cache_data(ttl=300)
-    def load_smg_data():
-        path = DATA_DIR / "smg_q1.xlsx"
+    def load_smg_file(filename):
+        path = DATA_DIR / filename
         if not path.exists():
             return pd.DataFrame()
         raw = pd.read_excel(path, header=None, skiprows=2)
@@ -1526,9 +1526,24 @@ elif selected_tab == "SMG (Guest Satisfaction)":
         raw["short_name"] = raw["store_name"].str.replace(r"^FL-", "", regex=True).str.strip().str[:22]
         return raw
 
-    smg_raw = load_smg_data()
-    if smg_raw.empty:
-        st.warning("No SMG data found. Place smg_q1.xlsx in the data/ folder.")
+    smg_q1_exists = (DATA_DIR / "smg_q1.xlsx").exists()
+    smg_q2_exists = (DATA_DIR / "smg_q2.xlsx").exists()
+    smg_quarter_options = []
+    if smg_q1_exists:
+        smg_quarter_options.append("Q1")
+    if smg_q2_exists:
+        smg_quarter_options.append("Q2")
+
+    if not smg_quarter_options:
+        st.warning("No SMG data found. Place smg_q1.xlsx or smg_q2.xlsx in the data/ folder.")
+    else:
+        smg_sel_quarter = st.selectbox("Quarter", smg_quarter_options, key="smg_quarter")
+        smg_file = "smg_q1.xlsx" if smg_sel_quarter == "Q1" else "smg_q2.xlsx"
+        smg_raw = load_smg_file(smg_file)
+
+    if not smg_quarter_options or smg_raw.empty:
+        if smg_quarter_options:
+            st.warning(f"No data in {smg_file}.")
     else:
         dissat = smg_raw[smg_raw["Measure"] == "Dissatisfaction"].copy()
         qsc = smg_raw[smg_raw["Measure"] == "QSC Score"].copy()
@@ -1555,7 +1570,8 @@ elif selected_tab == "SMG (Guest Satisfaction)":
             d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
             smg_df = smg_df[smg_df["store_num"].isin(d_nums)]
 
-        st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">Guest Satisfaction (SMG) &nbsp;|&nbsp; Q1 (12/28/2025 - 3/28/2026) &nbsp;|&nbsp; {len(smg_df)} stores &nbsp;|&nbsp; <span style="color:#059669; font-weight:600;">Real Data</span></p>', unsafe_allow_html=True)
+        qtr_label = "Q1 (12/28/2025 - 3/28/2026)" if smg_sel_quarter == "Q1" else "Q2 (3/29/2026 - 6/27/2026)"
+        st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">Guest Satisfaction (SMG) &nbsp;|&nbsp; {qtr_label} &nbsp;|&nbsp; {len(smg_df)} stores &nbsp;|&nbsp; <span style="color:#059669; font-weight:600;">Real Data</span></p>', unsafe_allow_html=True)
 
         k1, k2, k3, k4 = st.columns(4)
         avg_sat = smg_df["satisfaction"].mean()
