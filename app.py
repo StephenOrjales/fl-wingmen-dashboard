@@ -1980,8 +1980,8 @@ elif selected_tab == "Scorecard":
         textposition="outside", textfont=dict(size=9, color="#374151"),
         hovertemplate="%{x}<br>Score: %{y:.1f}<extra></extra>",
     ))
-    fig_sc.update_layout(**CHART_LAYOUT, height=400, yaxis_title="Composite Score", xaxis_tickangle=-45,
-                         yaxis=dict(range=[0, 110], gridcolor=GRID_COLOR, fixedrange=True))
+    sc_layout = {**CHART_LAYOUT, "yaxis": dict(range=[0, 110], gridcolor=GRID_COLOR, fixedrange=True)}
+    fig_sc.update_layout(**sc_layout, height=400, yaxis_title="Composite Score", xaxis_tickangle=-45)
     st.plotly_chart(fig_sc, use_container_width=True, key="sc_composite", config=CHART_CONFIG)
 
     # Stoplight table
@@ -2020,8 +2020,8 @@ elif selected_tab == "Scorecard":
             textposition="outside", textfont=dict(size=11, color="#374151"),
             hovertemplate="%{x}<br>Score: %{y:.1f}<extra></extra>",
         ))
-        fig_dsc.update_layout(**CHART_LAYOUT, height=350, yaxis_title="Avg Composite Score",
-                              yaxis=dict(range=[0, 110], gridcolor=GRID_COLOR, fixedrange=True))
+        dsc_layout = {**CHART_LAYOUT, "yaxis": dict(range=[0, 110], gridcolor=GRID_COLOR, fixedrange=True)}
+        fig_dsc.update_layout(**dsc_layout, height=350, yaxis_title="Avg Composite Score")
         st.plotly_chart(fig_dsc, use_container_width=True, key="sc_district", config=CHART_CONFIG)
 
 # ════════════════════════════════
