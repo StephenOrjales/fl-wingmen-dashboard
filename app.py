@@ -1508,119 +1508,140 @@ elif selected_tab == "Labor Dashboard":
 # SMG (GUEST SATISFACTION)
 # ════════════════════════════════
 elif selected_tab == "SMG (Guest Satisfaction)":
-    import numpy as np
-    np.random.seed(77)
+    @st.cache_data(ttl=300)
+    def load_smg_data():
+        path = DATA_DIR / "smg_q1.xlsx"
+        if not path.exists():
+            return pd.DataFrame()
+        raw = pd.read_excel(path, header=None, skiprows=2)
+        raw.columns = ["Store", "Measure", "Current", "LastYear", "Difference", "Count", "Count_Current", "Count_LastYear"]
+        raw = raw[(raw["Measure"] != "Measure") & (raw["Store"] != "Combined")].copy()
+        raw["Current"] = pd.to_numeric(raw["Current"], errors="coerce")
+        raw["LastYear"] = pd.to_numeric(raw["LastYear"], errors="coerce")
+        raw["Difference"] = pd.to_numeric(raw["Difference"], errors="coerce")
+        raw["Count"] = pd.to_numeric(raw["Count"], errors="coerce")
+        store_pat = raw["Store"].str.extract(r"^(\d+)\s*-\s*(.*)")
+        raw["store_num"] = store_pat[0].str.lstrip("0")
+        raw["store_name"] = store_pat[1].str.strip()
+        raw["short_name"] = raw["store_name"].str.replace(r"^FL-", "", regex=True).str.strip().str[:22]
+        return raw
 
-    all_stores = []
-    for dist, stores in DISTRICTS.items():
-        for s in stores:
-            snum = s.split(" - ")[0].strip().lstrip("0")
-            sname = s.split("-", 2)[2].strip()[:22] if len(s.split("-", 2)) >= 3 else s[:22]
-            all_stores.append({"store": s, "store_num": snum, "short_name": sname, "district": dist})
-    smg_df = pd.DataFrame(all_stores)
+    smg_raw = load_smg_data()
+    if smg_raw.empty:
+        st.warning("No SMG data found. Place smg_q1.xlsx in the data/ folder.")
+    else:
+        dissat = smg_raw[smg_raw["Measure"] == "Dissatisfaction"].copy()
+        qsc = smg_raw[smg_raw["Measure"] == "QSC Score"].copy()
+        accuracy = smg_raw[smg_raw["Measure"] == "What Went Wrong - Accurate"].copy()
 
-    smg_df["osat"] = np.random.uniform(55, 95, len(smg_df)).round(1)
-    smg_df["food_quality"] = np.random.uniform(60, 96, len(smg_df)).round(1)
-    smg_df["speed_of_service"] = np.random.uniform(40, 90, len(smg_df)).round(1)
-    smg_df["friendliness"] = np.random.uniform(65, 98, len(smg_df)).round(1)
-    smg_df["order_accuracy"] = np.random.uniform(70, 99, len(smg_df)).round(1)
-    smg_df["cleanliness"] = np.random.uniform(55, 95, len(smg_df)).round(1)
-    smg_df["responses"] = np.random.randint(8, 85, len(smg_df))
+        smg_df = dissat[["store_num", "short_name", "Count"]].copy()
+        smg_df = smg_df.rename(columns={"Count": "responses"})
+        smg_df["satisfaction"] = (1 - dissat["Current"].values) * 100
+        smg_df["dissat_pct"] = dissat["Current"].values * 100
+        smg_df["dissat_ly"] = dissat["LastYear"].values * 100
+        smg_df["dissat_diff"] = dissat["Difference"].values * 100
+        qsc_map = dict(zip(qsc["store_num"], qsc["Current"]))
+        smg_df["qsc_score"] = smg_df["store_num"].map(qsc_map)
+        acc_map = dict(zip(accuracy["store_num"], accuracy["Current"]))
+        smg_df["inaccuracy_pct"] = smg_df["store_num"].map(acc_map).apply(lambda x: x * 100 if pd.notna(x) else None)
+        smg_df["accuracy_pct"] = 100 - smg_df["inaccuracy_pct"]
 
-    if selected_store != "All Stores":
-        sk_num = extract_store_number(selected_store)
-        smg_df = smg_df[smg_df["store_num"] == sk_num]
-    elif selected_district != "All Districts":
-        d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
-        smg_df = smg_df[smg_df["store_num"].isin(d_nums)]
+        smg_df["config_district"] = smg_df["store_num"].map(STORE_TO_DISTRICT)
 
-    st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">Guest Satisfaction (SMG) &nbsp;|&nbsp; {len(smg_df)} stores &nbsp;|&nbsp; <span style="color:#D97706; font-weight:600;">Sample Data</span></p>', unsafe_allow_html=True)
+        if selected_store != "All Stores":
+            sk_num = extract_store_number(selected_store)
+            smg_df = smg_df[smg_df["store_num"] == sk_num]
+        elif selected_district != "All Districts":
+            d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
+            smg_df = smg_df[smg_df["store_num"].isin(d_nums)]
 
-    k1, k2, k3, k4, k5 = st.columns(5)
-    avg_osat = smg_df["osat"].mean()
-    avg_food = smg_df["food_quality"].mean()
-    avg_speed = smg_df["speed_of_service"].mean()
-    avg_friend = smg_df["friendliness"].mean()
-    avg_accuracy = smg_df["order_accuracy"].mean()
+        st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">Guest Satisfaction (SMG) &nbsp;|&nbsp; Q1 (12/28/2025 - 3/28/2026) &nbsp;|&nbsp; {len(smg_df)} stores &nbsp;|&nbsp; <span style="color:#059669; font-weight:600;">Real Data</span></p>', unsafe_allow_html=True)
 
-    osat_c = "green" if avg_osat >= 80 else ("orange" if avg_osat >= 70 else "red")
-    food_c = "green" if avg_food >= 80 else ("orange" if avg_food >= 70 else "red")
-    speed_c = "green" if avg_speed >= 75 else ("orange" if avg_speed >= 60 else "red")
+        k1, k2, k3, k4 = st.columns(4)
+        avg_sat = smg_df["satisfaction"].mean()
+        avg_dissat = smg_df["dissat_pct"].mean()
+        avg_qsc = smg_df["qsc_score"].mean() if smg_df["qsc_score"].notna().any() else 0
+        avg_acc = smg_df["accuracy_pct"].mean() if smg_df["accuracy_pct"].notna().any() else 0
+        total_responses = smg_df["responses"].sum()
 
-    k1.markdown(kpi_card("Overall OSAT", f"{avg_osat:.1f}%", osat_c), unsafe_allow_html=True)
-    k2.markdown(kpi_card("Food Quality", f"{avg_food:.1f}%", food_c), unsafe_allow_html=True)
-    k3.markdown(kpi_card("Speed of Service", f"{avg_speed:.1f}%", speed_c), unsafe_allow_html=True)
-    k4.markdown(kpi_card("Friendliness", f"{avg_friend:.1f}%"), unsafe_allow_html=True)
-    k5.markdown(kpi_card("Order Accuracy", f"{avg_accuracy:.1f}%"), unsafe_allow_html=True)
+        sat_c = "green" if avg_sat >= 95 else ("orange" if avg_sat >= 90 else "red")
+        dissat_c = "green" if avg_dissat <= 5 else ("orange" if avg_dissat <= 8 else "red")
+        qsc_c = "green" if avg_qsc >= 4.5 else ("orange" if avg_qsc >= 4 else "red")
+        acc_c = "green" if avg_acc >= 97 else ("orange" if avg_acc >= 95 else "red")
 
-    st.markdown("")
+        k1.markdown(kpi_card("Satisfaction", f"{avg_sat:.1f}%", sat_c), unsafe_allow_html=True)
+        k2.markdown(kpi_card("Dissatisfaction", f"{avg_dissat:.1f}%", dissat_c), unsafe_allow_html=True)
+        k3.markdown(kpi_card("QSC Score", f"{avg_qsc:.2f}/5", qsc_c), unsafe_allow_html=True)
+        k4.markdown(kpi_card("Order Accuracy", f"{avg_acc:.1f}%", acc_c), unsafe_allow_html=True)
 
-    st.markdown('<div class="section-title">Overall OSAT by Store</div>', unsafe_allow_html=True)
-    osat_sorted = smg_df.sort_values("osat")
-    osat_colors = [RED if v < 70 else (ORANGE if v < 80 else GREEN) for v in osat_sorted["osat"]]
-    fig_osat = go.Figure(go.Bar(
-        x=osat_sorted["short_name"], y=osat_sorted["osat"],
-        marker_color=osat_colors,
-        hovertemplate="%{x}<br>OSAT: %{y:.1f}%<extra></extra>",
-    ))
-    fig_osat.add_hline(y=80, line_dash="dash", line_color=GREEN, line_width=1.5,
-                       annotation_text="80% target", annotation_font=dict(color="#059669", size=10))
-    fig_osat.update_layout(**CHART_LAYOUT, height=380, yaxis_title="OSAT %", xaxis_tickangle=-45)
-    st.plotly_chart(fig_osat, use_container_width=True, key="smg_osat", config=CHART_CONFIG)
+        st.markdown("")
 
-    sl, sr = st.columns(2)
-    with sl:
-        st.markdown('<div class="section-title">Food Quality Score</div>', unsafe_allow_html=True)
-        fq_sorted = smg_df.sort_values("food_quality")
-        fq_colors = [RED if v < 70 else (ORANGE if v < 80 else GREEN) for v in fq_sorted["food_quality"]]
-        fig_fq = go.Figure(go.Bar(
-            x=fq_sorted["short_name"], y=fq_sorted["food_quality"],
-            marker_color=fq_colors,
-            hovertemplate="%{x}<br>Food: %{y:.1f}%<extra></extra>",
+        st.markdown('<div class="section-title">Dissatisfaction % by Store (lower is better)</div>', unsafe_allow_html=True)
+        dis_sorted = smg_df.sort_values("dissat_pct", ascending=False)
+        dis_colors = [RED if v > 8 else (ORANGE if v > 5 else GREEN) for v in dis_sorted["dissat_pct"]]
+        fig_dis = go.Figure(go.Bar(
+            x=dis_sorted["short_name"], y=dis_sorted["dissat_pct"],
+            marker_color=dis_colors,
+            hovertemplate="%{x}<br>Dissat: %{y:.1f}%<extra></extra>",
         ))
-        fig_fq.update_layout(**CHART_LAYOUT, height=370, yaxis_title="Food Quality %", xaxis_tickangle=-45)
-        st.plotly_chart(fig_fq, use_container_width=True, key="smg_food", config=CHART_CONFIG)
+        fig_dis.add_hline(y=5, line_dash="dash", line_color=RED, line_width=1.5,
+                          annotation_text="5% target", annotation_font=dict(color="#DC2626", size=10))
+        fig_dis.update_layout(**CHART_LAYOUT, height=380, yaxis_title="Dissatisfaction %", xaxis_tickangle=-45)
+        st.plotly_chart(fig_dis, use_container_width=True, key="smg_dissat", config=CHART_CONFIG)
 
-    with sr:
-        st.markdown('<div class="section-title">Speed of Service Score</div>', unsafe_allow_html=True)
-        sp_sorted = smg_df.sort_values("speed_of_service")
-        sp_colors = [RED if v < 60 else (ORANGE if v < 75 else GREEN) for v in sp_sorted["speed_of_service"]]
-        fig_sp = go.Figure(go.Bar(
-            x=sp_sorted["short_name"], y=sp_sorted["speed_of_service"],
-            marker_color=sp_colors,
-            hovertemplate="%{x}<br>Speed: %{y:.1f}%<extra></extra>",
+        sl, sr = st.columns(2)
+        with sl:
+            st.markdown('<div class="section-title">QSC Score by Store</div>', unsafe_allow_html=True)
+            qsc_sorted = smg_df[smg_df["qsc_score"].notna()].sort_values("qsc_score")
+            qsc_colors = [RED if v < 4 else (ORANGE if v < 4.5 else GREEN) for v in qsc_sorted["qsc_score"]]
+            fig_qsc = go.Figure(go.Bar(
+                x=qsc_sorted["short_name"], y=qsc_sorted["qsc_score"],
+                marker_color=qsc_colors,
+                hovertemplate="%{x}<br>QSC: %{y:.2f}<extra></extra>",
+            ))
+            fig_qsc.add_hline(y=4.5, line_dash="dash", line_color=GREEN, line_width=1.5,
+                              annotation_text="4.5 target", annotation_font=dict(color="#059669", size=10))
+            fig_qsc.update_layout(**CHART_LAYOUT, height=370, yaxis_title="QSC Score", xaxis_tickangle=-45)
+            st.plotly_chart(fig_qsc, use_container_width=True, key="smg_qsc", config=CHART_CONFIG)
+
+        with sr:
+            st.markdown('<div class="section-title">Order Accuracy % by Store</div>', unsafe_allow_html=True)
+            acc_sorted = smg_df[smg_df["accuracy_pct"].notna()].sort_values("accuracy_pct")
+            acc_colors = [RED if v < 95 else (ORANGE if v < 97 else GREEN) for v in acc_sorted["accuracy_pct"]]
+            fig_acc = go.Figure(go.Bar(
+                x=acc_sorted["short_name"], y=acc_sorted["accuracy_pct"],
+                marker_color=acc_colors,
+                hovertemplate="%{x}<br>Accuracy: %{y:.1f}%<extra></extra>",
+            ))
+            fig_acc.add_hline(y=97, line_dash="dash", line_color=GREEN, line_width=1.5,
+                              annotation_text="97% target", annotation_font=dict(color="#059669", size=10))
+            fig_acc.update_layout(**CHART_LAYOUT, height=370, yaxis_title="Accuracy %", xaxis_tickangle=-45)
+            st.plotly_chart(fig_acc, use_container_width=True, key="smg_accuracy", config=CHART_CONFIG)
+
+        st.markdown('<div class="section-title">Year-over-Year Dissatisfaction Change</div>', unsafe_allow_html=True)
+        yoy_sorted = smg_df.sort_values("dissat_diff", ascending=False)
+        yoy_colors = [RED if v > 0 else GREEN for v in yoy_sorted["dissat_diff"]]
+        fig_yoy = go.Figure(go.Bar(
+            x=yoy_sorted["short_name"], y=yoy_sorted["dissat_diff"],
+            marker_color=yoy_colors,
+            hovertemplate="%{x}<br>Change: %{y:+.2f}pp<extra></extra>",
         ))
-        fig_sp.update_layout(**CHART_LAYOUT, height=370, yaxis_title="Speed Score %", xaxis_tickangle=-45)
-        st.plotly_chart(fig_sp, use_container_width=True, key="smg_speed", config=CHART_CONFIG)
+        fig_yoy.add_hline(y=0, line_color="#BDBDBD", line_width=1)
+        fig_yoy.update_layout(**CHART_LAYOUT, height=370, yaxis_title="Dissat Change (pp)", xaxis_tickangle=-45)
+        st.plotly_chart(fig_yoy, use_container_width=True, key="smg_yoy", config=CHART_CONFIG)
 
-    cl, cr = st.columns(2)
-    with cl:
-        st.markdown('<div class="section-title">Friendliness Score</div>', unsafe_allow_html=True)
-        fr_sorted = smg_df.sort_values("friendliness")
-        fig_fr = go.Figure(go.Bar(
-            x=fr_sorted["short_name"], y=fr_sorted["friendliness"],
-            marker_color=TEAL,
-            hovertemplate="%{x}<br>Friendliness: %{y:.1f}%<extra></extra>",
-        ))
-        fig_fr.update_layout(**CHART_LAYOUT, height=370, yaxis_title="Friendliness %", xaxis_tickangle=-45)
-        st.plotly_chart(fig_fr, use_container_width=True, key="smg_friend", config=CHART_CONFIG)
-
-    with cr:
-        st.markdown('<div class="section-title">Order Accuracy Score</div>', unsafe_allow_html=True)
-        oa_sorted = smg_df.sort_values("order_accuracy")
-        fig_oa = go.Figure(go.Bar(
-            x=oa_sorted["short_name"], y=oa_sorted["order_accuracy"],
-            marker_color=TEAL,
-            hovertemplate="%{x}<br>Accuracy: %{y:.1f}%<extra></extra>",
-        ))
-        fig_oa.update_layout(**CHART_LAYOUT, height=370, yaxis_title="Accuracy %", xaxis_tickangle=-45)
-        st.plotly_chart(fig_oa, use_container_width=True, key="smg_accuracy", config=CHART_CONFIG)
-
-    st.markdown('<div class="section-title">SMG Detail Table</div>', unsafe_allow_html=True)
-    smg_tbl = smg_df[["short_name", "district", "osat", "food_quality", "speed_of_service", "friendliness", "order_accuracy", "cleanliness", "responses"]].copy()
-    smg_tbl.columns = ["Store", "District", "OSAT %", "Food %", "Speed %", "Friendly %", "Accuracy %", "Clean %", "Responses"]
-    smg_tbl = smg_tbl.sort_values("OSAT %", ascending=False)
-    st.dataframe(smg_tbl, use_container_width=True, hide_index=True)
+        st.markdown('<div class="section-title">SMG Detail Table</div>', unsafe_allow_html=True)
+        smg_tbl = smg_df[["short_name", "config_district", "satisfaction", "dissat_pct", "dissat_ly", "dissat_diff", "qsc_score", "accuracy_pct", "responses"]].copy()
+        smg_tbl.columns = ["Store", "District", "Satisfaction %", "Dissat %", "Dissat LY %", "Dissat Change", "QSC Score", "Accuracy %", "Responses"]
+        smg_tbl["Satisfaction %"] = smg_tbl["Satisfaction %"].apply(lambda x: f"{x:.1f}%")
+        smg_tbl["Dissat %"] = smg_tbl["Dissat %"].apply(lambda x: f"{x:.1f}%")
+        smg_tbl["Dissat LY %"] = smg_tbl["Dissat LY %"].apply(lambda x: f"{x:.1f}%")
+        smg_tbl["Dissat Change"] = smg_tbl["Dissat Change"].apply(lambda x: f"{x:+.2f}pp")
+        smg_tbl["QSC Score"] = smg_tbl["QSC Score"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "—")
+        smg_tbl["Accuracy %"] = smg_tbl["Accuracy %"].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "—")
+        smg_tbl["Responses"] = smg_tbl["Responses"].apply(lambda x: f"{x:,.0f}")
+        smg_tbl = smg_tbl.sort_values("Store")
+        st.dataframe(smg_tbl, use_container_width=True, hide_index=True)
 
 # ════════════════════════════════
 # DISTRICT COMPARISON
