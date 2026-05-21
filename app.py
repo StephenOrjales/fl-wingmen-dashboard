@@ -2119,57 +2119,72 @@ elif selected_tab == "Watch List":
     else:
         alert_df = pd.DataFrame(alerts)
 
-        # Summary KPIs
         critical_count = len(alert_df[alert_df["Severity"] == "Critical"])
         warning_count = len(alert_df[alert_df["Severity"] == "Warning"])
         stores_flagged = alert_df["Store"].nunique()
-        top_metric = alert_df["Metric"].value_counts().index[0] if len(alert_df) > 0 else "—"
+        total_stores = len(STORE_TO_DISTRICT)
 
-        wk1, wk2, wk3, wk4 = st.columns(4)
-        wk1.markdown(kpi_card("Critical Alerts", str(critical_count), "red"), unsafe_allow_html=True)
+        wk1, wk2, wk3 = st.columns(3)
+        wk1.markdown(kpi_card("Critical", str(critical_count), "red"), unsafe_allow_html=True)
         wk2.markdown(kpi_card("Warnings", str(warning_count), "orange"), unsafe_allow_html=True)
-        wk3.markdown(kpi_card("Stores Flagged", f"{stores_flagged} / {len(STORE_TO_DISTRICT)}"), unsafe_allow_html=True)
-        wk4.markdown(kpi_card("Top Issue", top_metric), unsafe_allow_html=True)
+        wk3.markdown(kpi_card("Stores Flagged", f"{stores_flagged} / {total_stores}"), unsafe_allow_html=True)
 
         st.markdown("")
 
-        # Alerts by metric
-        st.markdown('<div class="section-title">Alert Breakdown by Metric</div>', unsafe_allow_html=True)
-        metric_counts = alert_df.groupby(["Metric", "Severity"]).size().unstack(fill_value=0).reset_index()
-        if "Critical" not in metric_counts.columns:
-            metric_counts["Critical"] = 0
-        if "Warning" not in metric_counts.columns:
-            metric_counts["Warning"] = 0
-        metric_counts = metric_counts.sort_values("Critical", ascending=False)
+        # Group by store — show each store as a card with its issues
+        st.markdown('<div class="section-title">Stores Needing Attention</div>', unsafe_allow_html=True)
+        store_groups = alert_df.groupby(["Store", "District"])
+        store_severity = alert_df.groupby("Store")["Severity"].apply(lambda x: "Critical" if "Critical" in x.values else "Warning")
+        store_order = store_severity.sort_values(ascending=True).index.tolist()
 
-        fig_mc = go.Figure()
-        fig_mc.add_trace(go.Bar(x=metric_counts["Metric"], y=metric_counts["Critical"], name="Critical", marker_color=RED))
-        fig_mc.add_trace(go.Bar(x=metric_counts["Metric"], y=metric_counts["Warning"], name="Warning", marker_color=ORANGE))
-        fig_mc.update_layout(**CHART_LAYOUT, barmode="stack", height=320, yaxis_title="Count",
-                             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color="#374151")))
-        st.plotly_chart(fig_mc, use_container_width=True, key="wl_metrics", config=CHART_CONFIG)
+        for store_name in store_order:
+            store_alerts = alert_df[alert_df["Store"] == store_name]
+            district = store_alerts["District"].iloc[0]
+            has_critical = "Critical" in store_alerts["Severity"].values
+            border_color = RED if has_critical else ORANGE
+            badge_color = RED if has_critical else ORANGE
+            badge_text = "CRITICAL" if has_critical else "WARNING"
 
-        # Alerts by district
-        st.markdown('<div class="section-title">Alerts by District</div>', unsafe_allow_html=True)
-        dist_alerts = alert_df.groupby(["District", "Severity"]).size().unstack(fill_value=0).reset_index()
-        if "Critical" not in dist_alerts.columns:
-            dist_alerts["Critical"] = 0
-        if "Warning" not in dist_alerts.columns:
-            dist_alerts["Warning"] = 0
-        dist_alerts["Total"] = dist_alerts["Critical"] + dist_alerts["Warning"]
-        dist_alerts = dist_alerts.sort_values("Total", ascending=False)
+            issues_html = ""
+            for _, row in store_alerts.iterrows():
+                sev_color = RED if row["Severity"] == "Critical" else ORANGE
+                dot = f'<span style="color:{sev_color};">&#9679;</span>'
+                issues_html += f'<div style="padding:0.2rem 0; font-size:0.82rem; color:#374151;">{dot} <strong>{row["Metric"]}</strong>: {row["Value"]} <span style="color:#9CA3AF;">(threshold: {row["Threshold"]})</span></div>'
 
-        fig_da = go.Figure()
-        fig_da.add_trace(go.Bar(x=dist_alerts["District"], y=dist_alerts["Critical"], name="Critical", marker_color=RED))
-        fig_da.add_trace(go.Bar(x=dist_alerts["District"], y=dist_alerts["Warning"], name="Warning", marker_color=ORANGE))
-        fig_da.update_layout(**CHART_LAYOUT, barmode="stack", height=320, yaxis_title="Count",
-                             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color="#374151")))
-        st.plotly_chart(fig_da, use_container_width=True, key="wl_districts", config=CHART_CONFIG)
+            st.markdown(
+                f'<div style="border-left:4px solid {border_color}; background:#FFFFFF; border:1px solid #E8ECF0; border-left:4px solid {border_color}; border-radius:8px; padding:0.8rem 1rem; margin-bottom:0.6rem;">'
+                f'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">'
+                f'<span style="color:#1F2937; font-weight:700; font-size:0.95rem;">{store_name}</span>'
+                f'<div><span style="color:#6B7280; font-size:0.75rem; margin-right:0.6rem;">{district}</span>'
+                f'<span style="background:{badge_color}; color:white; font-size:0.65rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:10px;">{badge_text}</span></div>'
+                f'</div>{issues_html}</div>',
+                unsafe_allow_html=True,
+            )
 
-        # Full alert table
-        st.markdown('<div class="section-title">All Alerts</div>', unsafe_allow_html=True)
-        alert_display = alert_df.sort_values(["Severity", "Metric", "Store"])
-        st.dataframe(alert_display, use_container_width=True, hide_index=True)
+        st.markdown("")
+
+        # Summary: how many stores fail each metric
+        st.markdown('<div class="section-title">Threshold Summary</div>', unsafe_allow_html=True)
+        thresholds_info = [
+            ("SOS", ">= 13 min", "Critical"), ("SOS", "10-13 min", "Warning"),
+            ("Bone-In Adoption", "< 85%", "Critical"), ("Make Ahead", "> 10%", "Critical"),
+            ("Waste", "> 5%", "Critical"), ("Pre-Bump", "> 1.5%", "Critical"), ("Pre-Bump", "0.5-1.5%", "Warning"),
+            ("Labor %", "> 20%", "Critical"), ("Labor %", "18-20%", "Warning"),
+            ("Labor Variance", "> +2%", "Critical"), ("Overtime", "> 25 hrs", "Warning"),
+        ]
+        summary_rows = []
+        for metric, threshold, severity in thresholds_info:
+            matching = alert_df[(alert_df["Metric"] == metric) & (alert_df["Severity"] == severity)]
+            count = len(matching)
+            if count > 0:
+                store_names = ", ".join(sorted(matching["Store"].unique())[:5])
+                if len(matching["Store"].unique()) > 5:
+                    store_names += f" +{len(matching['Store'].unique()) - 5} more"
+                summary_rows.append({"Metric": metric, "Threshold": threshold, "Severity": severity, "Count": count, "Stores": store_names})
+
+        if summary_rows:
+            sum_df = pd.DataFrame(summary_rows)
+            st.dataframe(sum_df, use_container_width=True, hide_index=True)
 
 # ════════════════════════════════
 # TRENDS
