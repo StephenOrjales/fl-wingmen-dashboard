@@ -961,13 +961,17 @@ elif selected_tab == "Internal QSC Evals":
             """, unsafe_allow_html=True)
 
             display_cols = d_evals[["Store No", "Date", "MOD", "Findings", "Score", "Rating", "Duration"]].copy()
-            # Mark no-eval rows
-            display_cols.loc[d_evals["No Eval"], "Rating"] = "NO EVALUATION"
-            display_cols.loc[d_evals["No Eval"], "MOD"] = ""
+            # Mark no-eval rows — fill all blank fields so nothing shows "None"
+            no_eval_mask = d_evals["No Eval"].fillna(False).astype(bool)
+            display_cols.loc[no_eval_mask, "Rating"] = "NO EVALUATION"
+            display_cols.loc[no_eval_mask, "MOD"] = "-"
+            display_cols.loc[no_eval_mask, "Date"] = "-"
+            display_cols.loc[no_eval_mask, "Duration"] = "-"
             display_cols["Findings"] = display_cols["Findings"].apply(lambda x: f"{int(x)}" if pd.notna(x) else "-")
             display_cols["Score"] = d_evals["Score"].apply(lambda x: f"{int(x)}" if pd.notna(x) else "-")
-            display_cols["Duration"] = display_cols["Duration"].fillna("-")
-            display_cols["Date"] = display_cols["Date"].apply(lambda x: x if x and x != '' else "-")
+            display_cols["Duration"] = display_cols["Duration"].fillna("-").replace("nan", "-")
+            display_cols["Date"] = display_cols["Date"].fillna("-").replace("nan", "-")
+            display_cols["MOD"] = display_cols["MOD"].fillna("-").replace("nan", "-")
             display_cols = display_cols.reset_index(drop=True)
 
             def highlight_evals(row):
