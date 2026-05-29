@@ -413,7 +413,7 @@ with st.sidebar:
         store_options = ["All Stores"] + store_list
         selected_store = st.selectbox("Store", store_options, label_visibility="collapsed")
 
-    nav_options = ["Daily KDS Snapshot", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance", "Scorecard", "Watch List", "Trends", "Wing Worm"]
+    nav_options = ["Daily KDS Snapshot", "Schedule Guide", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance", "Scorecard", "Watch List", "Trends", "Wing Worm"]
     selected_tab = st.radio("Navigation", nav_options, label_visibility="collapsed")
 
     st.markdown("---")
@@ -709,6 +709,116 @@ if selected_tab == "Daily KDS Snapshot":
         detail = detail.rename(columns=col_names)
         detail = detail.sort_values("SOS")
         st.dataframe(detail, use_container_width=True, hide_index=True)
+
+# ════════════════════════════════
+# SCHEDULE GUIDE
+# ════════════════════════════════
+elif selected_tab == "Schedule Guide":
+    st.markdown('<div class="section-title">Scheduling Guide</div>', unsafe_allow_html=True)
+    st.markdown('<p style="color:#6B7280; font-size:0.85rem;">Weekly sales forecast and ideal staffing hours by store. Hours guide applies to hourly staff only (excludes GMs).</p>', unsafe_allow_html=True)
+
+    sched_file = DATA_DIR / "schedule_guide.csv"
+    if sched_file.exists():
+        sched_df = pd.read_csv(sched_file)
+
+        # Period selector
+        periods_avail = sorted(sched_df["Period"].unique().tolist())
+        sel_period = st.selectbox("Select Week", periods_avail, index=len(periods_avail) - 1)
+        week_data = sched_df[sched_df["Period"] == sel_period].copy()
+        start_dt = week_data["Start Date"].iloc[0] if len(week_data) > 0 else ""
+        end_dt = week_data["End Date"].iloc[0] if len(week_data) > 0 else ""
+
+        st.markdown(f'<p style="color:#374151; font-size:0.9rem; font-weight:600;">Week: {start_dt} — {end_dt}</p>', unsafe_allow_html=True)
+
+        # KPIs
+        total_sales = week_data["Sales Forecast"].sum()
+        total_hours = week_data["Hours Guide"].sum()
+        n_stores = week_data["Store No"].nunique()
+        avg_sales = total_sales / n_stores if n_stores else 0
+        avg_hours = total_hours / n_stores if n_stores else 0
+
+        k1, k2, k3, k4, k5 = st.columns(5)
+        k1.markdown(f'<div class="kpi-box"><div class="kpi-label">Total Sales Forecast</div><div class="kpi-value">${total_sales:,.0f}</div></div>', unsafe_allow_html=True)
+        k2.markdown(f'<div class="kpi-box"><div class="kpi-label">Total Hours Guide</div><div class="kpi-value">{total_hours:,.0f}</div></div>', unsafe_allow_html=True)
+        k3.markdown(f'<div class="kpi-box"><div class="kpi-label">Stores</div><div class="kpi-value">{n_stores}</div></div>', unsafe_allow_html=True)
+        k4.markdown(f'<div class="kpi-box"><div class="kpi-label">Avg Sales / Store</div><div class="kpi-value">${avg_sales:,.0f}</div></div>', unsafe_allow_html=True)
+        k5.markdown(f'<div class="kpi-box"><div class="kpi-label">Avg Hours / Store</div><div class="kpi-value">{avg_hours:,.0f}</div></div>', unsafe_allow_html=True)
+
+        st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
+
+        # District filter
+        districts = sorted(week_data["District"].unique().tolist())
+        sel_district = st.selectbox("Filter by District", ["All Districts"] + districts)
+        if sel_district != "All Districts":
+            week_data = week_data[week_data["District"] == sel_district]
+
+        # Show data grouped by district like the PDF
+        for district in sorted(week_data["District"].unique()):
+            d_data = week_data[week_data["District"] == district].copy()
+            d_sales = d_data["Sales Forecast"].sum()
+            d_hours = d_data["Hours Guide"].sum()
+
+            st.markdown(f"""
+            <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0; margin-top:1rem;
+                        display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:700; font-size:0.95rem;">{district}</span>
+                <span style="font-size:0.82rem;">Sales: <b>${d_sales:,.0f}</b> &nbsp;|&nbsp; Hours: <b>{d_hours:,.0f}</b></span>
+            </div>
+            """, unsafe_allow_html=True)
+
+            display_df = d_data[["Store No", "Store Name", "Sales Forecast", "Hours Guide"]].copy()
+            display_df["Sales Forecast"] = display_df["Sales Forecast"].apply(lambda x: f"${x:,.0f}")
+            display_df["Hours Guide"] = display_df["Hours Guide"].apply(lambda x: f"{x:,.0f}")
+            display_df = display_df.reset_index(drop=True)
+            st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+        # District comparison chart
+        st.markdown("<div style='height:1.5rem;'></div>", unsafe_allow_html=True)
+        st.markdown('<div class="section-title" style="font-size:1rem;">District Comparison</div>', unsafe_allow_html=True)
+
+        dist_summary = week_data.groupby("District").agg(
+            Sales=("Sales Forecast", "sum"),
+            Hours=("Hours Guide", "sum"),
+            Stores=("Store No", "nunique"),
+        ).reset_index()
+
+        col_a, col_b = st.columns(2)
+        with col_a:
+            fig_s = px.bar(dist_summary, x="District", y="Sales", text_auto="$,.0f",
+                           color_discrete_sequence=[GREEN])
+            sched_layout = {**CHART_LAYOUT, "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Sales Forecast ($)")}
+            fig_s.update_layout(**sched_layout, title="Sales Forecast by District")
+            fig_s.update_traces(textposition="outside")
+            st.plotly_chart(fig_s, use_container_width=True, config=CHART_CONFIG)
+        with col_b:
+            fig_h = px.bar(dist_summary, x="District", y="Hours", text_auto=",.0f",
+                           color_discrete_sequence=[TEAL])
+            hours_layout = {**CHART_LAYOUT, "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Hours Guide")}
+            fig_h.update_layout(**hours_layout, title="Hours Guide by District")
+            fig_h.update_traces(textposition="outside")
+            st.plotly_chart(fig_h, use_container_width=True, config=CHART_CONFIG)
+
+        # Trend across weeks if multiple periods
+        if len(periods_avail) > 1:
+            st.markdown('<div class="section-title" style="font-size:1rem;">Week-over-Week Trend</div>', unsafe_allow_html=True)
+            trend_df = sched_df.groupby("Period").agg(
+                Sales=("Sales Forecast", "sum"),
+                Hours=("Hours Guide", "sum"),
+            ).reindex(periods_avail).reset_index()
+
+            col_c, col_d = st.columns(2)
+            with col_c:
+                fig_ts = px.line(trend_df, x="Period", y="Sales", markers=True, color_discrete_sequence=[GREEN])
+                ts_layout = {**CHART_LAYOUT, "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Total Sales ($)")}
+                fig_ts.update_layout(**ts_layout, title="Total Sales by Week")
+                st.plotly_chart(fig_ts, use_container_width=True, config=CHART_CONFIG)
+            with col_d:
+                fig_th = px.line(trend_df, x="Period", y="Hours", markers=True, color_discrete_sequence=[TEAL])
+                th_layout = {**CHART_LAYOUT, "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Total Hours")}
+                fig_th.update_layout(**th_layout, title="Total Hours by Week")
+                st.plotly_chart(fig_th, use_container_width=True, config=CHART_CONFIG)
+    else:
+        st.warning("No schedule data found. Place schedule_guide.csv in the data/ folder.")
 
 # ════════════════════════════════
 # Q1 PERFORMANCE
@@ -2363,7 +2473,7 @@ elif selected_tab == "Wing Worm":
             <span id="score" style="color:#1F2937; font-weight:700; font-size:1rem;">Score: 0</span>
             <span id="high-score" style="color:#059669; font-weight:700; font-size:1rem;">Best: 0</span>
         </div>
-        <canvas id="game" width="400" height="400" style="border:2px solid #1A3C34; border-radius:8px; background:#FAFBFC;"></canvas>
+        <canvas id="game" width="400" height="400" style="border:2px solid #0D5C3F; border-radius:8px; background:#0A4A32;"></canvas>
         <div id="game-over" style="display:none; margin-top:12px; text-align:center;">
             <p style="color:#DC2626; font-weight:700; font-size:1.2rem; margin:0;">Game Over!</p>
             <p style="color:#6B7280; font-size:0.85rem; margin:4px 0;">Press Space or tap to restart</p>
@@ -2380,7 +2490,7 @@ elif selected_tab == "Wing Worm":
         const COLS = canvas.width / GRID;
         const ROWS = canvas.height / GRID;
 
-        let snake, dir, nextDir, food, score, highScore, gameOver, started, speed, gameLoop;
+        let snake, dir, nextDir, food, score, highScore, gameOver, started, interval, lastTime, accumulator;
 
         highScore = parseInt(localStorage.getItem('wingworm_high') || '0');
         document.getElementById('high-score').textContent = 'Best: ' + highScore;
@@ -2392,13 +2502,14 @@ elif selected_tab == "Wing Worm":
             score = 0;
             gameOver = false;
             started = false;
-            speed = 120;
+            interval = 120;
+            lastTime = 0;
+            accumulator = 0;
             placeFood();
             updateScore();
             document.getElementById('game-over').style.display = 'none';
             document.getElementById('start-msg').style.display = 'block';
             draw();
-            if (gameLoop) clearInterval(gameLoop);
         }
 
         function placeFood() {
@@ -2429,10 +2540,15 @@ elif selected_tab == "Wing Worm":
         }
 
         function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Dark green gradient background
+            const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            grad.addColorStop(0, '#0A4A32');
+            grad.addColorStop(1, '#0D5C3F');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Grid
-            ctx.strokeStyle = '#F1F5F9';
+            // Subtle grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.06)';
             ctx.lineWidth = 0.5;
             for (let i = 0; i < COLS; i++) {
                 ctx.beginPath(); ctx.moveTo(i*GRID, 0); ctx.lineTo(i*GRID, canvas.height); ctx.stroke();
@@ -2441,21 +2557,29 @@ elif selected_tab == "Wing Worm":
                 ctx.beginPath(); ctx.moveTo(0, i*GRID); ctx.lineTo(canvas.width, i*GRID); ctx.stroke();
             }
 
-            // Food (boneless wing)
+            // Food (boneless wing) with glow
             const fx = food.x * GRID, fy = food.y * GRID;
+            ctx.shadowColor = '#F59E0B';
+            ctx.shadowBlur = 10;
             ctx.fillStyle = '#D97706';
             ctx.beginPath();
             ctx.ellipse(fx + GRID/2, fy + GRID/2, GRID/2.2, GRID/2.8, 0, 0, Math.PI*2);
             ctx.fill();
+            ctx.shadowBlur = 0;
             ctx.fillStyle = '#F59E0B';
             ctx.beginPath();
             ctx.ellipse(fx + GRID/2, fy + GRID/2.5, GRID/3.5, GRID/4, 0, 0, Math.PI*2);
             ctx.fill();
 
-            // Snake
+            // Snake with glow on head
             snake.forEach((seg, i) => {
-                const color = i === 0 ? '#059669' : (i % 2 === 0 ? '#10B981' : '#34D399');
+                if (i === 0) {
+                    ctx.shadowColor = '#34D399';
+                    ctx.shadowBlur = 8;
+                }
+                const color = i === 0 ? '#10B981' : (i % 2 === 0 ? '#059669' : '#0D9488');
                 drawRoundRect(seg.x * GRID + 1, seg.y * GRID + 1, GRID - 2, GRID - 2, 4, color);
+                if (i === 0) ctx.shadowBlur = 0;
             });
 
             // Eyes on head
@@ -2475,7 +2599,7 @@ elif selected_tab == "Wing Worm":
                 ctx.beginPath(); ctx.arc(head.x*GRID+6, head.y*GRID+15, eyeSize, 0, Math.PI*2); ctx.fill();
                 ctx.beginPath(); ctx.arc(head.x*GRID+14, head.y*GRID+15, eyeSize, 0, Math.PI*2); ctx.fill();
             }
-            ctx.fillStyle = '#1A3C34';
+            ctx.fillStyle = '#0A4A32';
             if (dir.x === 1) {
                 ctx.beginPath(); ctx.arc(head.x*GRID+16, head.y*GRID+6, 1.5, 0, Math.PI*2); ctx.fill();
                 ctx.beginPath(); ctx.arc(head.x*GRID+16, head.y*GRID+14, 1.5, 0, Math.PI*2); ctx.fill();
@@ -2504,20 +2628,32 @@ elif selected_tab == "Wing Worm":
                 score++;
                 updateScore();
                 placeFood();
-                if (speed > 60) speed -= 2;
-                clearInterval(gameLoop);
-                gameLoop = setInterval(step, speed);
+                if (interval > 60) interval -= 2;
             } else {
                 snake.pop();
             }
             draw();
         }
 
+        function gameLoop(timestamp) {
+            if (!started || gameOver) return;
+            if (!lastTime) lastTime = timestamp;
+            const delta = timestamp - lastTime;
+            lastTime = timestamp;
+            accumulator += delta;
+            while (accumulator >= interval) {
+                step();
+                accumulator -= interval;
+                if (gameOver) break;
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
         function die() {
             gameOver = true;
             document.getElementById('game-over').style.display = 'block';
             draw();
-            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#FFFFFF';
             ctx.font = 'bold 28px sans-serif';
@@ -2530,8 +2666,10 @@ elif selected_tab == "Wing Worm":
         function startGame() {
             if (!started) {
                 started = true;
+                lastTime = 0;
+                accumulator = 0;
                 document.getElementById('start-msg').style.display = 'none';
-                gameLoop = setInterval(step, speed);
+                requestAnimationFrame(gameLoop);
             }
         }
 
@@ -2546,7 +2684,6 @@ elif selected_tab == "Wing Worm":
             else if (e.key === 'ArrowRight' || e.key === 'd') { if (dir.x !== -1) { nextDir = {x:1,y:0}; startGame(); } }
         });
 
-        // Touch controls for mobile
         let touchStart = null;
         canvas.addEventListener('touchstart', function(e) {
             e.preventDefault();
