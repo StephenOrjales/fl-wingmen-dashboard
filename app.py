@@ -728,6 +728,14 @@ elif selected_tab == "Schedule Guide":
         start_dt = week_data["Start Date"].iloc[0] if len(week_data) > 0 else ""
         end_dt = week_data["End Date"].iloc[0] if len(week_data) > 0 else ""
 
+        # Apply sidebar filters
+        if selected_store != "All Stores":
+            sk_num = int(extract_store_number(selected_store))
+            week_data = week_data[week_data["Store No"] == sk_num]
+        elif selected_district != "All Districts":
+            d_nums = {int(s.split(" - ")[0].strip()) for s in DISTRICTS.get(selected_district, [])}
+            week_data = week_data[week_data["Store No"].isin(d_nums)]
+
         st.markdown(f'<p style="color:#374151; font-size:0.9rem; font-weight:600;">Week: {start_dt} — {end_dt}</p>', unsafe_allow_html=True)
 
         # KPIs
@@ -745,12 +753,6 @@ elif selected_tab == "Schedule Guide":
         k5.markdown(f'<div class="kpi-box"><div class="kpi-label">Avg Hours / Store</div><div class="kpi-value">{avg_hours:,.0f}</div></div>', unsafe_allow_html=True)
 
         st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
-
-        # District filter
-        districts = sorted(week_data["District"].unique().tolist())
-        sel_district = st.selectbox("Filter by District", ["All Districts"] + districts)
-        if sel_district != "All Districts":
-            week_data = week_data[week_data["District"] == sel_district]
 
         # Show data grouped by district like the PDF
         for district in sorted(week_data["District"].unique()):
@@ -832,6 +834,14 @@ elif selected_tab == "Internal QSC Evals":
         evals = pd.read_csv(eval_file)
         evals["No Eval"] = evals["No Eval"].astype(bool)
         evals["Red Flag"] = evals["Red Flag"].astype(bool)
+
+        # Apply sidebar filters
+        if selected_store != "All Stores":
+            sk_num = int(extract_store_number(selected_store))
+            evals = evals[evals["Store No"] == sk_num]
+        elif selected_district != "All Districts":
+            d_nums = {int(s.split(" - ")[0].strip()) for s in DISTRICTS.get(selected_district, [])}
+            evals = evals[evals["Store No"].isin(d_nums)]
 
         periods_avail = sorted(evals["Period"].unique().tolist(), key=lambda x: (int(x[1]), int(x[3])))
 
