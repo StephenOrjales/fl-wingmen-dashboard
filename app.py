@@ -413,7 +413,7 @@ with st.sidebar:
         store_options = ["All Stores"] + store_list
         selected_store = st.selectbox("Store", store_options, label_visibility="collapsed")
 
-    nav_options = ["Daily KDS Snapshot", "Schedule Guide", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance", "Scorecard", "Watch List", "Trends", "Wing Worm"]
+    nav_options = ["Daily KDS Snapshot", "Schedule Guide", "Internal QSC Evals", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance", "Scorecard", "Watch List", "Trends", "Wing Worm"]
     selected_tab = st.radio("Navigation", nav_options, label_visibility="collapsed")
 
     st.markdown("---")
@@ -819,6 +819,193 @@ elif selected_tab == "Schedule Guide":
                 st.plotly_chart(fig_th, use_container_width=True, config=CHART_CONFIG)
     else:
         st.warning("No schedule data found. Place schedule_guide.csv in the data/ folder.")
+
+# ════════════════════════════════
+# INTERNAL QSC EVALUATIONS
+# ════════════════════════════════
+elif selected_tab == "Internal QSC Evals":
+    st.markdown('<div class="section-title">Internal QSC Evaluations</div>', unsafe_allow_html=True)
+    st.markdown('<p style="color:#6B7280; font-size:0.85rem;">Self-evaluation audit tracking. Red flags: score of 0 or completed in under 1 hour (not thorough). Tracks repeat offenders and missed evaluations.</p>', unsafe_allow_html=True)
+
+    eval_file = DATA_DIR / "qsc_evals.csv"
+    if eval_file.exists():
+        evals = pd.read_csv(eval_file)
+        evals["No Eval"] = evals["No Eval"].astype(bool)
+        evals["Red Flag"] = evals["Red Flag"].astype(bool)
+
+        periods_avail = sorted(evals["Period"].unique().tolist(), key=lambda x: (int(x[1]), int(x[3])))
+
+        # ── Repeat Offenders (across ALL weeks) ──
+        st.markdown('<div class="section-title" style="font-size:1.05rem; margin-top:0.5rem;">Repeat Offenders</div>', unsafe_allow_html=True)
+        st.markdown('<p style="color:#6B7280; font-size:0.82rem;">Stores consistently flagged across multiple weeks. These need immediate attention.</p>', unsafe_allow_html=True)
+
+        # Red flag repeat offenders
+        red_counts = evals[evals["Red Flag"]].groupby("Store No").agg(
+            Times_Flagged=("Period", "count"),
+            Weeks=("Period", lambda x: ", ".join(sorted(x.unique(), key=lambda p: (int(p[1]), int(p[3]))))),
+            Avg_Score=("Score", "mean"),
+            Avg_Duration=("Duration Min", "mean"),
+        ).reset_index().sort_values("Times_Flagged", ascending=False)
+
+        # Add store names
+        name_map = evals.dropna(subset=["City"]).drop_duplicates("Store No", keep="last").set_index("Store No")["City"]
+        district_map = evals.drop_duplicates("Store No", keep="last").set_index("Store No")["District"]
+
+        # No-eval repeat offenders
+        noeval_counts = evals[evals["No Eval"]].groupby("Store No").agg(
+            Times_Missed=("Period", "count"),
+            Weeks_Missed=("Period", lambda x: ", ".join(sorted(x.unique(), key=lambda p: (int(p[1]), int(p[3]))))),
+        ).reset_index().sort_values("Times_Missed", ascending=False)
+
+        col_r, col_n = st.columns(2)
+        with col_r:
+            st.markdown(f"""
+            <div style="background:#DC2626; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0;">
+                <span style="font-weight:700;">Red Flag Repeat Offenders</span>
+                <span style="float:right; font-size:0.82rem;">Score = 0 or Duration &lt; 1 hour</span>
+            </div>
+            """, unsafe_allow_html=True)
+            if len(red_counts) > 0:
+                red_display = red_counts.copy()
+                red_display["District"] = red_display["Store No"].map(district_map).fillna("")
+                red_display["Avg Score"] = red_display["Avg_Score"].apply(lambda x: f"{x:.0f}" if pd.notna(x) else "")
+                red_display["Avg Duration"] = red_display["Avg_Duration"].apply(lambda x: f"{x:.0f} min" if pd.notna(x) else "")
+                red_display = red_display.rename(columns={"Times_Flagged": "Times Flagged", "Weeks": "Weeks Flagged"})
+                st.dataframe(
+                    red_display[["Store No", "District", "Times Flagged", "Avg Score", "Avg Duration", "Weeks Flagged"]],
+                    use_container_width=True, hide_index=True,
+                )
+            else:
+                st.success("No repeat red flag stores!")
+
+        with col_n:
+            st.markdown(f"""
+            <div style="background:#D97706; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0;">
+                <span style="font-weight:700;">Missing Evaluations</span>
+                <span style="float:right; font-size:0.82rem;">No evaluation completed</span>
+            </div>
+            """, unsafe_allow_html=True)
+            if len(noeval_counts) > 0:
+                noeval_display = noeval_counts.copy()
+                noeval_display["District"] = noeval_display["Store No"].map(district_map).fillna("")
+                noeval_display = noeval_display.rename(columns={"Times_Missed": "Times Missed", "Weeks_Missed": "Weeks Missed"})
+                st.dataframe(
+                    noeval_display[["Store No", "District", "Times Missed", "Weeks Missed"]],
+                    use_container_width=True, hide_index=True,
+                )
+            else:
+                st.success("All stores completed evaluations!")
+
+        # Red flag frequency chart
+        st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
+        if len(red_counts) > 0:
+            top_offenders = red_counts.head(15).copy()
+            top_offenders["Label"] = top_offenders["Store No"].astype(str)
+            fig_off = px.bar(top_offenders, x="Label", y="Times_Flagged", text_auto=True,
+                             color_discrete_sequence=["#DC2626"])
+            off_layout = {**CHART_LAYOUT, "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Times Flagged", dtick=1),
+                          "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Store #", tickfont=dict(size=9))}
+            fig_off.update_layout(**off_layout, title="Red Flag Frequency by Store (All Weeks)")
+            fig_off.update_traces(textposition="outside")
+            st.plotly_chart(fig_off, use_container_width=True, config=CHART_CONFIG)
+
+        # ── Weekly Detail ──
+        st.markdown("<div style='height:1.5rem;'></div>", unsafe_allow_html=True)
+        st.markdown('<div class="section-title" style="font-size:1.05rem;">Weekly Detail</div>', unsafe_allow_html=True)
+
+        sel_eval_period = st.selectbox("Select Week", periods_avail, index=len(periods_avail) - 1, key="eval_period")
+        week_evals = evals[evals["Period"] == sel_eval_period].copy()
+        start_dt = week_evals["Start Date"].iloc[0] if len(week_evals) > 0 else ""
+        end_dt = week_evals["End Date"].iloc[0] if len(week_evals) > 0 else ""
+        st.markdown(f'<p style="color:#374151; font-size:0.9rem; font-weight:600;">Week: {start_dt} — {end_dt}</p>', unsafe_allow_html=True)
+
+        # Weekly KPIs
+        completed = week_evals[~week_evals["No Eval"]]
+        n_evals = len(completed)
+        n_stores = week_evals["Store No"].nunique()
+        n_no_eval = week_evals["No Eval"].sum()
+        n_red = week_evals["Red Flag"].sum()
+        n_5star = len(completed[completed["Stars"] == 5])
+        avg_score = completed["Score"].mean() if len(completed) > 0 else 0
+
+        k1, k2, k3, k4, k5, k6 = st.columns(6)
+        k1.markdown(f'<div class="kpi-box"><div class="kpi-label">Evaluations</div><div class="kpi-value">{n_evals}</div></div>', unsafe_allow_html=True)
+        k2.markdown(f'<div class="kpi-box"><div class="kpi-label">Stores Evaluated</div><div class="kpi-value">{n_stores - int(n_no_eval)}/{n_stores}</div></div>', unsafe_allow_html=True)
+        missed_color = "#DC2626" if n_no_eval > 0 else "#059669"
+        k3.markdown(f'<div class="kpi-box"><div class="kpi-label">Missed Evals</div><div class="kpi-value" style="color:{missed_color}">{int(n_no_eval)}</div></div>', unsafe_allow_html=True)
+        red_color = "#DC2626" if n_red > 0 else "#059669"
+        k4.markdown(f'<div class="kpi-box"><div class="kpi-label">Red Flags</div><div class="kpi-value" style="color:{red_color}">{int(n_red)}</div></div>', unsafe_allow_html=True)
+        k5.markdown(f'<div class="kpi-box"><div class="kpi-label">5-Star Evals</div><div class="kpi-value" style="color:#059669">{n_5star}</div></div>', unsafe_allow_html=True)
+        k6.markdown(f'<div class="kpi-box"><div class="kpi-label">Avg Score</div><div class="kpi-value">{avg_score:.1f}</div></div>', unsafe_allow_html=True)
+
+        st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
+
+        # District-grouped tables
+        for district in sorted(week_evals["District"].unique()):
+            d_evals = week_evals[week_evals["District"] == district].copy()
+            d_completed = d_evals[~d_evals["No Eval"]]
+            d_5star = len(d_completed[d_completed["Stars"] == 5])
+            d_red = d_evals["Red Flag"].sum()
+            d_noeval = d_evals["No Eval"].sum()
+
+            badge = ""
+            if d_noeval > 0:
+                badge += f' <span style="background:#D97706; padding:2px 8px; border-radius:4px; font-size:0.75rem; margin-left:8px;">{int(d_noeval)} missed</span>'
+            if d_red > 0:
+                badge += f' <span style="background:#DC2626; padding:2px 8px; border-radius:4px; font-size:0.75rem; margin-left:4px;">{int(d_red)} red flags</span>'
+
+            st.markdown(f"""
+            <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0; margin-top:1rem;
+                        display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:700; font-size:0.95rem;">{district}{badge}</span>
+                <span style="font-size:0.82rem;">5-Star: <b>{d_5star}</b> &nbsp;|&nbsp; Evals: <b>{len(d_completed)}</b></span>
+            </div>
+            """, unsafe_allow_html=True)
+
+            display_cols = d_evals[["Store No", "Date", "MOD", "Findings", "Score", "Rating", "Duration"]].copy()
+            # Mark no-eval rows
+            display_cols.loc[d_evals["No Eval"], "Rating"] = "NO EVALUATION"
+            display_cols.loc[d_evals["No Eval"], "MOD"] = ""
+            display_cols["Findings"] = display_cols["Findings"].apply(lambda x: f"{int(x)}" if pd.notna(x) else "-")
+            display_cols["Score"] = d_evals["Score"].apply(lambda x: f"{int(x)}" if pd.notna(x) else "-")
+            display_cols["Duration"] = display_cols["Duration"].fillna("-")
+            display_cols["Date"] = display_cols["Date"].apply(lambda x: x if x and x != '' else "-")
+            display_cols = display_cols.reset_index(drop=True)
+
+            def highlight_evals(row):
+                styles = [""] * len(row)
+                if row["Rating"] == "NO EVALUATION":
+                    styles = ["background-color: #FEF3C7; color: #92400E"] * len(row)
+                elif str(row["Score"]).isdigit() and int(row["Score"]) == 0:
+                    styles = ["background-color: #FEE2E2; color: #991B1B"] * len(row)
+                return styles
+
+            styled = display_cols.style.apply(highlight_evals, axis=1)
+            st.dataframe(styled, use_container_width=True, hide_index=True)
+
+        # Trend chart: red flags per week
+        st.markdown("<div style='height:1.5rem;'></div>", unsafe_allow_html=True)
+        st.markdown('<div class="section-title" style="font-size:1rem;">Trend: Red Flags & Missed Evals per Week</div>', unsafe_allow_html=True)
+
+        trend_data = evals.groupby("Period").agg(
+            Red_Flags=("Red Flag", "sum"),
+            Missed=("No Eval", "sum"),
+            Avg_Score=("Score", lambda x: x.dropna().mean()),
+        ).reindex(periods_avail).reset_index()
+
+        fig_trend = go.Figure()
+        fig_trend.add_trace(go.Bar(x=trend_data["Period"], y=trend_data["Red_Flags"], name="Red Flags",
+                                   marker_color="#DC2626", text=trend_data["Red_Flags"].astype(int), textposition="outside"))
+        fig_trend.add_trace(go.Bar(x=trend_data["Period"], y=trend_data["Missed"], name="Missed Evals",
+                                   marker_color="#D97706", text=trend_data["Missed"].astype(int), textposition="outside"))
+        trend_layout = {**CHART_LAYOUT, "barmode": "group",
+                        "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Count", dtick=2),
+                        "legend": dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)}
+        fig_trend.update_layout(**trend_layout, title="Red Flags & Missed Evals by Week")
+        st.plotly_chart(fig_trend, use_container_width=True, config=CHART_CONFIG)
+
+    else:
+        st.warning("No QSC evaluation data found. Place qsc_evals.csv in the data/ folder.")
 
 # ════════════════════════════════
 # Q1 PERFORMANCE
