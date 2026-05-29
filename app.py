@@ -902,7 +902,7 @@ elif selected_tab == "Internal QSC Evals":
             fig_off = px.bar(top_offenders, x="Label", y="Times_Flagged", text_auto=True,
                              color_discrete_sequence=["#DC2626"])
             off_layout = {**CHART_LAYOUT, "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Times Flagged", dtick=1),
-                          "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Store #", tickfont=dict(size=9))}
+                          "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Store #", tickfont=dict(size=9), type="category")}
             fig_off.update_layout(**off_layout, title="Red Flag Frequency by Store (All Weeks)")
             fig_off.update_traces(textposition="outside")
             st.plotly_chart(fig_off, use_container_width=True, config=CHART_CONFIG)
