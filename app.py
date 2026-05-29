@@ -844,7 +844,6 @@ elif selected_tab == "Internal QSC Evals":
             Times_Flagged=("Period", "count"),
             Weeks=("Period", lambda x: ", ".join(sorted(x.unique(), key=lambda p: (int(p[1]), int(p[3]))))),
             Avg_Score=("Score", "mean"),
-            Avg_Duration=("Duration Min", "mean"),
         ).reset_index().sort_values("Times_Flagged", ascending=False)
 
         # Add store names
@@ -869,10 +868,9 @@ elif selected_tab == "Internal QSC Evals":
                 red_display = red_counts.copy()
                 red_display["District"] = red_display["Store No"].map(district_map).fillna("")
                 red_display["Avg Score"] = red_display["Avg_Score"].apply(lambda x: f"{x:.0f}" if pd.notna(x) else "")
-                red_display["Avg Duration"] = red_display["Avg_Duration"].apply(lambda x: f"{x:.0f} min" if pd.notna(x) else "")
                 red_display = red_display.rename(columns={"Times_Flagged": "Times Flagged", "Weeks": "Weeks Flagged"})
                 st.dataframe(
-                    red_display[["Store No", "District", "Times Flagged", "Avg Score", "Avg Duration", "Weeks Flagged"]],
+                    red_display[["Store No", "District", "Times Flagged", "Avg Score", "Weeks Flagged"]],
                     use_container_width=True, hide_index=True,
                 )
             else:
