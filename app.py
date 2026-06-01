@@ -369,7 +369,7 @@ if selected_tab == "KDS Adherence":
 
         # Period selector
         period_options = ["All Weeks"] + list(reversed(periods_sorted))
-        sel_kds_period = st.selectbox("Select Week", period_options, index=0, key="kds_period")
+        sel_kds_period = st.selectbox("Select Week", period_options, index=1 if len(period_options) > 1 else 0, key="kds_period")
         if sel_kds_period != "All Weeks":
             kds_view = kds_raw[kds_raw["Period"] == sel_kds_period].copy()
         else:
