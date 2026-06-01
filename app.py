@@ -316,7 +316,7 @@ with st.sidebar:
         store_options = ["All Stores"] + store_list
         selected_store = st.selectbox("Store", store_options, label_visibility="collapsed")
 
-    nav_options = ["KDS Adherence", "Schedule Guide", "Internal QSC Evals", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance", "Scorecard", "Watch List", "Trends", "Wing Worm"]
+    nav_options = ["KDS Adherence", "Schedule Guide", "Internal QSC Evals", "COGS Variance", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance", "Scorecard", "Watch List", "Trends", "Wing Worm"]
     selected_tab = st.radio("Navigation", nav_options, label_visibility="collapsed")
 
     st.markdown("---")
@@ -795,6 +795,187 @@ elif selected_tab == "Internal QSC Evals":
 
     else:
         st.warning("No QSC evaluation data found. Place qsc_evals.csv in the data/ folder.")
+
+# ════════════════════════════════
+# COGS VARIANCE
+# ════════════════════════════════
+elif selected_tab == "COGS Variance":
+    st.markdown('<div class="section-title">COGS Variance Analysis</div>', unsafe_allow_html=True)
+    st.markdown('<p style="color:#6B7280; font-size:0.85rem;">Food cost tracking by store. COGS Variance = COGS Actual − Food Theoretical. Positive = over theoretical (bad). NBO Variance = NBO Actual − Food Theoretical.</p>', unsafe_allow_html=True)
+
+    cogs_file = DATA_DIR / "cogs_variance.csv"
+    if cogs_file.exists():
+        cogs_raw = pd.read_csv(cogs_file)
+        cogs_periods = sorted(cogs_raw["Period"].unique(), key=lambda x: int(x[1]))
+
+        # Apply sidebar filters
+        if selected_store != "All Stores":
+            sk_num = extract_store_number(selected_store).lstrip("0")
+            cogs_raw = cogs_raw[cogs_raw["Store No"].astype(str) == sk_num]
+        elif selected_district != "All Districts":
+            d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
+            cogs_raw = cogs_raw[cogs_raw["Store No"].astype(str).isin(d_nums)]
+
+        cogs_periods = [p for p in cogs_periods if p in cogs_raw["Period"].unique()]
+
+        # Period selector
+        cogs_period_opts = ["All Periods"] + list(reversed(cogs_periods))
+        sel_cogs_period = st.selectbox("Select Period", cogs_period_opts, index=1 if len(cogs_period_opts) > 1 else 0, key="cogs_period")
+        if sel_cogs_period != "All Periods":
+            cogs_view = cogs_raw[cogs_raw["Period"] == sel_cogs_period].copy()
+        else:
+            cogs_view = cogs_raw.copy()
+
+        # KPIs
+        avg_cogs_actual = cogs_view["COGS Actual %"].mean() if cogs_view["COGS Actual %"].notna().any() else 0
+        avg_cogs_var = cogs_view["COGS Variance %"].mean() if cogs_view["COGS Variance %"].notna().any() else 0
+        avg_nbo = cogs_view["NBO Actual %"].mean() if cogs_view["NBO Actual %"].notna().any() else 0
+        avg_nbo_var = cogs_view["NBO Variance %"].mean() if cogs_view["NBO Variance %"].notna().any() else 0
+        avg_theo = cogs_view["Food Theoretical %"].mean() if cogs_view["Food Theoretical %"].notna().any() else 0
+        n_over_1 = (cogs_view.groupby("Store No")["COGS Variance %"].mean() > 1.0).sum()
+        n_negative = (cogs_view.groupby("Store No")["COGS Variance %"].mean() < 0).sum()
+
+        cogs_c = "green" if avg_cogs_var <= 0.5 else ("orange" if avg_cogs_var <= 1.5 else "red")
+        nbo_c = "green" if avg_nbo_var <= 0.5 else ("orange" if avg_nbo_var <= 1.5 else "red")
+
+        k1, k2, k3, k4 = st.columns(4)
+        k1.markdown(kpi_card("Avg COGS Actual", f"{avg_cogs_actual:.2f}%"), unsafe_allow_html=True)
+        k2.markdown(kpi_card("Avg COGS Variance", f"{avg_cogs_var:+.2f}%", cogs_c), unsafe_allow_html=True)
+        k3.markdown(kpi_card("Avg Food Theoretical", f"{avg_theo:.2f}%"), unsafe_allow_html=True)
+        k4.markdown(kpi_card("Avg NBO Variance", f"{avg_nbo_var:+.2f}%", nbo_c), unsafe_allow_html=True)
+
+        k5, k6, k7, k8 = st.columns(4)
+        k5.markdown(kpi_card("Avg NBO Actual", f"{avg_nbo:.2f}%"), unsafe_allow_html=True)
+        k6.markdown(kpi_card("Stores > 1% Variance", str(n_over_1), "red" if n_over_1 > 5 else ("orange" if n_over_1 > 0 else "green")), unsafe_allow_html=True)
+        k7.markdown(kpi_card("Stores Under Theo", str(n_negative), "green"), unsafe_allow_html=True)
+        k8.markdown(kpi_card("Stores Tracked", str(cogs_view["Store No"].nunique())), unsafe_allow_html=True)
+
+        st.markdown("")
+
+        # ── COGS Variance by Store (bar chart) ──
+        st.markdown('<div class="section-title">COGS Variance % by Store</div>', unsafe_allow_html=True)
+        store_cogs = cogs_view.groupby(["Store No", "Store Name"]).agg(
+            cogs_var=("COGS Variance %", "mean"),
+        ).reset_index().sort_values("cogs_var", ascending=False)
+        store_cogs["Label"] = store_cogs["Store No"].astype(str) + " - " + store_cogs["Store Name"]
+
+        cogs_colors = [RED if v > 1.5 else (ORANGE if v > 0.5 else GREEN) for v in store_cogs["cogs_var"]]
+        fig_cogs = go.Figure(go.Bar(
+            x=store_cogs["Label"], y=store_cogs["cogs_var"],
+            marker_color=cogs_colors,
+            text=store_cogs["cogs_var"].apply(lambda v: f"{v:+.2f}%"),
+            textposition="outside",
+            hovertemplate="%{x}<br>COGS Variance: %{y:+.2f}%<extra></extra>",
+        ))
+        fig_cogs.add_hline(y=0, line_color="#374151", line_width=1)
+        fig_cogs.add_hline(y=1.0, line_dash="dash", line_color=RED, line_width=1.5,
+                           annotation_text="1% threshold", annotation_font=dict(color="#DC2626", size=10))
+        cogs_layout = {**CHART_LAYOUT,
+                       "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="COGS Variance %"),
+                       "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, type="category", tickfont=dict(size=9))}
+        fig_cogs.update_layout(**cogs_layout, height=420, xaxis_tickangle=-45)
+        st.plotly_chart(fig_cogs, use_container_width=True, config=CHART_CONFIG)
+
+        # ── NBO vs COGS Actual scatter ──
+        st.markdown('<div class="section-title">NBO Actual vs COGS Actual</div>', unsafe_allow_html=True)
+        scatter_data = cogs_view.groupby(["Store No", "Store Name"]).agg(
+            nbo=("NBO Actual %", "mean"),
+            cogs=("COGS Actual %", "mean"),
+            nbo_var=("NBO Variance %", "mean"),
+        ).reset_index()
+        scatter_data["Label"] = scatter_data["Store No"].astype(str) + " - " + scatter_data["Store Name"]
+
+        fig_scatter = px.scatter(scatter_data, x="nbo", y="cogs", hover_name="Label",
+                                 color_discrete_sequence=[TEAL], size_max=10)
+        fig_scatter.update_traces(marker=dict(size=10, opacity=0.7))
+        # Add diagonal reference line (NBO = COGS means no difference from adjustments)
+        min_val = min(scatter_data["nbo"].min(), scatter_data["cogs"].min()) - 1
+        max_val = max(scatter_data["nbo"].max(), scatter_data["cogs"].max()) + 1
+        fig_scatter.add_trace(go.Scatter(x=[min_val, max_val], y=[min_val, max_val],
+                                         mode="lines", line=dict(dash="dash", color="#9CA3AF"),
+                                         showlegend=False, hoverinfo="skip"))
+        scatter_layout = {**CHART_LAYOUT,
+                          "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="NBO Actual %"),
+                          "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="COGS Actual %")}
+        fig_scatter.update_layout(**scatter_layout, height=400, title="NBO vs COGS (points below line = adjustments helping)")
+        st.plotly_chart(fig_scatter, use_container_width=True, config=CHART_CONFIG)
+
+        # ── Trend over periods ──
+        if len(cogs_periods) > 1:
+            st.markdown('<div class="section-title">COGS Variance Trend by Period</div>', unsafe_allow_html=True)
+            cogs_trend = cogs_raw.groupby("Period").agg(
+                cogs_var=("COGS Variance %", "mean"),
+                nbo_var=("NBO Variance %", "mean"),
+                cogs_actual=("COGS Actual %", "mean"),
+            ).reindex(cogs_periods).reset_index()
+
+            fig_ctrend = go.Figure()
+            fig_ctrend.add_trace(go.Scatter(x=cogs_trend["Period"], y=cogs_trend["cogs_var"],
+                                            mode="lines+markers", name="COGS Variance",
+                                            line=dict(color=RED, width=2), marker=dict(size=8)))
+            fig_ctrend.add_trace(go.Scatter(x=cogs_trend["Period"], y=cogs_trend["nbo_var"],
+                                            mode="lines+markers", name="NBO Variance",
+                                            line=dict(color=ORANGE, width=2), marker=dict(size=8)))
+            fig_ctrend.add_hline(y=0, line_color="#374151", line_width=1)
+            ctrend_layout = {**CHART_LAYOUT,
+                             "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Variance %"),
+                             "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, type="category"),
+                             "legend": dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)}
+            fig_ctrend.update_layout(**ctrend_layout, title="Avg COGS & NBO Variance Trend")
+            st.plotly_chart(fig_ctrend, use_container_width=True, config=CHART_CONFIG)
+
+        # ── District Summary ──
+        st.markdown('<div class="section-title">District COGS Summary</div>', unsafe_allow_html=True)
+        cogs_view["District"] = cogs_view["Store No"].astype(str).map(STORE_TO_DISTRICT).fillna("Unknown")
+        dist_cogs = cogs_view.groupby("District").agg(
+            avg_cogs=("COGS Actual %", "mean"),
+            avg_var=("COGS Variance %", "mean"),
+            avg_nbo=("NBO Actual %", "mean"),
+            stores=("Store No", "nunique"),
+        ).reset_index().sort_values("avg_var", ascending=False)
+
+        dist_colors = [RED if v > 1.0 else (ORANGE if v > 0.5 else GREEN) for v in dist_cogs["avg_var"]]
+        fig_dist = go.Figure(go.Bar(
+            x=dist_cogs["District"], y=dist_cogs["avg_var"],
+            marker_color=dist_colors,
+            text=dist_cogs["avg_var"].apply(lambda v: f"{v:+.2f}%"),
+            textposition="outside",
+        ))
+        fig_dist.add_hline(y=0, line_color="#374151", line_width=1)
+        dist_layout = {**CHART_LAYOUT,
+                       "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Avg COGS Variance %"),
+                       "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, type="category")}
+        fig_dist.update_layout(**dist_layout, height=350, title="Avg COGS Variance by District")
+        st.plotly_chart(fig_dist, use_container_width=True, config=CHART_CONFIG)
+
+        # ── Detail Table ──
+        st.markdown('<div class="section-title">Store Detail</div>', unsafe_allow_html=True)
+        detail = cogs_view[["Period", "Store No", "Store Name", "NBO Actual %", "Food Theoretical %",
+                             "NBO Variance %", "COGS Actual %", "COGS Variance %"]].copy()
+        detail["District"] = detail["Store No"].astype(str).map(STORE_TO_DISTRICT).fillna("")
+        for col in ["NBO Actual %", "Food Theoretical %", "NBO Variance %", "COGS Actual %", "COGS Variance %"]:
+            detail[col] = detail[col].apply(lambda x: f"{x:.2f}%" if pd.notna(x) else "-")
+        detail = detail[["Period", "Store No", "Store Name", "District", "NBO Actual %", "Food Theoretical %",
+                          "NBO Variance %", "COGS Actual %", "COGS Variance %"]]
+        detail = detail.sort_values(["Period", "Store Name"])
+
+        def highlight_cogs(row):
+            styles = [""] * len(row)
+            try:
+                var_val = float(str(row["COGS Variance %"]).replace("%", ""))
+                if var_val > 1.5:
+                    styles = ["background-color: #FEE2E2; color: #991B1B"] * len(row)
+                elif var_val > 0.5:
+                    styles = ["background-color: #FEF3C7; color: #92400E"] * len(row)
+            except (ValueError, TypeError):
+                pass
+            return styles
+
+        styled = detail.style.apply(highlight_cogs, axis=1)
+        st.dataframe(styled, use_container_width=True, hide_index=True)
+
+    else:
+        st.warning("No COGS data found. Place cogs_variance.csv in the data/ folder.")
 
 # ════════════════════════════════
 # Q1 PERFORMANCE
