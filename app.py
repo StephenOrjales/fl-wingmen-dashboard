@@ -381,18 +381,29 @@ if selected_tab == "KDS Adherence":
         n_perfect = (perfect_stores == 100).sum()
         n_below_60 = (perfect_stores < 60).sum()
         avg_sos = kds_view["SOS"].mean() if kds_view["SOS"].notna().any() else 0
+        avg_prebump = kds_view["Pre-Bump %"].mean() if kds_view["Pre-Bump %"].notna().any() else 0
+        avg_adopt = kds_view["Adoption %"].mean() if kds_view["Adoption %"].notna().any() else 0
+        avg_make = kds_view["Make Ahead %"].mean() if kds_view["Make Ahead %"].notna().any() else 0
         avg_waste = kds_view["Waste %"].mean() if kds_view["Waste %"].notna().any() else 0
 
         adh_c = "green" if avg_adherence >= 80 else ("orange" if avg_adherence >= 60 else "red")
         sos_c = "green" if avg_sos < 10 else ("orange" if avg_sos < 13 else "red")
+        pb_c = "green" if avg_prebump <= 0.5 else ("orange" if avg_prebump <= 1.5 else "red")
+        adopt_c = "green" if avg_adopt >= 85 else "red"
+        ma_c = "green" if avg_make <= 10 else "red"
         waste_c = "green" if avg_waste <= 5 else "red"
 
-        k1, k2, k3, k4, k5 = st.columns(5)
+        k1, k2, k3, k4 = st.columns(4)
         k1.markdown(kpi_card("Avg Adherence", f"{avg_adherence:.1f}%", adh_c), unsafe_allow_html=True)
         k2.markdown(kpi_card("Avg SOS", f"{avg_sos:.1f} min", sos_c), unsafe_allow_html=True)
-        k3.markdown(kpi_card("Avg Waste", f"{avg_waste:.1f}%", waste_c), unsafe_allow_html=True)
-        k4.markdown(kpi_card("100% Adherence", str(n_perfect), "green"), unsafe_allow_html=True)
-        k5.markdown(kpi_card("Below 60%", str(n_below_60), "red" if n_below_60 > 0 else "green"), unsafe_allow_html=True)
+        k3.markdown(kpi_card("Pre-Bump Rate", f"{avg_prebump:.2f}%", pb_c), unsafe_allow_html=True)
+        k4.markdown(kpi_card("Cook Adoption", f"{avg_adopt:.1f}%", adopt_c), unsafe_allow_html=True)
+
+        k5, k6, k7, k8 = st.columns(4)
+        k5.markdown(kpi_card("Make Ahead Rate", f"{avg_make:.1f}%", ma_c), unsafe_allow_html=True)
+        k6.markdown(kpi_card("Avg Waste", f"{avg_waste:.1f}%", waste_c), unsafe_allow_html=True)
+        k7.markdown(kpi_card("100% Adherence", str(n_perfect), "green"), unsafe_allow_html=True)
+        k8.markdown(kpi_card("Below 60%", str(n_below_60), "red" if n_below_60 > 0 else "green"), unsafe_allow_html=True)
 
         st.markdown("")
 
