@@ -412,9 +412,8 @@ if selected_tab == "KDS Adherence":
         ))
         fig_adh.add_hline(y=80, line_dash="dash", line_color=GREEN, line_width=1.5,
                           annotation_text="80% target", annotation_font=dict(color="#059669", size=10))
-        fig_adh.update_layout(**CHART_LAYOUT, height=420,
-                              yaxis_title="Adherence %", xaxis_tickangle=-45,
-                              yaxis=dict(gridcolor=GRID_COLOR, fixedrange=True, range=[0, 110]))
+        adh_layout = {**CHART_LAYOUT, "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, range=[0, 110], title="Adherence %")}
+        fig_adh.update_layout(**adh_layout, height=420, xaxis_tickangle=-45)
         st.plotly_chart(fig_adh, use_container_width=True, config=CHART_CONFIG)
 
         # ── Metric Breakdown (pass rates) ──
