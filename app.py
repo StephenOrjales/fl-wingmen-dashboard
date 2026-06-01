@@ -401,10 +401,11 @@ if selected_tab == "KDS Adherence":
         store_adh = kds_view.groupby(["Store No", "Store Name"]).agg(
             adherence=("Adherence %", "mean"),
         ).reset_index().sort_values("adherence")
+        store_adh["Label"] = store_adh["Store No"].astype(str) + " - " + store_adh["Store Name"]
 
         adh_colors = [RED if v < 60 else (ORANGE if v < 80 else GREEN) for v in store_adh["adherence"]]
         fig_adh = go.Figure(go.Bar(
-            x=store_adh["Store Name"], y=store_adh["adherence"],
+            x=store_adh["Label"], y=store_adh["adherence"],
             marker_color=adh_colors,
             text=store_adh["adherence"].apply(lambda v: f"{v:.0f}%"),
             textposition="outside",
@@ -440,9 +441,10 @@ if selected_tab == "KDS Adherence":
                 text=mr_df["Pass Rate"].apply(lambda v: f"{v:.0f}%"),
                 textposition="outside",
             ))
-            fig_mr.update_layout(**CHART_LAYOUT, height=350,
-                                 yaxis=dict(gridcolor=GRID_COLOR, fixedrange=True, range=[0, 110], title="Pass Rate %"),
-                                 xaxis=dict(gridcolor=GRID_COLOR, fixedrange=True, type="category"))
+            mr_layout = {**CHART_LAYOUT,
+                         "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, range=[0, 110], title="Pass Rate %"),
+                         "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, type="category")}
+            fig_mr.update_layout(**mr_layout, height=350)
             st.plotly_chart(fig_mr, use_container_width=True, config=CHART_CONFIG)
 
         # ── Trend over time ──
