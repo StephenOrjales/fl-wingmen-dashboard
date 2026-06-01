@@ -227,104 +227,8 @@ def forecast_store_num(store):
     return m.group(1) if m else None
 
 
-@st.cache_data(ttl=300)
-def load_kds_detailed():
-    return _load_kds_excel(DATA_DIR / "kds_detailed.xlsx")
 
-
-@st.cache_data(ttl=300)
-def load_daily_kds():
-    history_path = DATA_DIR / "kds_history.csv"
-    daily_path = DATA_DIR / "smart_kitchen_daily.xlsx"
-
-    if history_path.exists():
-        df = pd.read_csv(history_path)
-    elif daily_path.exists():
-        df = pd.read_excel(daily_path, sheet_name="Smart Kitchen Daily", header=None, skiprows=10)
-        df.columns = df.iloc[0]
-        df = df.iloc[1:].reset_index(drop=True)
-        df = df.dropna(subset=["STORE FULL NAME"])
-        file_mod = datetime.fromtimestamp(daily_path.stat().st_mtime)
-        recent_date = (file_mod - timedelta(days=1)).strftime("%Y-%m-%d")
-        prior_date = (file_mod - timedelta(days=2)).strftime("%Y-%m-%d")
-        df["data_date"] = df.groupby("STORE FULL NAME").cumcount().map({0: recent_date, 1: prior_date})
-    else:
-        return pd.DataFrame()
-
-    df["data_date"] = pd.to_datetime(df["data_date"]).dt.date
-
-    col_map = {}
-    for c in df.columns:
-        if c.strip() == "SOS (Overall)":
-            col_map[c] = "SOS (Overall)"
-        elif c.strip() == "SOS (Lunch)":
-            col_map[c] = "SOS (Lunch)"
-        elif c.strip() == "SOS (Snack)":
-            col_map[c] = "SOS (Snack)"
-        elif c.strip() == "SOS (Late)":
-            col_map[c] = "SOS (Late)"
-        elif c.strip() == "Bone in Guide Accuracy (Overall)":
-            col_map[c] = "Bone in Guide Accuracy (Overall)"
-    if col_map:
-        df = df.rename(columns=col_map)
-
-    df["store_num"] = df["STORE FULL NAME"].apply(extract_store_number)
-    df["district"] = df["store_num"].map(STORE_TO_DISTRICT)
-    df["short_name"] = df["STORE FULL NAME"].apply(short_name)
-
-    sos_col = "SOS (Overall)" if "SOS (Overall)" in df.columns else "SOS (Overall) "
-    df["sos_min"] = df[sos_col].apply(parse_time_to_minutes)
-    lunch_col = "SOS (Lunch)" if "SOS (Lunch)" in df.columns else "SOS (Lunch) "
-    df["sos_lunch"] = df[lunch_col].apply(parse_time_to_minutes) if lunch_col in df.columns else None
-    snack_col = "SOS (Snack)" if "SOS (Snack)" in df.columns else "SOS (Snack) "
-    df["sos_snack"] = df[snack_col].apply(parse_time_to_minutes) if snack_col in df.columns else None
-    df["sos_dinner"] = df["SOS (Dinner)"].apply(parse_time_to_minutes) if "SOS (Dinner)" in df.columns else None
-    late_col = "SOS (Late)" if "SOS (Late)" in df.columns else "SOS (Late) "
-    df["sos_late"] = df[late_col].apply(parse_time_to_minutes) if late_col in df.columns else None
-
-    df["pre_bump"] = pd.to_numeric(df["Pre Bump Rate"], errors="coerce") * 100
-    df["bone_in_adopt"] = pd.to_numeric(df["Adoption of Cooks"], errors="coerce") * 100
-    df["make_ahead_rate"] = pd.to_numeric(df["Make Ahead Rate"], errors="coerce") * 100
-    acc_col = "Bone in Guide Accuracy (Overall)" if "Bone in Guide Accuracy (Overall)" in df.columns else "Bone in Guide Accuracy (Overall) "
-    df["bone_in_accuracy"] = pd.to_numeric(df[acc_col], errors="coerce") * 100
-    df["pct_7_10"] = pd.to_numeric(df["Percent Orders between 7-10 Mins"], errors="coerce") * 100
-    df["waste"] = pd.to_numeric(df["Waste"], errors="coerce") * 100
-    df["orders_num"] = pd.to_numeric(df["Orders"], errors="coerce")
-    df["sss"] = pd.to_numeric(df["SSS"], errors="coerce") * 100
-    df["aqt_var"] = df["AQT Variance"].apply(parse_time_to_minutes)
-
-    return df
-
-
-def _load_kds_excel(path):
-    if not path.exists():
-        return pd.DataFrame()
-    df = pd.read_excel(path, header=None, skiprows=2)
-    df.columns = df.iloc[0]
-    df = df.iloc[1:].reset_index(drop=True)
-    df["store_num"] = df["Store Full Name"].apply(extract_store_number)
-    df["district"] = df["store_num"].map(STORE_TO_DISTRICT)
-    df["short_name"] = df["Store Full Name"].apply(short_name)
-    df["sos_min"] = df["SOS"].apply(parse_time_to_minutes)
-    df["pre_bump"] = pd.to_numeric(df["Pre-Bump Rate"], errors="coerce") * 100
-    df["bone_in_adopt"] = pd.to_numeric(df["Bone-in Cook Adoption"], errors="coerce") * 100
-    df["boneless_adopt"] = pd.to_numeric(df["Bone-less Cook Adoption"], errors="coerce") * 100
-    df["bone_in_qty_var"] = pd.to_numeric(df["Bone-in Qty Variance"], errors="coerce") * 100
-    df["make_ahead_rate"] = pd.to_numeric(df["Make Ahead Rate(Bone-in)"], errors="coerce") * 100
-    df["bone_in_accuracy"] = pd.to_numeric(df["Bone-in Guide Accuracy"], errors="coerce") * 100
-    df["pct_7_10"] = pd.to_numeric(df["Percent Orders Between 7-10 mins"], errors="coerce") * 100
-    df["waste"] = pd.to_numeric(df["Bone-in Waste"], errors="coerce") * 100
-    df["qt_bombardier"] = df["Queue Time Bombardier"].apply(parse_time_to_minutes)
-    df["qt_gunner"] = df["Queue Time Gunner"].apply(parse_time_to_minutes)
-    df["t_wingman"] = df["Time at Wingman"].apply(parse_time_to_minutes)
-    df["t_pilot"] = df["Time at Pilot"].apply(parse_time_to_minutes)
-    df["quadrant"] = df["Quadrant"].astype(str)
-    return df
-
-
-@st.cache_data(ttl=300)
-def load_kds_q1():
-    return _load_kds_excel(DATA_DIR / "kds_q1.xlsx")
+# KDS data removed — will be replaced with new Fri/Sat Dinner adherence system
 
 
 
@@ -378,15 +282,11 @@ def load_q2_data():
     return _load_forecast_quarter([4, 5, 6])
 
 
-kds_df_all = load_kds_detailed()
-daily_df_all = load_daily_kds()
-kds_q1_all = load_kds_q1()
+kds_df_all = pd.DataFrame()
+daily_df_all = pd.DataFrame()
+kds_q1_all = pd.DataFrame()
 q1_store, q1_weekly = load_q1_data()
 q2_store, q2_weekly = load_q2_data()
-
-if kds_df_all.empty and q2_store.empty:
-    st.warning("No data found. Place kds_detailed.xlsx or forecast.xlsm in the data/ folder.")
-    st.stop()
 
 # ── Sidebar ──
 with st.sidebar:
@@ -399,10 +299,13 @@ with st.sidebar:
         district_options = ["All Districts"] + sorted(DISTRICTS.keys())
         selected_district = st.selectbox("District", district_options, label_visibility="collapsed")
 
-        if not kds_df_all.empty:
-            store_src = kds_df_all
-        else:
-            store_src = pd.DataFrame(columns=["Store Full Name", "store_num"])
+        # Build store list from config
+        all_config_stores = []
+        for dist, stores in DISTRICTS.items():
+            for s in stores:
+                snum = s.split(" - ")[0].strip().lstrip("0")
+                all_config_stores.append({"Store Full Name": s, "store_num": snum, "district": dist})
+        store_src = pd.DataFrame(all_config_stores) if all_config_stores else pd.DataFrame(columns=["Store Full Name", "store_num"])
 
         if selected_district == "All Districts":
             store_list = sorted(store_src["Store Full Name"].dropna().unique())
@@ -413,7 +316,7 @@ with st.sidebar:
         store_options = ["All Stores"] + store_list
         selected_store = st.selectbox("Store", store_options, label_visibility="collapsed")
 
-    nav_options = ["Daily KDS Snapshot", "Schedule Guide", "Internal QSC Evals", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance", "Scorecard", "Watch List", "Trends", "Wing Worm"]
+    nav_options = ["Schedule Guide", "Internal QSC Evals", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance", "Scorecard", "Watch List", "Trends", "Wing Worm"]
     selected_tab = st.radio("Navigation", nav_options, label_visibility="collapsed")
 
     st.markdown("---")
@@ -443,277 +346,9 @@ def kpi_card(label, value, color=""):
 
 
 # ════════════════════════════════
-# DAILY KDS SNAPSHOT
-# ════════════════════════════════
-if selected_tab == "Daily KDS Snapshot":
-
-    if daily_df_all.empty:
-        st.warning("No daily KDS data found. Run fetch_outlook.py to grab the Smart Kitchen Daily email.")
-    else:
-        available_dates = sorted(daily_df_all["data_date"].dropna().unique(), reverse=True)
-
-        week_map = {}
-        for d in available_dates:
-            ws, wl = fiscal_week_label(d)
-            today_ws, _ = fiscal_week_label(datetime.now().date())
-            label = "Current Week" if ws == today_ws else f"2026 {wl}"
-            week_map.setdefault(label, []).append(d)
-
-        week_options = list(week_map.keys())
-        default_week_idx = 1 if "Current Week" in week_options else 0
-
-        quarter_map = {}
-        for d in available_dates:
-            _, wl = fiscal_week_label(d)
-            wnum = int(wl[1:])
-            if wnum <= 13:
-                quarter_map.setdefault("Q1 (W1-W13)", []).append(d)
-            else:
-                quarter_map.setdefault("Q2 (W14-W26)", []).append(d)
-
-        period_options = list(quarter_map.keys()) + ["All Weeks"] + week_options
-
-        fw1, fw2 = st.columns(2)
-        with fw1:
-            selected_week = st.selectbox(
-                "Fiscal Week", period_options,
-                index=period_options.index("Current Week") if "Current Week" in period_options else 0,
-                key="fiscal_week_picker",
-            )
-        with fw2:
-            if selected_week in quarter_map:
-                date_choices = sorted(quarter_map[selected_week], reverse=True)
-            elif selected_week == "All Weeks":
-                date_choices = available_dates
-            else:
-                date_choices = sorted(week_map[selected_week], reverse=True)
-            date_labels = {d: f"{d.strftime('%A')}, {d.strftime('%B')} {d.day}, {d.year}" for d in date_choices}
-            is_group = selected_week != "All Weeks"
-            group_label = "Entire Quarter" if selected_week in quarter_map else "Entire Week"
-            date_options = [group_label] + list(date_choices) if is_group else list(date_choices)
-            selected_date_option = st.selectbox(
-                "Date", date_options,
-                format_func=lambda d: d if d in ("Entire Week", "Entire Quarter") else date_labels.get(d, str(d)),
-                key="daily_date_picker",
-            )
-
-        if selected_date_option in ("Entire Week", "Entire Quarter"):
-            filter_dates = set(date_choices)
-            is_agg_view = True
-        else:
-            filter_dates = {selected_date_option}
-            is_agg_view = False
-
-        kds = daily_df_all[daily_df_all["data_date"].isin(filter_dates)].copy()
-        if selected_store != "All Stores":
-            sk_num = extract_store_number(selected_store)
-            kds = kds[kds["store_num"] == sk_num]
-        elif selected_district != "All Districts":
-            d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
-            kds = kds[kds["store_num"].isin(d_nums)]
-
-        if is_agg_view and len(filter_dates) > 1:
-            kds = kds.groupby(["store_num", "district", "short_name", "STORE FULL NAME"], dropna=False).agg(
-                sos_min=("sos_min", "mean"), sos_lunch=("sos_lunch", "mean"),
-                sos_snack=("sos_snack", "mean"), sos_dinner=("sos_dinner", "mean"),
-                sos_late=("sos_late", "mean"), pre_bump=("pre_bump", "mean"),
-                bone_in_adopt=("bone_in_adopt", "mean"), make_ahead_rate=("make_ahead_rate", "mean"),
-                bone_in_accuracy=("bone_in_accuracy", "mean"), pct_7_10=("pct_7_10", "mean"),
-                waste=("waste", "mean"), orders_num=("orders_num", "sum"),
-                sss=("sss", "mean"), aqt_var=("aqt_var", "mean"),
-            ).reset_index()
-
-        history_path = DATA_DIR / "kds_history.csv"
-        check_path = history_path if history_path.exists() else DATA_DIR / "smart_kitchen_daily.xlsx"
-        if check_path.exists():
-            file_mod = datetime.fromtimestamp(check_path.stat().st_mtime)
-            freshness = (datetime.now() - file_mod).total_seconds() / 3600
-            fresh_tag = ' <span style="color:#059669;">&#9679; Updated today</span>' if freshness < 18 else ' <span style="color:#DC2626;">&#9679; Stale data</span>'
-        else:
-            fresh_tag = ""
-
-        if is_agg_view:
-            date_range = sorted(filter_dates)
-            if date_range:
-                date_display = f"{selected_week} ({date_range[0].strftime('%m/%d')} - {date_range[-1].strftime('%m/%d')}) &mdash; {len(date_range)} day avg"
-            else:
-                date_display = selected_week
-        else:
-            date_display = date_labels.get(selected_date_option, str(selected_date_option))
-        st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">Data as of <span style="color:#059669; font-weight:600;">{date_display}</span> &nbsp;|&nbsp; {len(kds)} stores{fresh_tag}</p>', unsafe_allow_html=True)
-
-        # ── 5 Key KPI Cards ──
-        k1, k2, k3, k4, k5 = st.columns(5)
-        avg_sos = kds["sos_min"].mean() if kds["sos_min"].notna().any() else 0
-        avg_prebump = kds["pre_bump"].mean() if kds["pre_bump"].notna().any() else 0
-        avg_adopt = kds["bone_in_adopt"].mean() if kds["bone_in_adopt"].notna().any() else 0
-        avg_make = kds["make_ahead_rate"].mean() if kds["make_ahead_rate"].notna().any() else 0
-        avg_waste = kds["waste"].mean() if kds["waste"].notna().any() else 0
-
-        sos_c = "green" if avg_sos < 10 else ("orange" if avg_sos < 13 else "red")
-        pb_c = "green" if avg_prebump <= 0.5 else ("orange" if avg_prebump <= 1.5 else "red")
-        adopt_c = "green" if avg_adopt >= 85 else "red"
-        ma_c = "green" if avg_make <= 10 else "red"
-        waste_c = "green" if avg_waste <= 5 else "red"
-
-        k1.markdown(kpi_card("Avg SOS", f"{avg_sos:.1f} min", sos_c), unsafe_allow_html=True)
-        k2.markdown(kpi_card("Pre-Bump Rate", f"{avg_prebump:.2f}%", pb_c), unsafe_allow_html=True)
-        k3.markdown(kpi_card("Cook Adoption", f"{avg_adopt:.1f}%", adopt_c), unsafe_allow_html=True)
-        k4.markdown(kpi_card("Make Ahead Rate", f"{avg_make:.1f}%", ma_c), unsafe_allow_html=True)
-        k5.markdown(kpi_card("Waste", f"{avg_waste:.2f}%", waste_c), unsafe_allow_html=True)
-
-        st.markdown("")
-
-        # ── SOS Overall by Store ──
-        st.markdown('<div class="section-title">Speed of Service (Overall) by Store</div>', unsafe_allow_html=True)
-        sos_kds = kds[kds["sos_min"].notna()].sort_values("sos_min")
-        sos_colors = [RED if v >= 13 else (ORANGE if v >= 10 else TEAL) for v in sos_kds["sos_min"]]
-        fig_sos_k = go.Figure(go.Bar(
-            x=sos_kds["short_name"], y=sos_kds["sos_min"],
-            marker_color=sos_colors,
-            hovertemplate="%{x}<br>SOS: %{y:.1f} min<extra></extra>",
-        ))
-        fig_sos_k.add_hline(y=10, line_dash="dash", line_color=RED, line_width=1.5,
-                            annotation_text="10 min target", annotation_font=dict(color="#DC2626", size=10))
-        fig_sos_k.update_layout(**CHART_LAYOUT, height=380,
-                                yaxis_title="Minutes", xaxis_tickangle=-45)
-        st.plotly_chart(fig_sos_k, use_container_width=True, key="kds_sos", config=CHART_CONFIG)
-
-        # ── SOS by Daypart ──
-        st.markdown('<div class="section-title">SOS by Daypart</div>', unsafe_allow_html=True)
-        daypart_kds = kds[kds["sos_min"].notna()].sort_values("sos_min")
-        fig_dp = go.Figure()
-        dayparts = [
-            ("sos_lunch", "Lunch", "#059669"),
-            ("sos_snack", "Snack", TEAL),
-            ("sos_dinner", "Dinner", ORANGE),
-            ("sos_late", "Late", "#AB47BC"),
-        ]
-        for col, name, color in dayparts:
-            if col in daypart_kds.columns and daypart_kds[col].notna().any():
-                fig_dp.add_trace(go.Bar(
-                    x=daypart_kds["short_name"], y=daypart_kds[col],
-                    name=name, marker_color=color,
-                    hovertemplate=f"%{{x}}<br>{name}: %{{y:.1f}} min<extra></extra>",
-                ))
-        fig_dp.add_hline(y=10, line_dash="dash", line_color=RED, line_width=1.5,
-                         annotation_text="10 min target", annotation_font=dict(color="#DC2626", size=10))
-        fig_dp.update_layout(
-            **CHART_LAYOUT, barmode="group", height=420,
-            yaxis_title="Minutes", xaxis_tickangle=-45,
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
-                        font=dict(color="#374151")),
-        )
-        st.plotly_chart(fig_dp, use_container_width=True, key="kds_daypart", config=CHART_CONFIG)
-
-        # ── Pre-Bump Rate & Cook Adoption ──
-        pb_l, pb_r = st.columns(2)
-        with pb_l:
-            st.markdown('<div class="section-title">Pre-Bump Rate by Store</div>', unsafe_allow_html=True)
-            pb_kds = kds[kds["pre_bump"].notna()].sort_values("pre_bump", ascending=False)
-            pb_colors = [RED if v > 1.5 else (ORANGE if v > 0.5 else TEAL) for v in pb_kds["pre_bump"]]
-            fig_pb = go.Figure(go.Bar(
-                x=pb_kds["short_name"], y=pb_kds["pre_bump"],
-                marker_color=pb_colors,
-                hovertemplate="%{x}<br>Pre-Bump: %{y:.2f}%<extra></extra>",
-            ))
-            fig_pb.update_layout(**CHART_LAYOUT, height=370,
-                                 yaxis_title="Pre-Bump %", xaxis_tickangle=-45)
-            st.plotly_chart(fig_pb, use_container_width=True, key="kds_pb", config=CHART_CONFIG)
-
-        with pb_r:
-            st.markdown('<div class="section-title">Adoption of Cooks by Store</div>', unsafe_allow_html=True)
-            ad_kds = kds[kds["bone_in_adopt"].notna()].sort_values("bone_in_adopt")
-            ad_colors = [RED if v < 85 else "#059669" for v in ad_kds["bone_in_adopt"]]
-            fig_ad = go.Figure(go.Bar(
-                x=ad_kds["short_name"], y=ad_kds["bone_in_adopt"],
-                marker_color=ad_colors,
-                hovertemplate="%{x}<br>Adoption: %{y:.1f}%<extra></extra>",
-            ))
-            fig_ad.add_hline(y=100, line_dash="dash", line_color=GREEN, line_width=1.5,
-                             annotation_text="100%", annotation_font=dict(color="#059669", size=10))
-            fig_ad.update_layout(**CHART_LAYOUT, height=370,
-                                 yaxis_title="Adoption %", xaxis_tickangle=-45)
-            st.plotly_chart(fig_ad, use_container_width=True, key="kds_adopt", config=CHART_CONFIG)
-
-        # ── Make Ahead & Waste ──
-        ma_l, ma_r = st.columns(2)
-        with ma_l:
-            st.markdown('<div class="section-title">Make Ahead Rate by Store</div>', unsafe_allow_html=True)
-            ma_kds = kds[kds["make_ahead_rate"].notna()].sort_values("make_ahead_rate")
-            ma_colors = [RED if v > 10 else "#059669" for v in ma_kds["make_ahead_rate"]]
-            fig_ma = go.Figure(go.Bar(
-                x=ma_kds["short_name"], y=ma_kds["make_ahead_rate"],
-                marker_color=ma_colors,
-                hovertemplate="%{x}<br>Make Ahead: %{y:.1f}%<extra></extra>",
-            ))
-            fig_ma.update_layout(**CHART_LAYOUT, height=370,
-                                 yaxis_title="Make Ahead %", xaxis_tickangle=-45)
-            st.plotly_chart(fig_ma, use_container_width=True, key="kds_ma", config=CHART_CONFIG)
-
-        with ma_r:
-            st.markdown('<div class="section-title">Waste % by Store</div>', unsafe_allow_html=True)
-            w_kds = kds[kds["waste"].notna()].sort_values("waste", ascending=False)
-            w_colors = [RED if v > 5 else TEAL for v in w_kds["waste"]]
-            fig_w = go.Figure(go.Bar(
-                x=w_kds["short_name"], y=w_kds["waste"],
-                marker_color=w_colors,
-                hovertemplate="%{x}<br>Waste: %{y:.2f}%<extra></extra>",
-            ))
-            fig_w.update_layout(**CHART_LAYOUT, height=370,
-                                yaxis_title="Waste %", xaxis_tickangle=-45)
-            st.plotly_chart(fig_w, use_container_width=True, key="kds_waste", config=CHART_CONFIG)
-
-        # ── Bone-In Accuracy & % Orders 7-10 min ──
-        ex1, ex2 = st.columns(2)
-        with ex1:
-            st.markdown('<div class="section-title">Bone-In Guide Accuracy</div>', unsafe_allow_html=True)
-            acc_kds = kds[kds["bone_in_accuracy"].notna()].sort_values("bone_in_accuracy")
-            fig_acc = go.Figure(go.Bar(
-                x=acc_kds["short_name"], y=acc_kds["bone_in_accuracy"],
-                marker_color=DARK,
-                hovertemplate="%{x}<br>Accuracy: %{y:.1f}%<extra></extra>",
-            ))
-            fig_acc.add_hline(y=100, line_dash="dash", line_color=GREEN, line_width=1.5,
-                              annotation_text="100%", annotation_font=dict(color="#059669", size=10))
-            fig_acc.update_layout(**CHART_LAYOUT, height=350,
-                                  yaxis_title="Accuracy %", xaxis_tickangle=-45)
-            st.plotly_chart(fig_acc, use_container_width=True, key="kds_acc", config=CHART_CONFIG)
-
-        with ex2:
-            st.markdown('<div class="section-title">% Orders Between 7-10 Minutes</div>', unsafe_allow_html=True)
-            pct_kds = kds[kds["pct_7_10"].notna()].sort_values("pct_7_10", ascending=False)
-            fig_pct = go.Figure(go.Bar(
-                x=pct_kds["short_name"], y=pct_kds["pct_7_10"],
-                marker_color=ORANGE,
-                hovertemplate="%{x}<br>%{y:.1f}%<extra></extra>",
-            ))
-            fig_pct.update_layout(**CHART_LAYOUT, height=350,
-                                  yaxis_title="% Orders 7-10 min", xaxis_tickangle=-45)
-            st.plotly_chart(fig_pct, use_container_width=True, key="kds_pct", config=CHART_CONFIG)
-
-        # ── Daily KDS Detail Table ──
-        st.markdown('<div class="section-title">Daily Store Details</div>', unsafe_allow_html=True)
-        detail_cols = ["short_name", "district", "sos_min", "sos_lunch", "sos_snack",
-                       "sos_dinner", "sos_late", "pre_bump", "bone_in_adopt",
-                       "make_ahead_rate", "bone_in_accuracy", "waste", "pct_7_10", "orders_num"]
-        detail_cols = [c for c in detail_cols if c in kds.columns]
-        detail = kds[detail_cols].copy()
-        col_names = {
-            "short_name": "Store", "district": "District", "sos_min": "SOS",
-            "sos_lunch": "Lunch", "sos_snack": "Snack", "sos_dinner": "Dinner",
-            "sos_late": "Late", "pre_bump": "Pre-Bump %", "bone_in_adopt": "Adoption %",
-            "make_ahead_rate": "Make Ahead %", "bone_in_accuracy": "Accuracy %",
-            "waste": "Waste %", "pct_7_10": "% 7-10 min", "orders_num": "Orders",
-        }
-        detail = detail.rename(columns=col_names)
-        detail = detail.sort_values("SOS")
-        st.dataframe(detail, use_container_width=True, hide_index=True)
-
-# ════════════════════════════════
 # SCHEDULE GUIDE
 # ════════════════════════════════
-elif selected_tab == "Schedule Guide":
+if selected_tab == "Schedule Guide":
     st.markdown('<div class="section-title">Scheduling Guide</div>', unsafe_allow_html=True)
     st.markdown('<p style="color:#6B7280; font-size:0.85rem;">Weekly sales forecast and ideal staffing hours by store. Hours guide applies to hourly staff only (excludes GMs).</p>', unsafe_allow_html=True)
 
