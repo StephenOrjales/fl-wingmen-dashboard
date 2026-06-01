@@ -359,7 +359,7 @@ if selected_tab == "KDS Adherence":
 
         # Apply sidebar filters
         if selected_store != "All Stores":
-            sk_num = extract_store_number(selected_store)
+            sk_num = extract_store_number(selected_store).lstrip("0")
             kds_raw = kds_raw[kds_raw["Store No"].astype(str) == sk_num]
         elif selected_district != "All Districts":
             d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
