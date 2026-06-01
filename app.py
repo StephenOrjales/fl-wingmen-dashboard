@@ -316,7 +316,7 @@ with st.sidebar:
         store_options = ["All Stores"] + store_list
         selected_store = st.selectbox("Store", store_options, label_visibility="collapsed")
 
-    nav_options = ["Schedule Guide", "Internal QSC Evals", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance", "Scorecard", "Watch List", "Trends", "Wing Worm"]
+    nav_options = ["KDS Adherence", "Schedule Guide", "Internal QSC Evals", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance", "Scorecard", "Watch List", "Trends", "Wing Worm"]
     selected_tab = st.radio("Navigation", nav_options, label_visibility="collapsed")
 
     st.markdown("---")
@@ -346,9 +346,139 @@ def kpi_card(label, value, color=""):
 
 
 # ════════════════════════════════
+# KDS ADHERENCE
+# ════════════════════════════════
+if selected_tab == "KDS Adherence":
+    st.markdown('<div class="section-title">KDS Dinner Adherence</div>', unsafe_allow_html=True)
+    st.markdown('<p style="color:#6B7280; font-size:0.85rem;">Friday &amp; Saturday Dinner performance. Adherence % = metrics within standard ÷ total metrics checked. Thresholds: SOS &lt;10 min, Adoption ≥85%, Make Ahead ≤10%, Waste ≤5%, Pre-Bump ≤1.5%.</p>', unsafe_allow_html=True)
+
+    kds_file = DATA_DIR / "kds_dinner.csv"
+    if kds_file.exists():
+        kds_raw = pd.read_csv(kds_file)
+        periods_sorted = sorted(kds_raw["Period"].unique(), key=lambda x: (int(x[1]), int(x[3])))
+
+        # Apply sidebar filters
+        if selected_store != "All Stores":
+            sk_num = extract_store_number(selected_store)
+            kds_raw = kds_raw[kds_raw["Store No"].astype(str) == sk_num]
+        elif selected_district != "All Districts":
+            d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
+            kds_raw = kds_raw[kds_raw["Store No"].astype(str).isin(d_nums)]
+
+        periods_sorted = [p for p in periods_sorted if p in kds_raw["Period"].unique()]
+
+        # Period selector
+        period_options = ["All Weeks"] + periods_sorted
+        sel_kds_period = st.selectbox("Select Week", period_options, index=0, key="kds_period")
+        if sel_kds_period != "All Weeks":
+            kds_view = kds_raw[kds_raw["Period"] == sel_kds_period].copy()
+        else:
+            kds_view = kds_raw.copy()
+
+        # KPIs
+        avg_adherence = kds_view["Adherence %"].mean() if len(kds_view) > 0 else 0
+        perfect_stores = kds_view.groupby("Store No")["Adherence %"].mean()
+        n_perfect = (perfect_stores == 100).sum()
+        n_below_60 = (perfect_stores < 60).sum()
+        avg_sos = kds_view["SOS"].mean() if kds_view["SOS"].notna().any() else 0
+        avg_waste = kds_view["Waste %"].mean() if kds_view["Waste %"].notna().any() else 0
+
+        adh_c = "green" if avg_adherence >= 80 else ("orange" if avg_adherence >= 60 else "red")
+        sos_c = "green" if avg_sos < 10 else ("orange" if avg_sos < 13 else "red")
+        waste_c = "green" if avg_waste <= 5 else "red"
+
+        k1, k2, k3, k4, k5 = st.columns(5)
+        k1.markdown(kpi_card("Avg Adherence", f"{avg_adherence:.1f}%", adh_c), unsafe_allow_html=True)
+        k2.markdown(kpi_card("Avg SOS", f"{avg_sos:.1f} min", sos_c), unsafe_allow_html=True)
+        k3.markdown(kpi_card("Avg Waste", f"{avg_waste:.1f}%", waste_c), unsafe_allow_html=True)
+        k4.markdown(kpi_card("100% Adherence", str(n_perfect), "green"), unsafe_allow_html=True)
+        k5.markdown(kpi_card("Below 60%", str(n_below_60), "red" if n_below_60 > 0 else "green"), unsafe_allow_html=True)
+
+        st.markdown("")
+
+        # ── Adherence % by Store (bar chart) ──
+        st.markdown('<div class="section-title">Adherence % by Store</div>', unsafe_allow_html=True)
+        store_adh = kds_view.groupby(["Store No", "Store Name"]).agg(
+            adherence=("Adherence %", "mean"),
+        ).reset_index().sort_values("adherence")
+
+        adh_colors = [RED if v < 60 else (ORANGE if v < 80 else GREEN) for v in store_adh["adherence"]]
+        fig_adh = go.Figure(go.Bar(
+            x=store_adh["Store Name"], y=store_adh["adherence"],
+            marker_color=adh_colors,
+            text=store_adh["adherence"].apply(lambda v: f"{v:.0f}%"),
+            textposition="outside",
+            hovertemplate="%{x}<br>Adherence: %{y:.1f}%<extra></extra>",
+        ))
+        fig_adh.add_hline(y=80, line_dash="dash", line_color=GREEN, line_width=1.5,
+                          annotation_text="80% target", annotation_font=dict(color="#059669", size=10))
+        fig_adh.update_layout(**CHART_LAYOUT, height=420,
+                              yaxis_title="Adherence %", xaxis_tickangle=-45,
+                              yaxis=dict(gridcolor=GRID_COLOR, fixedrange=True, range=[0, 110]))
+        st.plotly_chart(fig_adh, use_container_width=True, config=CHART_CONFIG)
+
+        # ── Metric Breakdown (pass rates) ──
+        st.markdown('<div class="section-title">Metric Pass Rates</div>', unsafe_allow_html=True)
+        metrics = [
+            ("SOS Pass", "SOS < 10 min"),
+            ("Adoption Pass", "Adoption ≥ 85%"),
+            ("Make Ahead Pass", "Make Ahead ≤ 10%"),
+            ("Waste Pass", "Waste ≤ 5%"),
+            ("Pre-Bump Pass", "Pre-Bump ≤ 1.5%"),
+        ]
+        metric_rates = []
+        for col, label in metrics:
+            vals = kds_view[col].dropna()
+            if len(vals) > 0:
+                rate = vals.mean() * 100
+                metric_rates.append({"Metric": label, "Pass Rate": rate})
+        if metric_rates:
+            mr_df = pd.DataFrame(metric_rates)
+            mr_colors = [GREEN if v >= 80 else (ORANGE if v >= 60 else RED) for v in mr_df["Pass Rate"]]
+            fig_mr = go.Figure(go.Bar(
+                x=mr_df["Metric"], y=mr_df["Pass Rate"],
+                marker_color=mr_colors,
+                text=mr_df["Pass Rate"].apply(lambda v: f"{v:.0f}%"),
+                textposition="outside",
+            ))
+            fig_mr.update_layout(**CHART_LAYOUT, height=350,
+                                 yaxis=dict(gridcolor=GRID_COLOR, fixedrange=True, range=[0, 110], title="Pass Rate %"),
+                                 xaxis=dict(gridcolor=GRID_COLOR, fixedrange=True, type="category"))
+            st.plotly_chart(fig_mr, use_container_width=True, config=CHART_CONFIG)
+
+        # ── Trend over time ──
+        if len(periods_sorted) > 1:
+            st.markdown('<div class="section-title">Adherence Trend by Week</div>', unsafe_allow_html=True)
+            trend = kds_raw.groupby("Period")["Adherence %"].mean().reindex(periods_sorted).reset_index()
+            trend.columns = ["Period", "Adherence"]
+            fig_trend = px.line(trend, x="Period", y="Adherence", markers=True, color_discrete_sequence=[GREEN])
+            fig_trend.add_hline(y=80, line_dash="dash", line_color=ORANGE, line_width=1,
+                                annotation_text="80% target", annotation_font=dict(color="#D97706", size=10))
+            trend_layout = {**CHART_LAYOUT, "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Avg Adherence %", range=[50, 100]),
+                            "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, type="category")}
+            fig_trend.update_layout(**trend_layout, title="Company-Wide Adherence Trend")
+            st.plotly_chart(fig_trend, use_container_width=True, config=CHART_CONFIG)
+
+        # ── Detail Table ──
+        st.markdown('<div class="section-title">Store Detail</div>', unsafe_allow_html=True)
+        detail = kds_view[["Period", "Store No", "Store Name", "SOS", "Adoption %", "Make Ahead %",
+                            "Waste %", "Pre-Bump %", "Adherence %"]].copy()
+        detail["SOS"] = detail["SOS"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
+        detail["Adoption %"] = detail["Adoption %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
+        detail["Make Ahead %"] = detail["Make Ahead %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
+        detail["Waste %"] = detail["Waste %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "-")
+        detail["Pre-Bump %"] = detail["Pre-Bump %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "-")
+        detail["Adherence %"] = kds_view["Adherence %"].apply(lambda x: f"{x:.0f}%" if pd.notna(x) else "-")
+        detail = detail.sort_values(["Period", "Store Name"])
+        st.dataframe(detail, use_container_width=True, hide_index=True)
+
+    else:
+        st.warning("No KDS dinner data found. Place kds_dinner.csv in the data/ folder.")
+
+# ════════════════════════════════
 # SCHEDULE GUIDE
 # ════════════════════════════════
-if selected_tab == "Schedule Guide":
+elif selected_tab == "Schedule Guide":
     st.markdown('<div class="section-title">Scheduling Guide</div>', unsafe_allow_html=True)
     st.markdown('<p style="color:#6B7280; font-size:0.85rem;">Weekly sales forecast and ideal staffing hours by store. Hours guide applies to hourly staff only (excludes GMs).</p>', unsafe_allow_html=True)
 
