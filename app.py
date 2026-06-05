@@ -1089,11 +1089,29 @@ elif selected_tab == "Schedule Guide":
             </div>
             """, unsafe_allow_html=True)
 
-            display_df = d_data[["Store No", "Store Name", "Sales Forecast", "Hours Guide"]].copy()
-            display_df["Sales Forecast"] = display_df["Sales Forecast"].apply(lambda x: f"${x:,.0f}")
-            display_df["Hours Guide"] = display_df["Hours Guide"].apply(lambda x: f"{x:,.0f}")
-            display_df = display_df.reset_index(drop=True)
-            st.dataframe(display_df, use_container_width=True, hide_index=True)
+            rows_html = ""
+            for i, (_, r) in enumerate(d_data.sort_values("Store No").iterrows()):
+                bg = "#FFFFFF" if i % 2 == 0 else "#F9FAFB"
+                rows_html += f"""<tr style="background:{bg};">
+                    <td style="padding:0.55rem 1rem; border-bottom:1px solid #F1F5F9; color:#374151; font-weight:600; text-align:center; width:12%;">{int(r['Store No'])}</td>
+                    <td style="padding:0.55rem 1rem; border-bottom:1px solid #F1F5F9; color:#1F2937;">{r['Store Name']}</td>
+                    <td style="padding:0.55rem 1rem; border-bottom:1px solid #F1F5F9; color:#059669; font-weight:700; text-align:right;">${int(r['Sales Forecast']):,}</td>
+                    <td style="padding:0.55rem 1rem; border-bottom:1px solid #F1F5F9; color:#0D9488; font-weight:700; text-align:right;">{int(r['Hours Guide']):,}</td>
+                </tr>"""
+
+            st.markdown(f"""
+            <table style="width:100%; border-collapse:collapse; border:1px solid #E2E8F0; border-radius:0 0 6px 6px; overflow:hidden; margin-bottom:0.5rem;">
+                <thead>
+                    <tr style="background:#F1F5F9;">
+                        <th style="padding:0.5rem 1rem; text-align:center; font-size:0.78rem; color:#6B7280; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #E2E8F0;">Store No</th>
+                        <th style="padding:0.5rem 1rem; text-align:left; font-size:0.78rem; color:#6B7280; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #E2E8F0;">Store Name</th>
+                        <th style="padding:0.5rem 1rem; text-align:right; font-size:0.78rem; color:#6B7280; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #E2E8F0;">Sales Forecast</th>
+                        <th style="padding:0.5rem 1rem; text-align:right; font-size:0.78rem; color:#6B7280; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #E2E8F0;">Hours Guide</th>
+                    </tr>
+                </thead>
+                <tbody>{rows_html}</tbody>
+            </table>
+            """, unsafe_allow_html=True)
 
     else:
         st.warning("No schedule data found. Place schedule_guide.csv in the data/ folder.")
