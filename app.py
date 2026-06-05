@@ -832,7 +832,7 @@ if selected_tab == "KDS Dashboard":
                 # District color
                 dist = raw_district.get(idx, "")
                 d_color = DISTRICT_COLORS.get(dist, "#374151")
-                styles[cols.index("District")] = f"color: {d_color}; font-weight: 600"
+                styles[cols.index("District")] = f"background-color: {d_color}; color: #FFFFFF; font-weight: 600; border-radius: 4px"
                 # Cell-level highlights for off-guide values
                 if pd.notna(raw_sos.get(idx)) and raw_sos[idx] > 10:
                     styles[cols.index("SOS")] += f"; {OFF_GUIDE}"
