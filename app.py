@@ -1117,15 +1117,21 @@ elif selected_tab == "Schedule Guide":
             </table>
             """, unsafe_allow_html=True)
 
+        # Inject CSS to add vertical divider between columns via gap border trick
+        st.markdown("""<style>
+        .district-row { display:flex; gap:0; margin-bottom:0.5rem; }
+        .district-row > div:first-child { border-right:1px solid #E2E8F0; padding-right:1rem; }
+        .district-row > div:last-child { padding-left:1rem; }
+        </style>""", unsafe_allow_html=True)
+
         # Render districts side by side (2 per row) with dividers
         for i in range(0, len(sorted_districts), 2):
             if i > 0:
-                st.markdown('<hr style="border:none; border-top:1px solid #E2E8F0; margin:0.8rem 0 1rem 0;">', unsafe_allow_html=True)
-            left_col, divider_col, right_col = st.columns([20, 1, 20])
-            render_district_card(sorted_districts[i], left_col)
+                st.markdown('<hr style="border:none; border-top:1px solid #E2E8F0; margin:0.5rem 0 1rem 0;">', unsafe_allow_html=True)
+            cols = st.columns(2, gap="large")
+            render_district_card(sorted_districts[i], cols[0])
             if i + 1 < len(sorted_districts):
-                divider_col.markdown('<div style="border-left:1px solid #E2E8F0; height:100%; min-height:200px; margin:0 auto;"></div>', unsafe_allow_html=True)
-                render_district_card(sorted_districts[i + 1], right_col)
+                render_district_card(sorted_districts[i + 1], cols[1])
 
     else:
         st.warning("No schedule data found. Place schedule_guide.csv in the data/ folder.")
