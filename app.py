@@ -794,6 +794,7 @@ if selected_tab == "KDS Dashboard":
                 "District 1": "#DC2626", "District 2": "#7C3AED", "District 3": "#0369A1",
                 "District 4": "#C2410C", "District 5": "#059669", "District 6": "#B45309",
             }
+            OFF_GUIDE = "color: #DC2626; font-weight: 700"
 
             tbl = kds_week[["Store No", "Store Name", "District", "SOS", "SOS Status", "Adoption %", "Make Ahead %", "Waste %", "Pre-Bump %", "Adherence %"]].copy()
             tbl = tbl.sort_values("Store No", ascending=True)
@@ -893,7 +894,7 @@ if selected_tab == "KDS Dashboard":
                 """, unsafe_allow_html=True)
 
                 d_tbl = d_data[["Store No", "Store Name", "SOS", "SOS Status", "Adoption %", "Make Ahead %", "Waste %", "Pre-Bump %", "Adherence %"]].copy()
-                d_tbl = d_tbl.sort_values("SOS", na_position="last")
+                d_tbl = d_tbl.sort_values("Store No", ascending=True)
 
                 d_raw_sos = d_tbl["SOS"].copy()
                 d_raw_adopt = d_tbl["Adoption %"].copy()
@@ -920,11 +921,6 @@ if selected_tab == "KDS Dashboard":
                     idx = row.name
                     cols = list(row.index)
                     styles = [""] * len(row)
-                    status = row["Status"]
-                    if status == "Slow":
-                        styles = ["background-color: #FEE2E2"] * len(row)
-                    elif status == "Fast":
-                        styles = ["background-color: #FEF3C7"] * len(row)
                     if pd.notna(d_raw_sos.get(idx)) and d_raw_sos[idx] > 10:
                         styles[cols.index("SOS")] += f"; {OFF_GUIDE}"
                     if pd.notna(d_raw_adopt.get(idx)) and d_raw_adopt[idx] < 85:
