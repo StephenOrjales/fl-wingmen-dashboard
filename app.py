@@ -798,58 +798,67 @@ if selected_tab == "KDS Dashboard":
             tbl = kds_week[["Store No", "Store Name", "District", "SOS", "SOS Status", "Adoption %", "Make Ahead %", "Waste %", "Pre-Bump %", "Adherence %"]].copy()
             tbl = tbl.sort_values("Store No", ascending=True)
 
-            # Keep raw values for conditional styling
-            raw_sos = tbl["SOS"].copy()
-            raw_adopt = tbl["Adoption %"].copy()
-            raw_ma = tbl["Make Ahead %"].copy()
-            raw_waste = tbl["Waste %"].copy()
-            raw_pb = tbl["Pre-Bump %"].copy()
-            raw_adh = tbl["Adherence %"].copy()
-            raw_district = tbl["District"].copy()
+            # Build HTML table with district bubbles and off-guide highlights
+            perf_cols = ["Store #", "Store Name", "District", "SOS", "Status", "Adoption %", "Make Ahead %", "Waste %", "Pre-Bump %", "Adherence %"]
+            html_rows = ""
+            for _, r in tbl.iterrows():
+                store_no = r["Store No"]
+                store_name = r["Store Name"]
+                district = r["District"]
+                sos_raw = r["SOS"]
+                status = r["SOS Status"]
+                adopt_raw = r["Adoption %"]
+                ma_raw = r["Make Ahead %"]
+                waste_raw = r["Waste %"]
+                pb_raw = r["Pre-Bump %"]
+                adh_raw = r["Adherence %"]
 
-            tbl["SOS"] = tbl["SOS"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
-            tbl["Adoption %"] = tbl["Adoption %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
-            tbl["Make Ahead %"] = tbl["Make Ahead %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
-            tbl["Waste %"] = tbl["Waste %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "-")
-            tbl["Pre-Bump %"] = tbl["Pre-Bump %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "-")
-            tbl["Adherence %"] = tbl["Adherence %"].apply(lambda x: f"{x:.0f}%" if pd.notna(x) else "-")
-            tbl = tbl.rename(columns={"SOS Status": "Status", "Store No": "Store #"})
-            tbl = tbl.reset_index(drop=True)
-            raw_sos = raw_sos.reset_index(drop=True)
-            raw_adopt = raw_adopt.reset_index(drop=True)
-            raw_ma = raw_ma.reset_index(drop=True)
-            raw_waste = raw_waste.reset_index(drop=True)
-            raw_pb = raw_pb.reset_index(drop=True)
-            raw_adh = raw_adh.reset_index(drop=True)
-            raw_district = raw_district.reset_index(drop=True)
+                # Format values
+                sos_fmt = f"{sos_raw:.1f}" if pd.notna(sos_raw) else "-"
+                adopt_fmt = f"{adopt_raw:.1f}" if pd.notna(adopt_raw) else "-"
+                ma_fmt = f"{ma_raw:.1f}" if pd.notna(ma_raw) else "-"
+                waste_fmt = f"{waste_raw:.2f}" if pd.notna(waste_raw) else "-"
+                pb_fmt = f"{pb_raw:.2f}" if pd.notna(pb_raw) else "-"
+                adh_fmt = f"{adh_raw:.0f}%" if pd.notna(adh_raw) else "-"
 
-            OFF_GUIDE = "color: #DC2626; font-weight: 700"
+                # District bubble
+                d_color = DISTRICT_COLORS.get(district, "#374151")
+                d_label = district.replace("District ", "D") if district else ""
+                dist_html = f'<span style="background:{d_color}; color:#FFF; padding:3px 10px; border-radius:12px; font-size:0.75rem; font-weight:600; white-space:nowrap;">{d_label}</span>'
 
-            def style_store_table(row):
-                idx = row.name
-                styles = [""] * len(row)
-                cols = list(row.index)
-                # District color
-                dist = raw_district.get(idx, "")
-                d_color = DISTRICT_COLORS.get(dist, "#374151")
-                styles[cols.index("District")] = f"background-color: {d_color}; color: #FFFFFF; font-weight: 600; border-radius: 4px"
-                # Cell-level highlights for off-guide values
-                if pd.notna(raw_sos.get(idx)) and raw_sos[idx] > 10:
-                    styles[cols.index("SOS")] += f"; {OFF_GUIDE}"
-                if pd.notna(raw_adopt.get(idx)) and raw_adopt[idx] < 85:
-                    styles[cols.index("Adoption %")] += f"; {OFF_GUIDE}"
-                if pd.notna(raw_ma.get(idx)) and raw_ma[idx] > 0:
-                    styles[cols.index("Make Ahead %")] += f"; {OFF_GUIDE}"
-                if pd.notna(raw_waste.get(idx)) and raw_waste[idx] > 0:
-                    styles[cols.index("Waste %")] += f"; {OFF_GUIDE}"
-                if pd.notna(raw_pb.get(idx)) and raw_pb[idx] > 0.5:
-                    styles[cols.index("Pre-Bump %")] += f"; {OFF_GUIDE}"
-                if pd.notna(raw_adh.get(idx)) and raw_adh[idx] < 85:
-                    styles[cols.index("Adherence %")] += f"; {OFF_GUIDE}"
-                return styles
+                # Off-guide styling
+                off = "color:#DC2626; font-weight:700"
+                sos_style = off if (pd.notna(sos_raw) and sos_raw > 10) else ""
+                adopt_style = off if (pd.notna(adopt_raw) and adopt_raw < 85) else ""
+                ma_style = off if (pd.notna(ma_raw) and ma_raw > 0) else ""
+                waste_style = off if (pd.notna(waste_raw) and waste_raw > 0) else ""
+                pb_style = off if (pd.notna(pb_raw) and pb_raw > 0.5) else ""
+                adh_style = off if (pd.notna(adh_raw) and adh_raw < 85) else ""
 
-            styled_tbl = tbl.style.apply(style_store_table, axis=1)
-            st.dataframe(styled_tbl, use_container_width=True, hide_index=True, height=500)
+                html_rows += f"""<tr>
+                    <td>{store_no}</td><td>{store_name}</td><td style="text-align:center;">{dist_html}</td>
+                    <td style="{sos_style}">{sos_fmt}</td><td>{status}</td>
+                    <td style="{adopt_style}">{adopt_fmt}</td><td style="{ma_style}">{ma_fmt}</td>
+                    <td style="{waste_style}">{waste_fmt}</td><td style="{pb_style}">{pb_fmt}</td>
+                    <td style="{adh_style}">{adh_fmt}</td>
+                </tr>"""
+
+            header_cells = "".join(f"<th>{c}</th>" for c in perf_cols)
+            perf_html = f"""
+            <div style="max-height:500px; overflow-y:auto; border:1px solid #E2E8F0; border-radius:8px;">
+            <table style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                <thead><tr style="background:#F0FDF4; border-bottom:2px solid #2D6A4F; position:sticky; top:0;">
+                    {header_cells}
+                </tr></thead>
+                <tbody>{html_rows}</tbody>
+            </table></div>
+            <style>
+                .stMarkdown table th {{ color:#1F2937; font-weight:600; padding:0.5rem 0.6rem; text-align:left; font-size:0.78rem; }}
+                .stMarkdown table td {{ padding:0.5rem 0.6rem; border-bottom:1px solid #F1F5F9; color:#374151; }}
+                .stMarkdown table tr:hover td {{ background:#F9FAFB; }}
+            </style>
+            """
+            st.markdown(perf_html, unsafe_allow_html=True)
 
         # ════════════════════
         # TAB: BY DISTRICT
