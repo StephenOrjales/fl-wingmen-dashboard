@@ -1265,8 +1265,6 @@ elif selected_tab == "Internal QSC Evals":
                 return "Missed"
             if row["Red Flag"]:
                 return "Red Flag"
-            if row["Stars"] == 5:
-                return "5-Star"
             return "Completed"
 
         week_evals["Eval Status"] = week_evals.apply(classify_eval, axis=1)
@@ -1315,7 +1313,7 @@ elif selected_tab == "Internal QSC Evals":
             </div>""", unsafe_allow_html=True)
 
             status_counts = week_evals["Eval Status"].value_counts()
-            color_map_eval = {"5-Star": "#059669", "Completed": "#0D9488", "Red Flag": "#DC2626", "Missed": "#D97706"}
+            color_map_eval = {"Completed": "#059669", "Red Flag": "#DC2626", "Missed": "#D97706"}
             labels_e = status_counts.index.tolist()
             values_e = status_counts.values.tolist()
             colors_e = [color_map_eval.get(l, "#CBD5E1") for l in labels_e]
@@ -1346,12 +1344,12 @@ elif selected_tab == "Internal QSC Evals":
 
             week_evals["District_Label"] = week_evals["District"].fillna("Unknown")
             dist_eval_status = week_evals.groupby(["District_Label", "Eval Status"]).size().unstack(fill_value=0)
-            for col in ["5-Star", "Completed", "Red Flag", "Missed"]:
+            for col in ["Completed", "Red Flag", "Missed"]:
                 if col not in dist_eval_status.columns:
                     dist_eval_status[col] = 0
 
             fig_dist_e = go.Figure()
-            for status, color in [("5-Star", "#059669"), ("Completed", "#0D9488"), ("Red Flag", "#DC2626"), ("Missed", "#D97706")]:
+            for status, color in [("Completed", "#059669"), ("Red Flag", "#DC2626"), ("Missed", "#D97706")]:
                 fig_dist_e.add_trace(go.Bar(
                     x=dist_eval_status.index, y=dist_eval_status[status], name=status,
                     marker_color=color, hovertemplate="%{x}<br>" + status + ": %{y}<extra></extra>",
@@ -1480,7 +1478,7 @@ elif selected_tab == "Internal QSC Evals":
             <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0; margin-top:1rem;
                         display:flex; justify-content:space-between; align-items:center;">
                 <span style="font-weight:700; font-size:0.95rem;">{district}{badge}</span>
-                <span style="font-size:0.82rem;">5-Star: <b>{d_5star}</b> &nbsp;|&nbsp; Evals: <b>{len(d_completed)}</b></span>
+                <span style="font-size:0.82rem;">Completed: <b>{len(d_completed)}</b> &nbsp;|&nbsp; 5-Star: <b>{d_5star}</b></span>
             </div>
             """, unsafe_allow_html=True)
 
