@@ -422,8 +422,86 @@ if selected_tab == "KDS Dashboard":
         n_nodata = (kds_week["SOS Status"] == "No Data").sum()
         pct_adherent = (n_adherent / n_reporting * 100) if n_reporting > 0 else 0
 
-        # ── Excel Export ──
+        # ── Excel Export (styled) ──
         import io
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+        from openpyxl.utils import get_column_letter
+
+        def style_excel_sheet(ws, df, pct_cols=None, dec1_cols=None, dec2_cols=None, status_col=None):
+            """Apply consistent styling to an Excel worksheet."""
+            header_fill = PatternFill(start_color="1A3C34", end_color="1A3C34", fill_type="solid")
+            header_font = Font(name="Calibri", bold=True, color="FFFFFF", size=11)
+            cell_font = Font(name="Calibri", size=10)
+            thin_border = Border(
+                bottom=Side(style="thin", color="E2E8F0"),
+                left=Side(style="thin", color="E2E8F0"),
+                right=Side(style="thin", color="E2E8F0"),
+            )
+            header_border = Border(
+                bottom=Side(style="medium", color="1A3C34"),
+                left=Side(style="thin", color="1A3C34"),
+                right=Side(style="thin", color="1A3C34"),
+            )
+            green_fill = PatternFill(start_color="F0FDF4", end_color="F0FDF4", fill_type="solid")
+            red_fill = PatternFill(start_color="FEE2E2", end_color="FEE2E2", fill_type="solid")
+            yellow_fill = PatternFill(start_color="FEF3C7", end_color="FEF3C7", fill_type="solid")
+            gray_fill = PatternFill(start_color="F8FAFC", end_color="F8FAFC", fill_type="solid")
+            status_fills = {"Adherent": green_fill, "Slow": red_fill, "Fast": yellow_fill, "No Data": gray_fill}
+
+            pct_cols = pct_cols or []
+            dec1_cols = dec1_cols or []
+            dec2_cols = dec2_cols or []
+
+            # Style header row
+            for col_idx, col_name in enumerate(df.columns, 1):
+                cell = ws.cell(row=1, column=col_idx)
+                cell.fill = header_fill
+                cell.font = header_font
+                cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+                cell.border = header_border
+
+            # Style data rows
+            status_col_idx = list(df.columns).index(status_col) + 1 if status_col and status_col in df.columns else None
+            for row_idx in range(2, len(df) + 2):
+                # Determine row fill from status
+                row_fill = None
+                if status_col_idx:
+                    status_val = ws.cell(row=row_idx, column=status_col_idx).value
+                    row_fill = status_fills.get(status_val)
+
+                # Alternate row shading if no status coloring
+                if not row_fill and row_idx % 2 == 0:
+                    row_fill = PatternFill(start_color="F9FAFB", end_color="F9FAFB", fill_type="solid")
+
+                for col_idx in range(1, len(df.columns) + 1):
+                    cell = ws.cell(row=row_idx, column=col_idx)
+                    cell.font = cell_font
+                    cell.border = thin_border
+                    cell.alignment = Alignment(horizontal="center", vertical="center")
+                    if row_fill:
+                        cell.fill = row_fill
+
+                    # Number formatting
+                    col_name = df.columns[col_idx - 1]
+                    if col_name in pct_cols and isinstance(cell.value, (int, float)):
+                        cell.number_format = '0"%"'
+                    elif col_name in dec1_cols and isinstance(cell.value, (int, float)):
+                        cell.number_format = '0.0'
+                    elif col_name in dec2_cols and isinstance(cell.value, (int, float)):
+                        cell.number_format = '0.00'
+
+            # Auto-fit column widths
+            for col_idx, col_name in enumerate(df.columns, 1):
+                max_len = len(str(col_name)) + 2
+                for row_idx in range(2, min(len(df) + 2, 52)):
+                    val = ws.cell(row=row_idx, column=col_idx).value
+                    if val is not None:
+                        max_len = max(max_len, len(str(val)) + 2)
+                ws.column_dimensions[get_column_letter(col_idx)].width = min(max_len + 1, 35)
+
+            # Freeze top row
+            ws.freeze_panes = "A2"
+
         with pcol3:
             st.markdown("<div style='height:0.3rem;'></div>", unsafe_allow_html=True)
             export_buf = io.BytesIO()
@@ -433,13 +511,21 @@ if selected_tab == "KDS Dashboard":
                                      "Adoption %", "Make Ahead %", "Waste %", "Pre-Bump %", "Adherence %"]].copy()
                 exp_week = exp_week.sort_values("SOS", na_position="last")
                 exp_week.to_excel(writer, sheet_name=sel_period, index=False)
+                style_excel_sheet(writer.sheets[sel_period], exp_week,
+                                  pct_cols=["Adherence %"], dec1_cols=["SOS", "Adoption %", "Make Ahead %"],
+                                  dec2_cols=["Waste %", "Pre-Bump %"], status_col="SOS Status")
 
-                # Sheet 2: All periods raw
+                # Sheet 2: All periods raw (trimmed columns)
                 exp_all = kds_raw.copy()
                 exp_all["District"] = exp_all["Store No"].astype(str).map(STORE_TO_DISTRICT).fillna("Unassigned")
                 exp_all["SOS Status"] = exp_all.apply(classify_sos, axis=1)
+                exp_all = exp_all[["Period", "Store No", "Store Name", "District", "SOS", "SOS Status",
+                                   "Adoption %", "Make Ahead %", "Waste %", "Pre-Bump %", "Adherence %"]].copy()
                 exp_all = exp_all.sort_values(["Period", "Store No"])
                 exp_all.to_excel(writer, sheet_name="All Periods", index=False)
+                style_excel_sheet(writer.sheets["All Periods"], exp_all,
+                                  pct_cols=["Adherence %"], dec1_cols=["SOS", "Adoption %", "Make Ahead %"],
+                                  dec2_cols=["Waste %", "Pre-Bump %"], status_col="SOS Status")
 
                 # Sheet 3: Historical summary
                 hist_export = []
@@ -455,7 +541,10 @@ if selected_tab == "KDS Dashboard":
                         "Avg SOS": round(pw_valid["SOS"].mean(), 1) if len(pw_valid) else 0,
                         "Avg Adherence %": round(pw["Adherence %"].mean(), 0) if pw["Adherence %"].notna().any() else 0,
                     })
-                pd.DataFrame(hist_export).to_excel(writer, sheet_name="Summary", index=False)
+                hist_df_exp = pd.DataFrame(hist_export)
+                hist_df_exp.to_excel(writer, sheet_name="Summary", index=False)
+                style_excel_sheet(writer.sheets["Summary"], hist_df_exp,
+                                  dec1_cols=["Adherent %", "Avg SOS", "Avg Adherence %"])
             export_buf.seek(0)
             st.download_button("📥 Export Excel", data=export_buf, file_name=f"KDS_Dashboard_{sel_period}.xlsx",
                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key="kds_export")
