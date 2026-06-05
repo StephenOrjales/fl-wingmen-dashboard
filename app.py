@@ -1075,17 +1075,20 @@ elif selected_tab == "Schedule Guide":
         st.markdown("<div style='height:1.5rem;'></div>", unsafe_allow_html=True)
         st.markdown(f'<div class="section-title" style="font-size:1.05rem;">Weekly Detail — {start_dt} to {end_dt}</div>', unsafe_allow_html=True)
 
-        for district in sorted(week_data["District"].unique()):
+        sorted_districts = sorted(week_data["District"].unique())
+
+        def render_district_card(district, container):
+            """Render a single district card (header + HTML table) into a Streamlit container."""
             d_data = week_data[week_data["District"] == district].copy()
             d_sales = d_data["Sales Forecast"].sum()
             d_hours = d_data["Hours Guide"].sum()
             d_n = len(d_data)
 
-            st.markdown(f"""
-            <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0; margin-top:1rem;
-                        display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-weight:700; font-size:0.95rem;">{district}</span>
-                <span style="font-size:0.82rem;">Sales: <b>${d_sales:,.0f}</b> &nbsp;|&nbsp; Hours: <b>{d_hours:,.0f}</b> &nbsp;|&nbsp; Stores: <b>{d_n}</b></span>
+            container.markdown(f"""
+            <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 0.8rem; border-radius:6px 6px 0 0;
+                        display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.3rem;">
+                <span style="font-weight:700; font-size:0.9rem;">{district}</span>
+                <span style="font-size:0.75rem; opacity:0.9;">${d_sales:,.0f} &nbsp;·&nbsp; {d_hours:,.0f} hrs &nbsp;·&nbsp; {d_n} stores</span>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1093,25 +1096,33 @@ elif selected_tab == "Schedule Guide":
             for i, (_, r) in enumerate(d_data.sort_values("Store No").iterrows()):
                 bg = "#FFFFFF" if i % 2 == 0 else "#F9FAFB"
                 rows_html += f"""<tr style="background:{bg};">
-                    <td style="padding:0.55rem 1rem; border-bottom:1px solid #F1F5F9; color:#374151; font-weight:600; text-align:center; width:12%;">{int(r['Store No'])}</td>
-                    <td style="padding:0.55rem 1rem; border-bottom:1px solid #F1F5F9; color:#1F2937;">{r['Store Name']}</td>
-                    <td style="padding:0.55rem 1rem; border-bottom:1px solid #F1F5F9; color:#059669; font-weight:700; text-align:right;">${int(r['Sales Forecast']):,}</td>
-                    <td style="padding:0.55rem 1rem; border-bottom:1px solid #F1F5F9; color:#0D9488; font-weight:700; text-align:right;">{int(r['Hours Guide']):,}</td>
+                    <td style="padding:0.45rem 0.6rem; border-bottom:1px solid #F1F5F9; color:#374151; font-weight:600; text-align:center;">{int(r['Store No'])}</td>
+                    <td style="padding:0.45rem 0.6rem; border-bottom:1px solid #F1F5F9; color:#1F2937; font-size:0.88rem;">{r['Store Name']}</td>
+                    <td style="padding:0.45rem 0.6rem; border-bottom:1px solid #F1F5F9; color:#059669; font-weight:700; text-align:right;">${int(r['Sales Forecast']):,}</td>
+                    <td style="padding:0.45rem 0.6rem; border-bottom:1px solid #F1F5F9; color:#0D9488; font-weight:700; text-align:right;">{int(r['Hours Guide']):,}</td>
                 </tr>"""
 
-            st.markdown(f"""
-            <table style="width:100%; border-collapse:collapse; border:1px solid #E2E8F0; border-radius:0 0 6px 6px; overflow:hidden; margin-bottom:0.5rem;">
+            th_style = "padding:0.4rem 0.6rem; font-size:0.72rem; color:#6B7280; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #E2E8F0;"
+            container.markdown(f"""
+            <table style="width:100%; border-collapse:collapse; border:1px solid #E2E8F0; border-radius:0 0 6px 6px; overflow:hidden; margin-bottom:1rem;">
                 <thead>
                     <tr style="background:#F1F5F9;">
-                        <th style="padding:0.5rem 1rem; text-align:center; font-size:0.78rem; color:#6B7280; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #E2E8F0;">Store No</th>
-                        <th style="padding:0.5rem 1rem; text-align:left; font-size:0.78rem; color:#6B7280; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #E2E8F0;">Store Name</th>
-                        <th style="padding:0.5rem 1rem; text-align:right; font-size:0.78rem; color:#6B7280; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #E2E8F0;">Sales Forecast</th>
-                        <th style="padding:0.5rem 1rem; text-align:right; font-size:0.78rem; color:#6B7280; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #E2E8F0;">Hours Guide</th>
+                        <th style="{th_style} text-align:center;">Store</th>
+                        <th style="{th_style} text-align:left;">Name</th>
+                        <th style="{th_style} text-align:right;">Sales</th>
+                        <th style="{th_style} text-align:right;">Hours</th>
                     </tr>
                 </thead>
                 <tbody>{rows_html}</tbody>
             </table>
             """, unsafe_allow_html=True)
+
+        # Render districts side by side (2 per row)
+        for i in range(0, len(sorted_districts), 2):
+            cols = st.columns(2)
+            render_district_card(sorted_districts[i], cols[0])
+            if i + 1 < len(sorted_districts):
+                render_district_card(sorted_districts[i + 1], cols[1])
 
     else:
         st.warning("No schedule data found. Place schedule_guide.csv in the data/ folder.")
