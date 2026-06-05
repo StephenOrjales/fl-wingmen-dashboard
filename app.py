@@ -509,8 +509,9 @@ if selected_tab == "KDS Dashboard":
                 dist_bar_layout = {**CHART_LAYOUT, "barmode": "stack",
                                    "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, type="category", tickfont=dict(size=9)),
                                    "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, dtick=5),
-                                   "legend": dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5, font=dict(size=10))}
-                fig_dist.update_layout(**dist_bar_layout, height=320, margin=dict(l=40, r=10, t=10, b=60))
+                                   "legend": dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5, font=dict(size=10)),
+                                   "margin": dict(l=40, r=10, t=10, b=60)}
+                fig_dist.update_layout(**dist_bar_layout, height=320)
                 st.plotly_chart(fig_dist, use_container_width=True, config=CHART_CONFIG)
 
             # ── Takeaways ──
