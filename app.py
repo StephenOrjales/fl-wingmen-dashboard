@@ -1084,14 +1084,6 @@ elif selected_tab == "Schedule Guide":
             d_hours = d_data["Hours Guide"].sum()
             d_n = len(d_data)
 
-            container.markdown(f"""
-            <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 0.8rem; border-radius:6px 6px 0 0;
-                        display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.3rem;">
-                <span style="font-weight:700; font-size:0.9rem;">{district}</span>
-                <span style="font-size:0.75rem; opacity:0.9;">${d_sales:,.0f} &nbsp;·&nbsp; {d_hours:,.0f} hrs &nbsp;·&nbsp; {d_n} stores</span>
-            </div>
-            """, unsafe_allow_html=True)
-
             rows_html = ""
             for i, (_, r) in enumerate(d_data.sort_values("Store No").iterrows()):
                 bg = "#FFFFFF" if i % 2 == 0 else "#F9FAFB"
@@ -1104,31 +1096,29 @@ elif selected_tab == "Schedule Guide":
 
             th_style = "padding:0.4rem 0.6rem; font-size:0.72rem; color:#6B7280; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #E2E8F0;"
             container.markdown(f"""
-            <table style="width:100%; border-collapse:collapse; border:1px solid #E2E8F0; border-radius:0 0 6px 6px; overflow:hidden; margin-bottom:1rem;">
-                <thead>
-                    <tr style="background:#F1F5F9;">
-                        <th style="{th_style} text-align:center;">Store</th>
-                        <th style="{th_style} text-align:left;">Name</th>
-                        <th style="{th_style} text-align:right;">Sales</th>
-                        <th style="{th_style} text-align:right;">Hours</th>
-                    </tr>
-                </thead>
-                <tbody>{rows_html}</tbody>
-            </table>
+            <div style="border:1px solid #E2E8F0; border-radius:8px; overflow:hidden; margin-bottom:1rem; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 0.8rem;
+                            display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.3rem;">
+                    <span style="font-weight:700; font-size:0.9rem;">{district}</span>
+                    <span style="font-size:0.75rem; opacity:0.9;">${d_sales:,.0f} &nbsp;·&nbsp; {d_hours:,.0f} hrs &nbsp;·&nbsp; {d_n} stores</span>
+                </div>
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:#F1F5F9;">
+                            <th style="{th_style} text-align:center;">Store</th>
+                            <th style="{th_style} text-align:left;">Name</th>
+                            <th style="{th_style} text-align:right;">Sales</th>
+                            <th style="{th_style} text-align:right;">Hours</th>
+                        </tr>
+                    </thead>
+                    <tbody>{rows_html}</tbody>
+                </table>
+            </div>
             """, unsafe_allow_html=True)
 
-        # Inject CSS to add vertical divider between columns via gap border trick
-        st.markdown("""<style>
-        .district-row { display:flex; gap:0; margin-bottom:0.5rem; }
-        .district-row > div:first-child { border-right:1px solid #E2E8F0; padding-right:1rem; }
-        .district-row > div:last-child { padding-left:1rem; }
-        </style>""", unsafe_allow_html=True)
-
-        # Render districts side by side (2 per row) with dividers
+        # Render districts side by side (2 per row)
         for i in range(0, len(sorted_districts), 2):
-            if i > 0:
-                st.markdown('<hr style="border:none; border-top:1px solid #E2E8F0; margin:0.5rem 0 1rem 0;">', unsafe_allow_html=True)
-            cols = st.columns(2, gap="large")
+            cols = st.columns(2, gap="medium")
             render_district_card(sorted_districts[i], cols[0])
             if i + 1 < len(sorted_districts):
                 render_district_card(sorted_districts[i + 1], cols[1])
