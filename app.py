@@ -792,6 +792,15 @@ if selected_tab == "KDS Dashboard":
 
             tbl = kds_week[["Store No", "Store Name", "District", "SOS", "SOS Status", "Adoption %", "Make Ahead %", "Waste %", "Pre-Bump %", "Adherence %"]].copy()
             tbl = tbl.sort_values("SOS", na_position="last")
+
+            # Keep raw values for conditional styling
+            raw_sos = tbl["SOS"].copy()
+            raw_adopt = tbl["Adoption %"].copy()
+            raw_ma = tbl["Make Ahead %"].copy()
+            raw_waste = tbl["Waste %"].copy()
+            raw_pb = tbl["Pre-Bump %"].copy()
+            raw_adh = tbl["Adherence %"].copy()
+
             tbl["SOS"] = tbl["SOS"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
             tbl["Adoption %"] = tbl["Adoption %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
             tbl["Make Ahead %"] = tbl["Make Ahead %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
@@ -800,9 +809,20 @@ if selected_tab == "KDS Dashboard":
             tbl["Adherence %"] = tbl["Adherence %"].apply(lambda x: f"{x:.0f}%" if pd.notna(x) else "-")
             tbl = tbl.rename(columns={"SOS Status": "Status", "Store No": "Store #"})
             tbl = tbl.reset_index(drop=True)
+            raw_sos = raw_sos.reset_index(drop=True)
+            raw_adopt = raw_adopt.reset_index(drop=True)
+            raw_ma = raw_ma.reset_index(drop=True)
+            raw_waste = raw_waste.reset_index(drop=True)
+            raw_pb = raw_pb.reset_index(drop=True)
+            raw_adh = raw_adh.reset_index(drop=True)
+
+            OFF_GUIDE = "color: #DC2626; font-weight: 700"
 
             def style_store_table(row):
+                idx = row.name
                 styles = [""] * len(row)
+                cols = list(row.index)
+                # Row background by status
                 status = row["Status"]
                 if status == "Slow":
                     styles = ["background-color: #FEE2E2"] * len(row)
@@ -810,6 +830,19 @@ if selected_tab == "KDS Dashboard":
                     styles = ["background-color: #FEF3C7"] * len(row)
                 elif status == "Adherent":
                     styles = ["background-color: #F0FDF4"] * len(row)
+                # Cell-level highlights for off-guide values
+                if pd.notna(raw_sos.get(idx)) and raw_sos[idx] > 10:
+                    styles[cols.index("SOS")] += f"; {OFF_GUIDE}"
+                if pd.notna(raw_adopt.get(idx)) and raw_adopt[idx] < 100:
+                    styles[cols.index("Adoption %")] += f"; {OFF_GUIDE}"
+                if pd.notna(raw_ma.get(idx)) and raw_ma[idx] > 0:
+                    styles[cols.index("Make Ahead %")] += f"; {OFF_GUIDE}"
+                if pd.notna(raw_waste.get(idx)) and raw_waste[idx] > 0:
+                    styles[cols.index("Waste %")] += f"; {OFF_GUIDE}"
+                if pd.notna(raw_pb.get(idx)) and raw_pb[idx] > 0:
+                    styles[cols.index("Pre-Bump %")] += f"; {OFF_GUIDE}"
+                if pd.notna(raw_adh.get(idx)) and raw_adh[idx] < 100:
+                    styles[cols.index("Adherence %")] += f"; {OFF_GUIDE}"
                 return styles
 
             styled_tbl = tbl.style.apply(style_store_table, axis=1)
@@ -849,21 +882,49 @@ if selected_tab == "KDS Dashboard":
 
                 d_tbl = d_data[["Store No", "Store Name", "SOS", "SOS Status", "Adoption %", "Make Ahead %", "Waste %", "Pre-Bump %", "Adherence %"]].copy()
                 d_tbl = d_tbl.sort_values("SOS", na_position="last")
+
+                d_raw_sos = d_tbl["SOS"].copy()
+                d_raw_adopt = d_tbl["Adoption %"].copy()
+                d_raw_ma = d_tbl["Make Ahead %"].copy()
+                d_raw_waste = d_tbl["Waste %"].copy()
+                d_raw_pb = d_tbl["Pre-Bump %"].copy()
+                d_raw_adh = d_tbl["Adherence %"].copy()
+
                 d_tbl["SOS"] = d_tbl["SOS"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
                 d_tbl["Adoption %"] = d_tbl["Adoption %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
                 d_tbl["Make Ahead %"] = d_tbl["Make Ahead %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
                 d_tbl["Waste %"] = d_tbl["Waste %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "-")
                 d_tbl["Pre-Bump %"] = d_tbl["Pre-Bump %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "-")
-                d_tbl["Adherence %"] = d_data["Adherence %"].apply(lambda x: f"{x:.0f}%" if pd.notna(x) else "-")
+                d_tbl["Adherence %"] = d_raw_adh.apply(lambda x: f"{x:.0f}%" if pd.notna(x) else "-")
                 d_tbl = d_tbl.rename(columns={"SOS Status": "Status", "Store No": "Store #"}).reset_index(drop=True)
+                d_raw_sos = d_raw_sos.reset_index(drop=True)
+                d_raw_adopt = d_raw_adopt.reset_index(drop=True)
+                d_raw_ma = d_raw_ma.reset_index(drop=True)
+                d_raw_waste = d_raw_waste.reset_index(drop=True)
+                d_raw_pb = d_raw_pb.reset_index(drop=True)
+                d_raw_adh = d_raw_adh.reset_index(drop=True)
 
                 def style_district_row(row):
+                    idx = row.name
+                    cols = list(row.index)
                     styles = [""] * len(row)
                     status = row["Status"]
                     if status == "Slow":
                         styles = ["background-color: #FEE2E2"] * len(row)
                     elif status == "Fast":
                         styles = ["background-color: #FEF3C7"] * len(row)
+                    if pd.notna(d_raw_sos.get(idx)) and d_raw_sos[idx] > 10:
+                        styles[cols.index("SOS")] += f"; {OFF_GUIDE}"
+                    if pd.notna(d_raw_adopt.get(idx)) and d_raw_adopt[idx] < 100:
+                        styles[cols.index("Adoption %")] += f"; {OFF_GUIDE}"
+                    if pd.notna(d_raw_ma.get(idx)) and d_raw_ma[idx] > 0:
+                        styles[cols.index("Make Ahead %")] += f"; {OFF_GUIDE}"
+                    if pd.notna(d_raw_waste.get(idx)) and d_raw_waste[idx] > 0:
+                        styles[cols.index("Waste %")] += f"; {OFF_GUIDE}"
+                    if pd.notna(d_raw_pb.get(idx)) and d_raw_pb[idx] > 0:
+                        styles[cols.index("Pre-Bump %")] += f"; {OFF_GUIDE}"
+                    if pd.notna(d_raw_adh.get(idx)) and d_raw_adh[idx] < 100:
+                        styles[cols.index("Adherence %")] += f"; {OFF_GUIDE}"
                     return styles
 
                 st.dataframe(d_tbl.style.apply(style_district_row, axis=1), use_container_width=True, hide_index=True)
