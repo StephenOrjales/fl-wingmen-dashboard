@@ -1117,14 +1117,15 @@ elif selected_tab == "Schedule Guide":
             </table>
             """, unsafe_allow_html=True)
 
-        # Render districts side by side (2 per row)
+        # Render districts side by side (2 per row) with dividers
         for i in range(0, len(sorted_districts), 2):
             if i > 0:
                 st.markdown('<hr style="border:none; border-top:1px solid #E2E8F0; margin:0.8rem 0 1rem 0;">', unsafe_allow_html=True)
-            cols = st.columns(2)
-            render_district_card(sorted_districts[i], cols[0])
+            left_col, divider_col, right_col = st.columns([20, 1, 20])
+            render_district_card(sorted_districts[i], left_col)
             if i + 1 < len(sorted_districts):
-                render_district_card(sorted_districts[i + 1], cols[1])
+                divider_col.markdown('<div style="border-left:1px solid #E2E8F0; height:100%; min-height:200px; margin:0 auto;"></div>', unsafe_allow_html=True)
+                render_district_card(sorted_districts[i + 1], right_col)
 
     else:
         st.warning("No schedule data found. Place schedule_guide.csv in the data/ folder.")
