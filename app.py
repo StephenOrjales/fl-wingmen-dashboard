@@ -447,8 +447,10 @@ if selected_tab == "KDS Dashboard":
                         sub=f"{(n_slow/n_reporting*100) if n_reporting else 0:.0f}% of reporting"), unsafe_allow_html=True)
             c4.markdown(kpi_style.format(label="FAST OUTLIERS", value=n_fast, color="#D97706",
                         sub=f"{(n_fast/n_reporting*100) if n_reporting else 0:.0f}% of reporting"), unsafe_allow_html=True)
-            c5.markdown(kpi_style.format(label="NO DATA", value=n_nodata, color="#64748B",
-                        sub="stores not in export"), unsafe_allow_html=True)
+            avg_sos_kpi = kds_week["SOS"].mean() if kds_week["SOS"].notna().any() else 0
+            sos_kpi_color = "#059669" if avg_sos_kpi < 10 else ("#D97706" if avg_sos_kpi < 13 else "#DC2626")
+            c5.markdown(kpi_style.format(label="AVG SOS", value=f"{avg_sos_kpi:.1f}m", color=sos_kpi_color,
+                        sub="target < 10 min"), unsafe_allow_html=True)
 
             st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
 
