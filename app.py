@@ -316,7 +316,7 @@ with st.sidebar:
         store_options = ["All Stores"] + store_list
         selected_store = st.selectbox("Store", store_options, label_visibility="collapsed")
 
-    nav_options = ["KDS Dashboard", "KDS Adherence", "Schedule Guide", "Internal QSC Evals", "COGS Variance", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance", "Scorecard", "Watch List", "Trends", "Wing Worm"]
+    nav_options = ["KDS Dashboard", "Schedule Guide", "Internal QSC Evals", "COGS Variance", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance", "Scorecard", "Watch List", "Trends", "Wing Worm"]
     selected_tab = st.radio("Navigation", nav_options, label_visibility="collapsed")
 
     st.markdown("---")
@@ -818,148 +818,6 @@ if selected_tab == "KDS Dashboard":
 
 
 # ════════════════════════════════
-# KDS ADHERENCE (legacy)
-# ════════════════════════════════
-elif selected_tab == "KDS Adherence":
-    st.markdown('<div class="section-title">KDS Dinner Adherence</div>', unsafe_allow_html=True)
-    st.markdown('<p style="color:#6B7280; font-size:0.85rem;">Friday &amp; Saturday Dinner performance. Adherence % = metrics within standard ÷ total metrics checked. Thresholds: SOS &lt;10 min, Adoption ≥85%, Make Ahead ≤10%, Waste ≤5%, Pre-Bump ≤1.5%.</p>', unsafe_allow_html=True)
-
-    kds_file = DATA_DIR / "kds_dinner.csv"
-    if kds_file.exists():
-        kds_raw = pd.read_csv(kds_file)
-        periods_sorted = sorted(kds_raw["Period"].unique(), key=lambda x: (int(x[1]), int(x[3])))
-
-        # Apply sidebar filters
-        if selected_store != "All Stores":
-            sk_num = extract_store_number(selected_store).lstrip("0")
-            kds_raw = kds_raw[kds_raw["Store No"].astype(str) == sk_num]
-        elif selected_district != "All Districts":
-            d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
-            kds_raw = kds_raw[kds_raw["Store No"].astype(str).isin(d_nums)]
-
-        periods_sorted = [p for p in periods_sorted if p in kds_raw["Period"].unique()]
-
-        # Period selector
-        period_options = ["All Weeks"] + list(reversed(periods_sorted))
-        sel_kds_period = st.selectbox("Select Week", period_options, index=1 if len(period_options) > 1 else 0, key="kds_period")
-        if sel_kds_period != "All Weeks":
-            kds_view = kds_raw[kds_raw["Period"] == sel_kds_period].copy()
-        else:
-            kds_view = kds_raw.copy()
-
-        # KPIs
-        avg_adherence = kds_view["Adherence %"].mean() if len(kds_view) > 0 else 0
-        perfect_stores = kds_view.groupby("Store No")["Adherence %"].mean()
-        n_perfect = (perfect_stores == 100).sum()
-        n_below_60 = (perfect_stores < 60).sum()
-        avg_sos = kds_view["SOS"].mean() if kds_view["SOS"].notna().any() else 0
-        avg_prebump = kds_view["Pre-Bump %"].mean() if kds_view["Pre-Bump %"].notna().any() else 0
-        avg_adopt = kds_view["Adoption %"].mean() if kds_view["Adoption %"].notna().any() else 0
-        avg_make = kds_view["Make Ahead %"].mean() if kds_view["Make Ahead %"].notna().any() else 0
-        avg_waste = kds_view["Waste %"].mean() if kds_view["Waste %"].notna().any() else 0
-
-        adh_c = "green" if avg_adherence >= 80 else ("orange" if avg_adherence >= 60 else "red")
-        sos_c = "green" if avg_sos < 10 else ("orange" if avg_sos < 13 else "red")
-        pb_c = "green" if avg_prebump <= 0.5 else ("orange" if avg_prebump <= 1.5 else "red")
-        adopt_c = "green" if avg_adopt >= 85 else "red"
-        ma_c = "green" if avg_make <= 10 else "red"
-        waste_c = "green" if avg_waste <= 5 else "red"
-
-        k1, k2, k3, k4 = st.columns(4)
-        k1.markdown(kpi_card("Avg Adherence", f"{avg_adherence:.1f}%", adh_c), unsafe_allow_html=True)
-        k2.markdown(kpi_card("Avg SOS", f"{avg_sos:.1f} min", sos_c), unsafe_allow_html=True)
-        k3.markdown(kpi_card("Pre-Bump Rate", f"{avg_prebump:.2f}%", pb_c), unsafe_allow_html=True)
-        k4.markdown(kpi_card("Cook Adoption", f"{avg_adopt:.1f}%", adopt_c), unsafe_allow_html=True)
-
-        k5, k6, k7, k8 = st.columns(4)
-        k5.markdown(kpi_card("Make Ahead Rate", f"{avg_make:.1f}%", ma_c), unsafe_allow_html=True)
-        k6.markdown(kpi_card("Avg Waste", f"{avg_waste:.1f}%", waste_c), unsafe_allow_html=True)
-        k7.markdown(kpi_card("100% Adherence", str(n_perfect), "green"), unsafe_allow_html=True)
-        k8.markdown(kpi_card("Below 60%", str(n_below_60), "red" if n_below_60 > 0 else "green"), unsafe_allow_html=True)
-
-        st.markdown("")
-
-        # ── Adherence % by Store (bar chart) ──
-        st.markdown('<div class="section-title">Adherence % by Store</div>', unsafe_allow_html=True)
-        store_adh = kds_view.groupby(["Store No", "Store Name"]).agg(
-            adherence=("Adherence %", "mean"),
-        ).reset_index().sort_values("adherence")
-        store_adh["Label"] = store_adh["Store No"].astype(str) + " - " + store_adh["Store Name"]
-
-        adh_colors = [RED if v < 60 else (ORANGE if v < 80 else GREEN) for v in store_adh["adherence"]]
-        fig_adh = go.Figure(go.Bar(
-            x=store_adh["Label"], y=store_adh["adherence"],
-            marker_color=adh_colors,
-            text=store_adh["adherence"].apply(lambda v: f"{v:.0f}%"),
-            textposition="outside",
-            hovertemplate="%{x}<br>Adherence: %{y:.1f}%<extra></extra>",
-        ))
-        fig_adh.add_hline(y=80, line_dash="dash", line_color=GREEN, line_width=1.5,
-                          annotation_text="80% target", annotation_font=dict(color="#059669", size=10))
-        adh_layout = {**CHART_LAYOUT, "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, range=[0, 110], title="Adherence %")}
-        fig_adh.update_layout(**adh_layout, height=420, xaxis_tickangle=-45)
-        st.plotly_chart(fig_adh, use_container_width=True, config=CHART_CONFIG)
-
-        # ── Metric Breakdown (pass rates) ──
-        st.markdown('<div class="section-title">Metric Pass Rates</div>', unsafe_allow_html=True)
-        metrics = [
-            ("SOS Pass", "SOS < 10 min"),
-            ("Adoption Pass", "Adoption ≥ 85%"),
-            ("Make Ahead Pass", "Make Ahead ≤ 10%"),
-            ("Waste Pass", "Waste ≤ 5%"),
-            ("Pre-Bump Pass", "Pre-Bump ≤ 1.5%"),
-        ]
-        metric_rates = []
-        for col, label in metrics:
-            vals = kds_view[col].dropna()
-            if len(vals) > 0:
-                rate = vals.mean() * 100
-                metric_rates.append({"Metric": label, "Pass Rate": rate})
-        if metric_rates:
-            mr_df = pd.DataFrame(metric_rates)
-            mr_colors = [GREEN if v >= 80 else (ORANGE if v >= 60 else RED) for v in mr_df["Pass Rate"]]
-            fig_mr = go.Figure(go.Bar(
-                x=mr_df["Metric"], y=mr_df["Pass Rate"],
-                marker_color=mr_colors,
-                text=mr_df["Pass Rate"].apply(lambda v: f"{v:.0f}%"),
-                textposition="outside",
-            ))
-            mr_layout = {**CHART_LAYOUT,
-                         "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, range=[0, 110], title="Pass Rate %"),
-                         "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, type="category")}
-            fig_mr.update_layout(**mr_layout, height=350)
-            st.plotly_chart(fig_mr, use_container_width=True, config=CHART_CONFIG)
-
-        # ── Trend over time ──
-        if len(periods_sorted) > 1:
-            st.markdown('<div class="section-title">Adherence Trend by Week</div>', unsafe_allow_html=True)
-            trend = kds_raw.groupby("Period")["Adherence %"].mean().reindex(periods_sorted).reset_index()
-            trend.columns = ["Period", "Adherence"]
-            fig_trend = px.line(trend, x="Period", y="Adherence", markers=True, color_discrete_sequence=[GREEN])
-            fig_trend.add_hline(y=80, line_dash="dash", line_color=ORANGE, line_width=1,
-                                annotation_text="80% target", annotation_font=dict(color="#D97706", size=10))
-            trend_layout = {**CHART_LAYOUT, "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Avg Adherence %", range=[50, 100]),
-                            "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, type="category")}
-            fig_trend.update_layout(**trend_layout, title="Company-Wide Adherence Trend")
-            st.plotly_chart(fig_trend, use_container_width=True, config=CHART_CONFIG)
-
-        # ── Detail Table ──
-        st.markdown('<div class="section-title">Store Detail</div>', unsafe_allow_html=True)
-        detail = kds_view[["Period", "Store No", "Store Name", "SOS", "Adoption %", "Make Ahead %",
-                            "Waste %", "Pre-Bump %", "Adherence %"]].copy()
-        detail["SOS"] = detail["SOS"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
-        detail["Adoption %"] = detail["Adoption %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
-        detail["Make Ahead %"] = detail["Make Ahead %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
-        detail["Waste %"] = detail["Waste %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "-")
-        detail["Pre-Bump %"] = detail["Pre-Bump %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "-")
-        detail["Adherence %"] = kds_view["Adherence %"].apply(lambda x: f"{x:.0f}%" if pd.notna(x) else "-")
-        detail = detail.sort_values(["Period", "Store Name"])
-        st.dataframe(detail, use_container_width=True, hide_index=True)
-
-    else:
-        st.warning("No KDS dinner data found. Place kds_dinner.csv in the data/ folder.")
-
-# ════════════════════════════════
 # SCHEDULE GUIDE
 # ════════════════════════════════
 elif selected_tab == "Schedule Guide":
@@ -1072,11 +930,9 @@ elif selected_tab == "Schedule Guide":
         st.warning("No schedule data found. Place schedule_guide.csv in the data/ folder.")
 
 # ════════════════════════════════
-# INTERNAL QSC EVALUATIONS
+# INTERNAL QSC EVALUATIONS (dashboard style)
 # ════════════════════════════════
 elif selected_tab == "Internal QSC Evals":
-    st.markdown('<div class="section-title">Internal QSC Evaluations</div>', unsafe_allow_html=True)
-    st.markdown('<p style="color:#6B7280; font-size:0.85rem;">Self-evaluation audit tracking. Red flags: score of 0 or completed in under 1 hour (not thorough). Tracks repeat offenders and missed evaluations.</p>', unsafe_allow_html=True)
 
     eval_file = DATA_DIR / "qsc_evals.csv"
     if eval_file.exists():
@@ -1093,177 +949,413 @@ elif selected_tab == "Internal QSC Evals":
             evals = evals[evals["Store No"].isin(d_nums)]
 
         periods_avail = sorted(evals["Period"].unique().tolist(), key=lambda x: (int(x[1]), int(x[3])))
+        latest_eval_period = periods_avail[-1] if periods_avail else ""
 
-        # ── Repeat Offenders (across ALL weeks) ──
-        st.markdown('<div class="section-title" style="font-size:1.05rem; margin-top:0.5rem;">Repeat Offenders</div>', unsafe_allow_html=True)
-        st.markdown('<p style="color:#6B7280; font-size:0.82rem;">Stores consistently flagged across multiple weeks. These need immediate attention.</p>', unsafe_allow_html=True)
-
-        # Red flag repeat offenders
-        red_counts = evals[evals["Red Flag"]].groupby("Store No").agg(
-            Times_Flagged=("Period", "count"),
-            Weeks=("Period", lambda x: ", ".join(sorted(x.unique(), key=lambda p: (int(p[1]), int(p[3]))))),
-            Avg_Score=("Score", "mean"),
-        ).reset_index().sort_values("Times_Flagged", ascending=False)
-
-        # Add store names
+        # Maps
         name_map = evals.dropna(subset=["City"]).drop_duplicates("Store No", keep="last").set_index("Store No")["City"]
         district_map = evals.drop_duplicates("Store No", keep="last").set_index("Store No")["District"]
 
-        # No-eval repeat offenders
-        noeval_counts = evals[evals["No Eval"]].groupby("Store No").agg(
-            Times_Missed=("Period", "count"),
-            Weeks_Missed=("Period", lambda x: ", ".join(sorted(x.unique(), key=lambda p: (int(p[1]), int(p[3]))))),
-        ).reset_index().sort_values("Times_Missed", ascending=False)
-
-        col_r, col_n = st.columns(2)
-        with col_r:
-            st.markdown(f"""
-            <div style="background:#DC2626; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0;">
-                <span style="font-weight:700;">Red Flag Repeat Offenders</span>
-                <span style="float:right; font-size:0.82rem;">Score = 0 or Duration &lt; 1 hour</span>
+        # ── HEADER ──
+        st.markdown(f"""
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.8rem;">
+            <div>
+                <h2 style="color:#1A3C34; font-weight:800; margin:0; font-size:1.6rem;">Internal QSC Evaluations</h2>
+                <p style="color:#6B7280; font-size:0.88rem; margin:0.2rem 0 0 0;">
+                    Self-evaluation audit tracking &nbsp;·&nbsp; {len(DISTRICTS)} districts, {evals["Store No"].nunique()} stores
+                </p>
             </div>
-            """, unsafe_allow_html=True)
-            if len(red_counts) > 0:
-                red_display = red_counts.copy()
-                red_display["District"] = red_display["Store No"].map(district_map).fillna("")
-                red_display["Avg Score"] = red_display["Avg_Score"].apply(lambda x: f"{x:.0f}" if pd.notna(x) else "")
-                red_display = red_display.rename(columns={"Times_Flagged": "Times Flagged", "Weeks": "Weeks Flagged"})
-                st.dataframe(
-                    red_display[["Store No", "District", "Times Flagged", "Avg Score", "Weeks Flagged"]],
-                    use_container_width=True, hide_index=True,
-                )
-            else:
-                st.success("No repeat red flag stores!")
-
-        with col_n:
-            st.markdown(f"""
-            <div style="background:#D97706; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0;">
-                <span style="font-weight:700;">Missing Evaluations</span>
-                <span style="float:right; font-size:0.82rem;">No evaluation completed</span>
+            <div style="background:#DC2626; color:#FFFFFF; padding:0.5rem 1.2rem; border-radius:8px; font-weight:700; font-size:0.9rem; white-space:nowrap;">
+                RED FLAG · <span style="color:#FEF3C7;">Score = 0 or &lt; 1 hr</span>
             </div>
-            """, unsafe_allow_html=True)
-            if len(noeval_counts) > 0:
-                noeval_display = noeval_counts.copy()
-                noeval_display["District"] = noeval_display["Store No"].map(district_map).fillna("")
-                noeval_display = noeval_display.rename(columns={"Times_Missed": "Times Missed", "Weeks_Missed": "Weeks Missed"})
-                st.dataframe(
-                    noeval_display[["Store No", "District", "Times Missed", "Weeks Missed"]],
-                    use_container_width=True, hide_index=True,
-                )
-            else:
-                st.success("All stores completed evaluations!")
+        </div>
+        """, unsafe_allow_html=True)
 
-        # Red flag frequency chart
-        st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
-        if len(red_counts) > 0:
-            top_offenders = red_counts.head(15).copy()
-            top_offenders["Label"] = top_offenders["Store No"].astype(str)
-            fig_off = px.bar(top_offenders, x="Label", y="Times_Flagged", text_auto=True,
-                             color_discrete_sequence=["#DC2626"])
-            off_layout = {**CHART_LAYOUT, "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Times Flagged", dtick=1),
-                          "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Store #", tickfont=dict(size=9), type="category")}
-            fig_off.update_layout(**off_layout, title="Red Flag Frequency by Store (All Weeks)")
-            fig_off.update_traces(textposition="outside")
-            st.plotly_chart(fig_off, use_container_width=True, config=CHART_CONFIG)
+        # ── Period selector ──
+        pcol1, pcol2 = st.columns([3, 1])
+        with pcol2:
+            sel_eval_period = st.selectbox("Week", list(reversed(periods_avail)), index=0, key="eval_period", label_visibility="collapsed")
 
-        # ── Weekly Detail ──
-        st.markdown("<div style='height:1.5rem;'></div>", unsafe_allow_html=True)
-        st.markdown('<div class="section-title" style="font-size:1.05rem;">Weekly Detail</div>', unsafe_allow_html=True)
-
-        sel_eval_period = st.selectbox("Select Week", periods_avail, index=len(periods_avail) - 1, key="eval_period")
         week_evals = evals[evals["Period"] == sel_eval_period].copy()
         start_dt = week_evals["Start Date"].iloc[0] if len(week_evals) > 0 else ""
         end_dt = week_evals["End Date"].iloc[0] if len(week_evals) > 0 else ""
-        st.markdown(f'<p style="color:#374151; font-size:0.9rem; font-weight:600;">Week: {start_dt} — {end_dt}</p>', unsafe_allow_html=True)
 
-        # Weekly KPIs
+        # Classify each store
+        def classify_eval(row):
+            if row["No Eval"]:
+                return "Missed"
+            if row["Red Flag"]:
+                return "Red Flag"
+            if row["Stars"] == 5:
+                return "5-Star"
+            return "Completed"
+
+        week_evals["Eval Status"] = week_evals.apply(classify_eval, axis=1)
+
         completed = week_evals[~week_evals["No Eval"]]
-        n_evals = len(completed)
-        n_stores = week_evals["Store No"].nunique()
-        n_no_eval = week_evals["No Eval"].sum()
-        n_red = week_evals["Red Flag"].sum()
+        n_total = week_evals["Store No"].nunique()
+        n_completed = len(completed)
+        n_no_eval = int(week_evals["No Eval"].sum())
+        n_red = int(week_evals["Red Flag"].sum())
         n_5star = len(completed[completed["Stars"] == 5])
         avg_score = completed["Score"].mean() if len(completed) > 0 else 0
+        completion_pct = ((n_total - n_no_eval) / n_total * 100) if n_total > 0 else 0
 
-        k1, k2, k3, k4, k5, k6 = st.columns(6)
-        k1.markdown(f'<div class="kpi-box"><div class="kpi-label">Evaluations</div><div class="kpi-value">{n_evals}</div></div>', unsafe_allow_html=True)
-        k2.markdown(f'<div class="kpi-box"><div class="kpi-label">Stores Evaluated</div><div class="kpi-value">{n_stores - int(n_no_eval)}/{n_stores}</div></div>', unsafe_allow_html=True)
-        missed_color = "#DC2626" if n_no_eval > 0 else "#059669"
-        k3.markdown(f'<div class="kpi-box"><div class="kpi-label">Missed Evals</div><div class="kpi-value" style="color:{missed_color}">{int(n_no_eval)}</div></div>', unsafe_allow_html=True)
-        red_color = "#DC2626" if n_red > 0 else "#059669"
-        k4.markdown(f'<div class="kpi-box"><div class="kpi-label">Red Flags</div><div class="kpi-value" style="color:{red_color}">{int(n_red)}</div></div>', unsafe_allow_html=True)
-        k5.markdown(f'<div class="kpi-box"><div class="kpi-label">5-Star Evals</div><div class="kpi-value" style="color:#059669">{n_5star}</div></div>', unsafe_allow_html=True)
-        k6.markdown(f'<div class="kpi-box"><div class="kpi-label">Avg Score</div><div class="kpi-value">{avg_score:.1f}</div></div>', unsafe_allow_html=True)
+        # ── SUB-TABS ──
+        tab_overview, tab_by_district, tab_offenders, tab_historical = st.tabs(
+            [f"📊 {sel_eval_period} Overview", "🏢 By District", "🔴 Repeat Offenders", f"📈 Historical ({periods_avail[0]}–{periods_avail[-1]})"]
+        )
 
-        st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
+        # ════════════════════
+        # TAB: OVERVIEW
+        # ════════════════════
+        with tab_overview:
+            # ── KPI Cards ──
+            kpi_style = """<div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; padding:1rem; text-align:left; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                <div style="color:#6B7280; font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">{label}</div>
+                <div style="color:{color}; font-size:2rem; font-weight:800; margin:0.2rem 0;">{value}</div>
+                <div style="color:#9CA3AF; font-size:0.78rem;">{sub}</div>
+            </div>"""
 
-        # District-grouped tables
-        for district in sorted(week_evals["District"].unique()):
-            d_evals = week_evals[week_evals["District"] == district].copy()
-            d_completed = d_evals[~d_evals["No Eval"]]
-            d_5star = len(d_completed[d_completed["Stars"] == 5])
-            d_red = d_evals["Red Flag"].sum()
-            d_noeval = d_evals["No Eval"].sum()
+            c1, c2, c3, c4, c5 = st.columns(5)
+            c1.markdown(kpi_style.format(label="STORES EVALUATED", value=f"{n_total - n_no_eval}/{n_total}", color="#1F2937",
+                        sub=f"{completion_pct:.0f}% completion"), unsafe_allow_html=True)
+            c2.markdown(kpi_style.format(label="5-STAR EVALS", value=n_5star, color="#059669",
+                        sub=f"{(n_5star/n_completed*100) if n_completed else 0:.0f}% of completed"), unsafe_allow_html=True)
+            red_color = "#DC2626" if n_red > 0 else "#059669"
+            c3.markdown(kpi_style.format(label="RED FLAGS", value=n_red, color=red_color,
+                        sub="score=0 or <1hr"), unsafe_allow_html=True)
+            missed_color = "#D97706" if n_no_eval > 0 else "#059669"
+            c4.markdown(kpi_style.format(label="MISSED EVALS", value=n_no_eval, color=missed_color,
+                        sub="no evaluation done"), unsafe_allow_html=True)
+            c5.markdown(kpi_style.format(label="AVG SCORE", value=f"{avg_score:.0f}", color="#1F2937",
+                        sub=f"week of {start_dt}"), unsafe_allow_html=True)
 
-            badge = ""
-            if d_noeval > 0:
-                badge += f' <span style="background:#D97706; padding:2px 8px; border-radius:4px; font-size:0.75rem; margin-left:8px;">{int(d_noeval)} missed</span>'
-            if d_red > 0:
-                badge += f' <span style="background:#DC2626; padding:2px 8px; border-radius:4px; font-size:0.75rem; margin-left:4px;">{int(d_red)} red flags</span>'
+            st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
 
-            st.markdown(f"""
-            <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0; margin-top:1rem;
-                        display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-weight:700; font-size:0.95rem;">{district}{badge}</span>
-                <span style="font-size:0.82rem;">5-Star: <b>{d_5star}</b> &nbsp;|&nbsp; Evals: <b>{len(d_completed)}</b></span>
-            </div>
-            """, unsafe_allow_html=True)
+            # ── Charts row: Donut + District Distribution ──
+            chart_l, chart_r = st.columns(2)
 
-            display_cols = d_evals[["Store No", "Date", "MOD", "Findings", "Score", "Rating", "Duration"]].copy()
-            # Mark no-eval rows — fill all blank fields so nothing shows "None"
-            no_eval_mask = d_evals["No Eval"].fillna(False).astype(bool)
-            display_cols.loc[no_eval_mask, "Rating"] = "NO EVALUATION"
-            display_cols.loc[no_eval_mask, "MOD"] = "-"
-            display_cols.loc[no_eval_mask, "Date"] = "-"
-            display_cols.loc[no_eval_mask, "Duration"] = "-"
-            display_cols["Findings"] = display_cols["Findings"].apply(lambda x: f"{int(x)}" if pd.notna(x) else "-")
-            display_cols["Score"] = d_evals["Score"].apply(lambda x: f"{int(x)}" if pd.notna(x) else "-")
-            display_cols["Duration"] = display_cols["Duration"].fillna("-").replace("nan", "-")
-            display_cols["Date"] = display_cols["Date"].fillna("-").replace("nan", "-")
-            display_cols["MOD"] = display_cols["MOD"].fillna("-").replace("nan", "-")
-            display_cols = display_cols.reset_index(drop=True)
+            with chart_l:
+                st.markdown(f"""<div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; padding:1rem;">
+                    <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                        <span style="background:#1A3C34; color:#FFFFFF; padding:2px 10px; border-radius:4px; font-size:0.75rem; font-weight:700;">{sel_eval_period}</span>
+                        <span style="font-weight:700; color:#1F2937;">Evaluation Mix</span>
+                    </div>
+                </div>""", unsafe_allow_html=True)
 
-            def highlight_evals(row):
+                status_counts = week_evals["Eval Status"].value_counts()
+                color_map_eval = {"5-Star": "#059669", "Completed": "#0D9488", "Red Flag": "#DC2626", "Missed": "#D97706"}
+                labels_e = status_counts.index.tolist()
+                values_e = status_counts.values.tolist()
+                colors_e = [color_map_eval.get(l, "#CBD5E1") for l in labels_e]
+
+                fig_donut_e = go.Figure(go.Pie(
+                    labels=labels_e, values=values_e, hole=0.55,
+                    marker=dict(colors=colors_e),
+                    textinfo="percent", textfont=dict(size=13, color="#FFFFFF"),
+                    hovertemplate="%{label}: %{value} stores (%{percent})<extra></extra>",
+                    sort=False,
+                ))
+                fig_donut_e.update_layout(
+                    plot_bgcolor=CHART_BG, paper_bgcolor=CHART_BG,
+                    font=dict(color=FONT_COLOR, size=11),
+                    margin=dict(l=10, r=10, t=10, b=10),
+                    height=320,
+                    legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.05, font=dict(size=11)),
+                )
+                st.plotly_chart(fig_donut_e, use_container_width=True, config=CHART_CONFIG)
+
+            with chart_r:
+                st.markdown(f"""<div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; padding:1rem;">
+                    <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                        <span style="background:#1A3C34; color:#FFFFFF; padding:2px 10px; border-radius:4px; font-size:0.75rem; font-weight:700;">{sel_eval_period}</span>
+                        <span style="font-weight:700; color:#1F2937;">Distribution by District</span>
+                    </div>
+                </div>""", unsafe_allow_html=True)
+
+                week_evals["District_Label"] = week_evals["District"].fillna("Unknown")
+                dist_eval_status = week_evals.groupby(["District_Label", "Eval Status"]).size().unstack(fill_value=0)
+                for col in ["5-Star", "Completed", "Red Flag", "Missed"]:
+                    if col not in dist_eval_status.columns:
+                        dist_eval_status[col] = 0
+
+                fig_dist_e = go.Figure()
+                for status, color in [("5-Star", "#059669"), ("Completed", "#0D9488"), ("Red Flag", "#DC2626"), ("Missed", "#D97706")]:
+                    fig_dist_e.add_trace(go.Bar(
+                        x=dist_eval_status.index, y=dist_eval_status[status], name=status,
+                        marker_color=color, hovertemplate="%{x}<br>" + status + ": %{y}<extra></extra>",
+                    ))
+                dist_e_layout = {**CHART_LAYOUT, "barmode": "stack",
+                                 "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, type="category", tickfont=dict(size=9)),
+                                 "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, dtick=2),
+                                 "legend": dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5, font=dict(size=10)),
+                                 "margin": dict(l=40, r=10, t=10, b=60)}
+                fig_dist_e.update_layout(**dist_e_layout, height=320)
+                st.plotly_chart(fig_dist_e, use_container_width=True, config=CHART_CONFIG)
+
+            # ── Takeaways ──
+            st.markdown(f'<div style="font-weight:700; color:#1A3C34; font-size:1.05rem; margin:1rem 0 0.5rem 0;">{sel_eval_period} Takeaways</div>', unsafe_allow_html=True)
+            takeaway_style = '<div style="border-left:4px solid {color}; padding:0.5rem 1rem; margin:0.4rem 0; background:#FAFBFC; border-radius:0 6px 6px 0;">{text}</div>'
+
+            # Delta vs previous
+            prev_idx = periods_avail.index(sel_eval_period) - 1 if sel_eval_period in periods_avail and periods_avail.index(sel_eval_period) > 0 else -1
+            delta_text = ""
+            if prev_idx >= 0:
+                prev_p = periods_avail[prev_idx]
+                prev_evals = evals[evals["Period"] == prev_p]
+                prev_red = int(prev_evals["Red Flag"].sum())
+                delta_red = n_red - prev_red
+                arrow = "▲" if delta_red > 0 else "▼"
+                delta_color = "#DC2626" if delta_red > 0 else "#059669"
+                delta_text = f' <span style="color:{delta_color}; font-weight:700;">{arrow} {abs(delta_red)} red flags vs {prev_p}</span>.'
+
+            st.markdown(takeaway_style.format(color="#1A3C34",
+                text=f'<b>{completion_pct:.0f}% completion</b> ({n_total - n_no_eval}/{n_total} stores evaluated).{delta_text} {n_5star} five-star, {n_red} red flags, {n_no_eval} missed.'),
+                unsafe_allow_html=True)
+
+            # Best & worst district
+            dist_scores = week_evals.groupby("District_Label").apply(
+                lambda g: g[~g["No Eval"]]["Score"].mean() if (~g["No Eval"]).any() else 0
+            ).sort_values(ascending=False)
+            if len(dist_scores) > 0:
+                st.markdown(takeaway_style.format(color="#059669",
+                    text=f'<b>Best District:</b> {dist_scores.index[0]} — avg score {dist_scores.iloc[0]:.0f}.'),
+                    unsafe_allow_html=True)
+            if len(dist_scores) > 1:
+                st.markdown(takeaway_style.format(color="#DC2626",
+                    text=f'<b>Worst District:</b> {dist_scores.index[-1]} — avg score {dist_scores.iloc[-1]:.0f}.'),
+                    unsafe_allow_html=True)
+
+            # Missed stores
+            missed_stores = week_evals[week_evals["No Eval"]]
+            if len(missed_stores) > 0:
+                missed_list = ", ".join([f"{int(r['Store No'])} ({r['District_Label']})" for _, r in missed_stores.iterrows()])
+                st.markdown(takeaway_style.format(color="#D97706",
+                    text=f'<b>Missed evaluations:</b> {missed_list}'),
+                    unsafe_allow_html=True)
+
+            st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
+
+            # ── Store Performance Table ──
+            st.markdown(f"""<div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                <span style="background:#1A3C34; color:#FFFFFF; padding:2px 10px; border-radius:4px; font-size:0.75rem; font-weight:700;">{sel_eval_period}</span>
+                <span style="font-weight:700; color:#1F2937; font-size:1.05rem;">Store Performance</span>
+            </div>""", unsafe_allow_html=True)
+
+            tbl_e = week_evals[["Store No", "City", "District_Label", "Date", "MOD", "Findings", "Score", "Rating", "Duration", "Eval Status"]].copy()
+            no_eval_mask = week_evals["No Eval"].fillna(False).astype(bool)
+            tbl_e.loc[no_eval_mask, "Rating"] = "NO EVALUATION"
+            tbl_e.loc[no_eval_mask, "MOD"] = "-"
+            tbl_e.loc[no_eval_mask, "Date"] = "-"
+            tbl_e.loc[no_eval_mask, "Duration"] = "-"
+            tbl_e["Findings"] = tbl_e["Findings"].apply(lambda x: f"{int(x)}" if pd.notna(x) else "-")
+            tbl_e["Score"] = week_evals["Score"].apply(lambda x: f"{int(x)}" if pd.notna(x) else "-")
+            tbl_e["Duration"] = tbl_e["Duration"].fillna("-").replace("nan", "-")
+            tbl_e["Date"] = tbl_e["Date"].fillna("-").replace("nan", "-")
+            tbl_e["MOD"] = tbl_e["MOD"].fillna("-").replace("nan", "-")
+            tbl_e = tbl_e.rename(columns={"Store No": "Store #", "District_Label": "District", "Eval Status": "Status"})
+            tbl_e = tbl_e.sort_values("Score", ascending=True, na_position="last").reset_index(drop=True)
+
+            def style_eval_table(row):
                 styles = [""] * len(row)
-                if row["Rating"] == "NO EVALUATION":
-                    styles = ["background-color: #FEF3C7; color: #92400E"] * len(row)
-                elif str(row["Score"]).isdigit() and int(row["Score"]) == 0:
-                    styles = ["background-color: #FEE2E2; color: #991B1B"] * len(row)
+                status = row["Status"]
+                if status == "Missed":
+                    styles = ["background-color: #FEF3C7"] * len(row)
+                elif status == "Red Flag":
+                    styles = ["background-color: #FEE2E2"] * len(row)
+                elif status == "5-Star":
+                    styles = ["background-color: #F0FDF4"] * len(row)
                 return styles
 
-            styled = display_cols.style.apply(highlight_evals, axis=1)
-            st.dataframe(styled, use_container_width=True, hide_index=True)
+            st.dataframe(tbl_e.style.apply(style_eval_table, axis=1), use_container_width=True, hide_index=True, height=500)
 
-        # Trend chart: red flags per week
-        st.markdown("<div style='height:1.5rem;'></div>", unsafe_allow_html=True)
-        st.markdown('<div class="section-title" style="font-size:1rem;">Trend: Red Flags & Missed Evals per Week</div>', unsafe_allow_html=True)
+        # ════════════════════
+        # TAB: BY DISTRICT
+        # ════════════════════
+        with tab_by_district:
+            st.markdown(f'<div style="font-weight:700; color:#1A3C34; font-size:1.1rem; margin-bottom:0.5rem;">District Breakdown — {sel_eval_period}</div>', unsafe_allow_html=True)
 
-        trend_data = evals.groupby("Period").agg(
-            Red_Flags=("Red Flag", "sum"),
-            Missed=("No Eval", "sum"),
-            Avg_Score=("Score", lambda x: x.dropna().mean()),
-        ).reindex(periods_avail).reset_index()
+            for district in sorted(week_evals["District_Label"].unique()):
+                d_evals = week_evals[week_evals["District_Label"] == district].copy()
+                d_completed = d_evals[~d_evals["No Eval"]]
+                d_5star = len(d_completed[d_completed["Stars"] == 5])
+                d_red = int(d_evals["Red Flag"].sum())
+                d_noeval = int(d_evals["No Eval"].sum())
+                d_total = len(d_evals)
+                d_avg = d_completed["Score"].mean() if len(d_completed) > 0 else 0
 
-        fig_trend = go.Figure()
-        fig_trend.add_trace(go.Bar(x=trend_data["Period"], y=trend_data["Red_Flags"], name="Red Flags",
-                                   marker_color="#DC2626", text=trend_data["Red_Flags"].astype(int), textposition="outside"))
-        fig_trend.add_trace(go.Bar(x=trend_data["Period"], y=trend_data["Missed"], name="Missed Evals",
-                                   marker_color="#D97706", text=trend_data["Missed"].astype(int), textposition="outside"))
-        trend_layout = {**CHART_LAYOUT, "barmode": "group",
-                        "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Count", dtick=2),
-                        "legend": dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)}
-        fig_trend.update_layout(**trend_layout, title="Red Flags & Missed Evals by Week")
-        st.plotly_chart(fig_trend, use_container_width=True, config=CHART_CONFIG)
+                badges = ""
+                if d_noeval > 0:
+                    badges += f'<span style="background:#D97706; color:#FFF; padding:2px 8px; border-radius:4px; font-size:0.75rem; margin-left:6px;">{d_noeval} missed</span>'
+                if d_red > 0:
+                    badges += f'<span style="background:#DC2626; color:#FFF; padding:2px 8px; border-radius:4px; font-size:0.75rem; margin-left:4px;">{d_red} red flags</span>'
+
+                st.markdown(f"""
+                <div style="background:#1A3C34; color:#FFFFFF; padding:0.6rem 1rem; border-radius:8px 8px 0 0; margin-top:1rem;
+                            display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight:700; font-size:0.95rem;">{district}{badges}</span>
+                    <span style="font-size:0.82rem;">5-Star: <b>{d_5star}</b> &nbsp;|&nbsp; Avg Score: <b>{d_avg:.0f}</b> &nbsp;|&nbsp; Evals: <b>{len(d_completed)}/{d_total}</b></span>
+                </div>
+                """, unsafe_allow_html=True)
+
+                d_tbl = d_evals[["Store No", "City", "Date", "MOD", "Findings", "Score", "Rating", "Duration", "Eval Status"]].copy()
+                d_no_mask = d_evals["No Eval"].fillna(False).astype(bool)
+                d_tbl.loc[d_no_mask, "Rating"] = "NO EVALUATION"
+                d_tbl.loc[d_no_mask, "MOD"] = "-"
+                d_tbl.loc[d_no_mask, "Date"] = "-"
+                d_tbl.loc[d_no_mask, "Duration"] = "-"
+                d_tbl["Findings"] = d_tbl["Findings"].apply(lambda x: f"{int(x)}" if pd.notna(x) else "-")
+                d_tbl["Score"] = d_evals["Score"].apply(lambda x: f"{int(x)}" if pd.notna(x) else "-")
+                d_tbl["Duration"] = d_tbl["Duration"].fillna("-").replace("nan", "-")
+                d_tbl["Date"] = d_tbl["Date"].fillna("-").replace("nan", "-")
+                d_tbl["MOD"] = d_tbl["MOD"].fillna("-").replace("nan", "-")
+                d_tbl = d_tbl.rename(columns={"Store No": "Store #", "Eval Status": "Status"}).reset_index(drop=True)
+
+                def style_district_eval(row):
+                    styles = [""] * len(row)
+                    if row["Status"] == "Missed":
+                        styles = ["background-color: #FEF3C7"] * len(row)
+                    elif row["Status"] == "Red Flag":
+                        styles = ["background-color: #FEE2E2"] * len(row)
+                    elif row["Status"] == "5-Star":
+                        styles = ["background-color: #F0FDF4"] * len(row)
+                    return styles
+
+                st.dataframe(d_tbl.style.apply(style_district_eval, axis=1), use_container_width=True, hide_index=True)
+
+        # ════════════════════
+        # TAB: REPEAT OFFENDERS
+        # ════════════════════
+        with tab_offenders:
+            st.markdown('<div style="font-weight:700; color:#1A3C34; font-size:1.1rem; margin-bottom:0.3rem;">Repeat Offenders</div>', unsafe_allow_html=True)
+            st.markdown('<p style="color:#6B7280; font-size:0.85rem;">Stores consistently flagged (red flags) or missing evaluations across multiple weeks.</p>', unsafe_allow_html=True)
+
+            # Red flag repeat offenders
+            red_counts = evals[evals["Red Flag"]].groupby("Store No").agg(
+                Times_Flagged=("Period", "count"),
+                Weeks=("Period", lambda x: ", ".join(sorted(x.unique(), key=lambda p: (int(p[1]), int(p[3]))))),
+                Avg_Score=("Score", "mean"),
+                City=("City", "first"),
+            ).reset_index().sort_values("Times_Flagged", ascending=False)
+            red_counts["District"] = red_counts["Store No"].map(district_map).fillna("")
+
+            # No-eval repeat offenders
+            noeval_counts = evals[evals["No Eval"]].groupby("Store No").agg(
+                Times_Missed=("Period", "count"),
+                Weeks_Missed=("Period", lambda x: ", ".join(sorted(x.unique(), key=lambda p: (int(p[1]), int(p[3]))))),
+            ).reset_index().sort_values("Times_Missed", ascending=False)
+            noeval_counts["District"] = noeval_counts["Store No"].map(district_map).fillna("")
+
+            col_r, col_n = st.columns(2)
+            with col_r:
+                st.markdown(f"""<div style="background:#DC2626; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0;">
+                    <span style="font-weight:700;">Red Flag Repeat Offenders</span>
+                    <span style="float:right; font-size:0.82rem;">Score = 0 or Duration &lt; 1 hour</span>
+                </div>""", unsafe_allow_html=True)
+                if len(red_counts) > 0:
+                    red_display = red_counts[["Store No", "City", "District", "Times_Flagged", "Avg_Score", "Weeks"]].copy()
+                    red_display["Avg_Score"] = red_display["Avg_Score"].apply(lambda x: f"{x:.0f}" if pd.notna(x) else "")
+                    red_display = red_display.rename(columns={"Times_Flagged": "Times Flagged", "Avg_Score": "Avg Score", "Weeks": "Weeks Flagged"})
+                    st.dataframe(red_display, use_container_width=True, hide_index=True)
+                else:
+                    st.success("No repeat red flag stores!")
+
+            with col_n:
+                st.markdown(f"""<div style="background:#D97706; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0;">
+                    <span style="font-weight:700;">Missing Evaluations</span>
+                    <span style="float:right; font-size:0.82rem;">No evaluation completed</span>
+                </div>""", unsafe_allow_html=True)
+                if len(noeval_counts) > 0:
+                    noeval_display = noeval_counts[["Store No", "District", "Times_Missed", "Weeks_Missed"]].copy()
+                    noeval_display = noeval_display.rename(columns={"Times_Missed": "Times Missed", "Weeks_Missed": "Weeks Missed"})
+                    st.dataframe(noeval_display, use_container_width=True, hide_index=True)
+                else:
+                    st.success("All stores completed evaluations!")
+
+            # Frequency chart
+            st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
+            if len(red_counts) > 0:
+                top_off = red_counts.head(15).copy()
+                top_off["Label"] = top_off["Store No"].astype(str) + " - " + top_off["City"].fillna("")
+                fig_off = go.Figure(go.Bar(
+                    x=top_off["Label"], y=top_off["Times_Flagged"], text=top_off["Times_Flagged"].astype(int),
+                    textposition="outside", marker_color="#DC2626",
+                ))
+                off_layout = {**CHART_LAYOUT,
+                              "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Times Flagged", dtick=1),
+                              "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, type="category", tickfont=dict(size=9))}
+                fig_off.update_layout(**off_layout, title="Red Flag Frequency (All Weeks)", height=380, xaxis_tickangle=-45)
+                st.plotly_chart(fig_off, use_container_width=True, config=CHART_CONFIG)
+
+        # ════════════════════
+        # TAB: HISTORICAL
+        # ════════════════════
+        with tab_historical:
+            st.markdown(f'<div style="font-weight:700; color:#1A3C34; font-size:1.1rem; margin-bottom:0.5rem;">Historical Trend — {periods_avail[0]} to {periods_avail[-1]}</div>', unsafe_allow_html=True)
+
+            # Trend data
+            hist_e = []
+            for p in periods_avail:
+                pw = evals[evals["Period"] == p]
+                pw_done = pw[~pw["No Eval"]]
+                hist_e.append({
+                    "Period": p,
+                    "Total": pw["Store No"].nunique(),
+                    "Completed": len(pw_done),
+                    "Missed": int(pw["No Eval"].sum()),
+                    "Red Flags": int(pw["Red Flag"].sum()),
+                    "5-Star": len(pw_done[pw_done["Stars"] == 5]),
+                    "Avg Score": pw_done["Score"].mean() if len(pw_done) > 0 else 0,
+                    "Completion %": ((len(pw) - pw["No Eval"].sum()) / len(pw) * 100) if len(pw) > 0 else 0,
+                })
+            hist_e_df = pd.DataFrame(hist_e)
+
+            # Avg Score + Completion trend
+            fig_hist_e = go.Figure()
+            fig_hist_e.add_trace(go.Scatter(
+                x=hist_e_df["Period"], y=hist_e_df["Avg Score"],
+                mode="lines+markers+text", name="Avg Score",
+                text=hist_e_df["Avg Score"].apply(lambda v: f"{v:.0f}"), textposition="top center",
+                line=dict(color="#1A3C34", width=3), marker=dict(size=10),
+            ))
+            fig_hist_e.add_trace(go.Scatter(
+                x=hist_e_df["Period"], y=hist_e_df["Completion %"],
+                mode="lines+markers+text", name="Completion %",
+                text=hist_e_df["Completion %"].apply(lambda v: f"{v:.0f}%"), textposition="bottom center",
+                line=dict(color="#0D9488", width=2, dash="dot"), marker=dict(size=8),
+                yaxis="y2",
+            ))
+            hist_e_layout = {**CHART_LAYOUT,
+                             "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Avg Score"),
+                             "yaxis2": dict(overlaying="y", side="right", fixedrange=True, title="Completion %", range=[0, 110]),
+                             "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, type="category"),
+                             "legend": dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)}
+            fig_hist_e.update_layout(**hist_e_layout, title="Score & Completion Trend", height=380)
+            st.plotly_chart(fig_hist_e, use_container_width=True, config=CHART_CONFIG)
+
+            # Red Flags + Missed stacked bar
+            fig_issues = go.Figure()
+            fig_issues.add_trace(go.Bar(
+                x=hist_e_df["Period"], y=hist_e_df["Red Flags"], name="Red Flags",
+                marker_color="#DC2626", text=hist_e_df["Red Flags"], textposition="inside",
+            ))
+            fig_issues.add_trace(go.Bar(
+                x=hist_e_df["Period"], y=hist_e_df["Missed"], name="Missed Evals",
+                marker_color="#D97706", text=hist_e_df["Missed"], textposition="inside",
+            ))
+            issues_layout = {**CHART_LAYOUT, "barmode": "group",
+                             "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Count", dtick=2),
+                             "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, type="category"),
+                             "legend": dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)}
+            fig_issues.update_layout(**issues_layout, title="Red Flags & Missed Evals by Week", height=350)
+            st.plotly_chart(fig_issues, use_container_width=True, config=CHART_CONFIG)
+
+            # Period summary table
+            st.markdown('<div style="font-weight:700; color:#1F2937; font-size:1rem; margin:1rem 0 0.5rem 0;">Period Summary</div>', unsafe_allow_html=True)
+            hist_display = hist_e_df[["Period", "Total", "Completed", "Missed", "Red Flags", "5-Star", "Avg Score", "Completion %"]].copy()
+            hist_display["Avg Score"] = hist_display["Avg Score"].apply(lambda x: f"{x:.0f}")
+            hist_display["Completion %"] = hist_display["Completion %"].apply(lambda x: f"{x:.0f}%")
+            st.dataframe(hist_display, use_container_width=True, hide_index=True)
 
     else:
         st.warning("No QSC evaluation data found. Place qsc_evals.csv in the data/ folder.")
