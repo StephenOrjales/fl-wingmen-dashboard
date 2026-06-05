@@ -21,36 +21,42 @@ st.markdown("""
 
     .dash-header {
         background: linear-gradient(135deg, #1A3C34 0%, #2D6A4F 60%, #40916C 100%);
-        padding: 1.4rem 2rem;
+        padding: 1.1rem 1.8rem;
         border-radius: 12px;
         margin-bottom: 1.2rem;
         box-shadow: 0 4px 12px rgba(26,60,52,0.15);
-        position: relative;
-        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
-    .dash-header::before {
-        content: '';
-        position: absolute;
-        top: -50%; right: -20%;
-        width: 300px; height: 300px;
-        background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%);
-        border-radius: 50%;
-    }
-    .dash-header h1 {
+    .dash-header-left h1 {
         color: #FFFFFF;
-        font-size: 1.5rem;
+        font-size: 1.3rem;
         font-weight: 800;
         margin: 0;
         letter-spacing: -0.3px;
-        position: relative;
     }
-    .dash-header p {
-        color: rgba(183,228,199,0.9);
-        font-size: 0.78rem;
-        margin: 0.35rem 0 0 0;
+    .dash-header-left p {
+        color: rgba(183,228,199,0.85);
+        font-size: 0.72rem;
+        margin: 0.2rem 0 0 0;
         font-weight: 500;
         letter-spacing: 0.3px;
-        position: relative;
+    }
+    .dash-header-right {
+        display: flex;
+        gap: 0.6rem;
+        align-items: center;
+    }
+    .dash-chip {
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 20px;
+        padding: 0.3rem 0.75rem;
+        color: rgba(255,255,255,0.9);
+        font-size: 0.7rem;
+        font-weight: 500;
+        white-space: nowrap;
     }
 
     .kpi-box {
@@ -398,11 +404,18 @@ if selected_store != "All Stores":
 elif selected_district != "All Districts":
     filter_text = selected_district
 
-_today_str = datetime.now().strftime("%B %d, %Y")
+_today_str = datetime.now().strftime("%b %d, %Y")
 st.markdown(f"""
 <div class="dash-header">
-    <h1>FL Wingmen Dashboard</h1>
-    <p>{filter_text} &nbsp;&bull;&nbsp; {len(DISTRICTS)} districts &nbsp;&bull;&nbsp; {_today_str}</p>
+    <div class="dash-header-left">
+        <h1>FL Wingmen Dashboard</h1>
+        <p>{filter_text}</p>
+    </div>
+    <div class="dash-header-right">
+        <span class="dash-chip">{len(DISTRICTS)} Districts</span>
+        <span class="dash-chip">{len(store_src)} Stores</span>
+        <span class="dash-chip">{_today_str}</span>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
