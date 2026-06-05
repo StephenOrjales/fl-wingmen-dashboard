@@ -20,13 +20,38 @@ st.markdown("""
     .block-container { padding-top: 1rem; padding-bottom: 1rem; }
 
     .dash-header {
-        background: linear-gradient(135deg, #1A3C34 0%, #2D6A4F 100%);
-        padding: 1.2rem 1.8rem;
-        border-radius: 10px;
-        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #1A3C34 0%, #2D6A4F 60%, #40916C 100%);
+        padding: 1.4rem 2rem;
+        border-radius: 12px;
+        margin-bottom: 1.2rem;
+        box-shadow: 0 4px 12px rgba(26,60,52,0.15);
+        position: relative;
+        overflow: hidden;
     }
-    .dash-header h1 { color: #FFFFFF; font-size: 1.5rem; font-weight: 700; margin: 0; }
-    .dash-header p { color: #B7E4C7; font-size: 0.82rem; margin: 0.2rem 0 0 0; }
+    .dash-header::before {
+        content: '';
+        position: absolute;
+        top: -50%; right: -20%;
+        width: 300px; height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    .dash-header h1 {
+        color: #FFFFFF;
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin: 0;
+        letter-spacing: -0.3px;
+        position: relative;
+    }
+    .dash-header p {
+        color: rgba(183,228,199,0.9);
+        font-size: 0.78rem;
+        margin: 0.35rem 0 0 0;
+        font-weight: 500;
+        letter-spacing: 0.3px;
+        position: relative;
+    }
 
     .kpi-box {
         background: #FFFFFF;
@@ -75,14 +100,29 @@ st.markdown("""
 
     .stTabs [data-baseweb="tab-list"] { display: none; }
 
-    section[data-testid="stSidebar"] { background: #FFFFFF; border-right: 1px solid #E8ECF0; width: 220px !important; min-width: 220px !important; }
-    section[data-testid="stSidebar"] > div { width: 220px !important; }
-    section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] .stMarkdown h1 { color: #1A3C34; font-size: 1rem; font-weight: 700; }
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #FFFFFF 0%, #F8FAF9 100%);
+        border-right: 1px solid #E2E8F0;
+        width: 240px !important; min-width: 240px !important;
+    }
+    section[data-testid="stSidebar"] > div { width: 240px !important; padding-top: 0.5rem; }
     section[data-testid="stSidebar"] label { color: #374151 !important; font-size: 0.8rem !important; }
     section[data-testid="stSidebar"] .stMarkdown p { color: #6B7280; font-size: 0.8rem; }
-    section[data-testid="stSidebar"] .stMarkdown hr { border-color: #E8ECF0; }
-    section[data-testid="stSidebar"] .stSelectbox > div > div { font-size: 0.82rem; }
-    section[data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] { border: 2px solid #1A3C34 !important; border-radius: 8px !important; }
+    section[data-testid="stSidebar"] .stMarkdown hr { border: none; height: 1px; background: linear-gradient(90deg, transparent, #D1D5DB, transparent); margin: 0.6rem 0; }
+    section[data-testid="stSidebar"] .stSelectbox > div > div {
+        font-size: 0.82rem;
+        border-radius: 8px;
+        border: 1px solid #D1D5DB;
+        background: #FFFFFF;
+    }
+    section[data-testid="stSidebar"] .stSelectbox > div > div:hover {
+        border-color: #2D6A4F;
+    }
+    section[data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
 
     .stDataFrame { border-radius: 8px; overflow: hidden; }
     .stDataFrame [data-testid="stDataFrameResizable"] { background: #FFFFFF; border: 1px solid #E8ECF0; border-radius: 8px; }
@@ -96,32 +136,36 @@ st.markdown("""
     div[data-testid="stExpander"] { background: #FFFFFF; border: 1px solid #E8ECF0; border-radius: 8px; }
     div[data-testid="stExpander"] summary span { color: #374151 !important; }
 
-    section[data-testid="stSidebar"] div[data-testid="stRadio"] > div { gap: 0.15rem; }
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] > div { gap: 2px; }
     section[data-testid="stSidebar"] div[data-testid="stRadio"] label {
         background: transparent;
-        color: #374151 !important;
-        padding: 0.45rem 0.7rem;
-        border-radius: 6px;
+        color: #4B5563 !important;
+        padding: 0.4rem 0.75rem;
+        border-radius: 8px;
         font-weight: 500;
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         cursor: pointer;
-        transition: all 0.15s;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
     }
     section[data-testid="stSidebar"] div[data-testid="stRadio"] label p {
-        color: #374151 !important;
+        color: #4B5563 !important;
     }
     section[data-testid="stSidebar"] div[data-testid="stRadio"] label:hover {
         background: #F0FDF4;
         color: #2D6A4F !important;
+        border-color: #D1FAE5;
     }
     section[data-testid="stSidebar"] div[data-testid="stRadio"] label:hover p {
         color: #2D6A4F !important;
     }
     section[data-testid="stSidebar"] div[data-testid="stRadio"] label[data-checked="true"],
     section[data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) {
-        background: #2D6A4F;
+        background: linear-gradient(135deg, #1A3C34 0%, #2D6A4F 100%);
         color: #FFFFFF !important;
         font-weight: 600;
+        box-shadow: 0 2px 4px rgba(26,60,52,0.2);
+        border-color: transparent;
     }
     section[data-testid="stSidebar"] div[data-testid="stRadio"] label[data-checked="true"] p,
     section[data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) p {
@@ -290,37 +334,62 @@ q2_store, q2_weekly = load_q2_data()
 
 # ── Sidebar ──
 with st.sidebar:
-    st.markdown("# FL Wingmen")
+    # ── Logo / Brand ──
+    st.markdown("""
+    <div style="text-align:center; padding:0.6rem 0 0.2rem 0;">
+        <div style="font-size:1.3rem; font-weight:800; color:#1A3C34; letter-spacing:-0.5px;">FL Wingmen</div>
+        <div style="font-size:0.65rem; color:#6B7280; text-transform:uppercase; letter-spacing:1.5px; margin-top:2px;">Operations Dashboard</div>
+    </div>
+    """, unsafe_allow_html=True)
     st.markdown("---")
-    with st.container(border=True):
-        st.markdown('<div style="background:#F0FDF4; border-left:3px solid #059669; padding:0.4rem 0.6rem; border-radius:4px; margin-bottom:0.3rem;">'
-                    '<span style="color:#1A3C34; font-weight:700; font-size:0.85rem;">Filters</span></div>', unsafe_allow_html=True)
 
-        district_options = ["All Districts"] + sorted(DISTRICTS.keys())
-        selected_district = st.selectbox("District", district_options, label_visibility="collapsed")
+    # ── Filters ──
+    st.markdown("""
+    <div style="display:flex; align-items:center; gap:6px; margin-bottom:0.5rem;">
+        <div style="width:3px; height:16px; background:#2D6A4F; border-radius:2px;"></div>
+        <span style="color:#374151; font-weight:600; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.8px;">Filters</span>
+    </div>
+    """, unsafe_allow_html=True)
 
-        # Build store list from config
-        all_config_stores = []
-        for dist, stores in DISTRICTS.items():
-            for s in stores:
-                snum = s.split(" - ")[0].strip().lstrip("0")
-                all_config_stores.append({"Store Full Name": s, "store_num": snum, "district": dist})
-        store_src = pd.DataFrame(all_config_stores) if all_config_stores else pd.DataFrame(columns=["Store Full Name", "store_num"])
+    district_options = ["All Districts"] + sorted(DISTRICTS.keys())
+    selected_district = st.selectbox("District", district_options, label_visibility="collapsed")
 
-        if selected_district == "All Districts":
-            store_list = sorted(store_src["Store Full Name"].dropna().unique())
-        else:
-            district_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
-            store_list = sorted(store_src[store_src["store_num"].isin(district_nums)]["Store Full Name"].dropna().unique())
+    # Build store list from config
+    all_config_stores = []
+    for dist, stores in DISTRICTS.items():
+        for s in stores:
+            snum = s.split(" - ")[0].strip().lstrip("0")
+            all_config_stores.append({"Store Full Name": s, "store_num": snum, "district": dist})
+    store_src = pd.DataFrame(all_config_stores) if all_config_stores else pd.DataFrame(columns=["Store Full Name", "store_num"])
 
-        store_options = ["All Stores"] + store_list
-        selected_store = st.selectbox("Store", store_options, label_visibility="collapsed")
+    if selected_district == "All Districts":
+        store_list = sorted(store_src["Store Full Name"].dropna().unique())
+    else:
+        district_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
+        store_list = sorted(store_src[store_src["store_num"].isin(district_nums)]["Store Full Name"].dropna().unique())
+
+    store_options = ["All Stores"] + store_list
+    selected_store = st.selectbox("Store", store_options, label_visibility="collapsed")
+
+    st.markdown("---")
+
+    # ── Navigation ──
+    st.markdown("""
+    <div style="display:flex; align-items:center; gap:6px; margin-bottom:0.3rem;">
+        <div style="width:3px; height:16px; background:#2D6A4F; border-radius:2px;"></div>
+        <span style="color:#374151; font-weight:600; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.8px;">Navigation</span>
+    </div>
+    """, unsafe_allow_html=True)
 
     nav_options = ["KDS Dashboard", "Schedule Guide", "Internal QSC Evals", "COGS Variance", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Scorecard", "Watch List", "Wing Worm"]
-    selected_tab = st.radio("Navigation", nav_options, label_visibility="collapsed")
+    selected_tab = st.radio("Nav", nav_options, label_visibility="collapsed")
 
     st.markdown("---")
-    st.markdown(f"**{len(store_src)}** stores | **{len(DISTRICTS)}** districts")
+    st.markdown(f"""
+    <div style="text-align:center; padding:0.2rem 0;">
+        <span style="color:#9CA3AF; font-size:0.7rem;">{len(store_src)} stores &nbsp;&bull;&nbsp; {len(DISTRICTS)} districts</span>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ── Header ──
 filter_text = "All Stores"
@@ -329,10 +398,11 @@ if selected_store != "All Stores":
 elif selected_district != "All Districts":
     filter_text = selected_district
 
+_today_str = datetime.now().strftime("%B %d, %Y")
 st.markdown(f"""
 <div class="dash-header">
     <h1>FL Wingmen Dashboard</h1>
-    <p>{filter_text} &nbsp;|&nbsp; {len(DISTRICTS)} districts</p>
+    <p>{filter_text} &nbsp;&bull;&nbsp; {len(DISTRICTS)} districts &nbsp;&bull;&nbsp; {_today_str}</p>
 </div>
 """, unsafe_allow_html=True)
 
