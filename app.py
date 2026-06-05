@@ -381,8 +381,8 @@ if selected_tab == "KDS Dashboard":
         </div>
         """, unsafe_allow_html=True)
 
-        # ── Period selector (compact) ──
-        pcol1, pcol2 = st.columns([3, 1])
+        # ── Period selector + Export ──
+        pcol1, pcol2, pcol3 = st.columns([2, 1, 1])
         with pcol2:
             period_options = list(reversed(periods_sorted))
             sel_period = st.selectbox("Week", period_options, index=0, key="kds_dash_period", label_visibility="collapsed")
@@ -421,6 +421,44 @@ if selected_tab == "KDS Dashboard":
         n_fast = (kds_week["SOS Status"] == "Fast").sum()
         n_nodata = (kds_week["SOS Status"] == "No Data").sum()
         pct_adherent = (n_adherent / n_reporting * 100) if n_reporting > 0 else 0
+
+        # ── Excel Export ──
+        import io
+        with pcol3:
+            st.markdown("<div style='height:0.3rem;'></div>", unsafe_allow_html=True)
+            export_buf = io.BytesIO()
+            with pd.ExcelWriter(export_buf, engine="openpyxl") as writer:
+                # Sheet 1: Current week detail
+                exp_week = kds_week[["Store No", "Store Name", "District", "SOS", "SOS Status", "Overall Status",
+                                     "Adoption %", "Make Ahead %", "Waste %", "Pre-Bump %", "Adherence %"]].copy()
+                exp_week = exp_week.sort_values("SOS", na_position="last")
+                exp_week.to_excel(writer, sheet_name=sel_period, index=False)
+
+                # Sheet 2: All periods raw
+                exp_all = kds_raw.copy()
+                exp_all["District"] = exp_all["Store No"].astype(str).map(STORE_TO_DISTRICT).fillna("Unassigned")
+                exp_all["SOS Status"] = exp_all.apply(classify_sos, axis=1)
+                exp_all = exp_all.sort_values(["Period", "Store No"])
+                exp_all.to_excel(writer, sheet_name="All Periods", index=False)
+
+                # Sheet 3: Historical summary
+                hist_export = []
+                for p in periods_sorted:
+                    pw = kds_raw[kds_raw["Period"] == p]
+                    pw_valid = pw[pw["SOS"].notna()]
+                    n_pw = len(pw_valid)
+                    n_adh_p = pw_valid["SOS"].between(0, 10, inclusive="right").sum()
+                    hist_export.append({
+                        "Period": p, "Stores": n_pw,
+                        "Adherent": n_adh_p, "Slow": (pw_valid["SOS"] > 10).sum(), "Fast": (pw_valid["SOS"] < 7).sum(),
+                        "Adherent %": round(n_adh_p / n_pw * 100, 1) if n_pw else 0,
+                        "Avg SOS": round(pw_valid["SOS"].mean(), 1) if len(pw_valid) else 0,
+                        "Avg Adherence %": round(pw["Adherence %"].mean(), 0) if pw["Adherence %"].notna().any() else 0,
+                    })
+                pd.DataFrame(hist_export).to_excel(writer, sheet_name="Summary", index=False)
+            export_buf.seek(0)
+            st.download_button("📥 Export Excel", data=export_buf, file_name=f"KDS_Dashboard_{sel_period}.xlsx",
+                               mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key="kds_export")
 
         # ── SUB-TABS ──
         tab_overview, tab_by_district, tab_offenders, tab_historical = st.tabs(
@@ -732,11 +770,31 @@ if selected_tab == "KDS Dashboard":
         # TAB: HISTORICAL
         # ════════════════════
         with tab_historical:
-            st.markdown(f'<div style="font-weight:700; color:#1A3C34; font-size:1.1rem; margin-bottom:0.5rem;">Historical Trend — {periods_sorted[0]} to {periods_sorted[-1]}</div>', unsafe_allow_html=True)
+            # Quarter filter
+            qcol1, qcol2 = st.columns([3, 1])
+            with qcol2:
+                quarter_opts = ["All Quarters"]
+                # Detect which quarters exist in the data
+                all_period_nums = sorted(set(int(p[1]) for p in periods_sorted))
+                q_map = {"Q1 (P1–P3)": [1, 2, 3], "Q2 (P4–P6)": [4, 5, 6], "Q3 (P7–P9)": [7, 8, 9], "Q4 (P10–P13)": [10, 11, 12, 13]}
+                for qlabel, qperiods in q_map.items():
+                    if any(pn in qperiods for pn in all_period_nums):
+                        quarter_opts.append(qlabel)
+                hist_quarter = st.selectbox("Quarter", quarter_opts, index=0, key="kds_hist_quarter")
+
+            # Filter periods by quarter
+            if hist_quarter != "All Quarters":
+                q_period_nums = q_map[hist_quarter]
+                hist_periods = [p for p in periods_sorted if int(p[1]) in q_period_nums]
+            else:
+                hist_periods = periods_sorted
+
+            range_label = f"{hist_periods[0]} to {hist_periods[-1]}" if hist_periods else "No data"
+            st.markdown(f'<div style="font-weight:700; color:#1A3C34; font-size:1.1rem; margin-bottom:0.5rem;">Historical Trend — {range_label}</div>', unsafe_allow_html=True)
 
             # Overall SOS adherence trend
             hist = []
-            for p in periods_sorted:
+            for p in hist_periods:
                 pw = kds_raw[kds_raw["Period"] == p]
                 pw_valid = pw[pw["SOS"].notna()]
                 n_pw = len(pw_valid)
