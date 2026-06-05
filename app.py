@@ -455,11 +455,16 @@ if selected_tab == "KDS Dashboard":
             <div>
                 <h2 style="color:#1A3C34; font-weight:800; margin:0; font-size:1.6rem;">SOS Adherence Dashboard</h2>
                 <p style="color:#6B7280; font-size:0.88rem; margin:0.2rem 0 0 0;">
-                    FL Wingmen — {len(DISTRICTS)} districts, {len(STORE_TO_DISTRICT)} stores &nbsp;·&nbsp; Fri &amp; Sat Dinner daypart
+                    FL Wingmen — {len(DISTRICTS)} districts, {len(STORE_TO_DISTRICT)} stores
                 </p>
             </div>
-            <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1.2rem; border-radius:8px; font-weight:700; font-size:0.9rem; white-space:nowrap;">
-                TARGET BAND · <span style="color:#FFD700;">SOS &lt; 10 min</span>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+                <div style="background:#D97706; color:#FFFFFF; padding:0.5rem 1rem; border-radius:8px; font-weight:700; font-size:0.8rem; white-space:nowrap;">
+                    FRI &amp; SAT DINNER ONLY
+                </div>
+                <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1rem; border-radius:8px; font-weight:700; font-size:0.8rem; white-space:nowrap;">
+                    TARGET · <span style="color:#FFD700;">SOS &lt; 10 min</span>
+                </div>
             </div>
         </div>
         """, unsafe_allow_html=True)
