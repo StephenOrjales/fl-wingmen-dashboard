@@ -1989,24 +1989,79 @@ elif selected_tab == "Sales Performance":
         d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
         sales_df = sales_df[sales_df["store_num"].isin(d_nums)]
 
-    st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">Weekly Sales Performance &nbsp;|&nbsp; {len(sales_df)} stores &nbsp;|&nbsp; <span style="color:#D97706; font-weight:600;">Sample Data</span></p>', unsafe_allow_html=True)
+    # ── HEADER ──
+    st.markdown(f"""
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.8rem;">
+        <div>
+            <h2 style="color:#1A3C34; font-weight:800; margin:0; font-size:1.6rem;">Sales Performance</h2>
+            <p style="color:#6B7280; font-size:0.88rem; margin:0.2rem 0 0 0;">
+                FL Wingmen — {len(DISTRICTS)} districts, {len(sales_df)} stores &nbsp;·&nbsp; Weekly net sales &amp; comps
+            </p>
+        </div>
+        <div style="background:#D97706; color:#FFFFFF; padding:0.5rem 1.2rem; border-radius:8px; font-weight:700; font-size:0.9rem; white-space:nowrap;">
+            ⚠️ SAMPLE DATA · <span style="color:#FEF3C7;">Random values for demo</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    k1, k2, k3, k4, k5 = st.columns(5)
+    # ── KPIs ──
     total_sales = sales_df["net_sales"].sum()
     avg_sss = sales_df["sss_growth"].mean()
     avg_ticket = sales_df["avg_ticket"].mean()
     total_txn = sales_df["transactions"].sum()
     avg_digital = sales_df["digital_pct"].mean()
 
-    sss_c = "green" if avg_sss >= 0 else "red"
-    k1.markdown(kpi_card("Total Net Sales", f"${total_sales:,.0f}"), unsafe_allow_html=True)
-    k2.markdown(kpi_card("SSS Growth", f"{avg_sss:+.1f}%", sss_c), unsafe_allow_html=True)
-    k3.markdown(kpi_card("Avg Ticket", f"${avg_ticket:.2f}"), unsafe_allow_html=True)
-    k4.markdown(kpi_card("Transactions", f"{total_txn:,}"), unsafe_allow_html=True)
-    k5.markdown(kpi_card("Digital Mix", f"{avg_digital:.1f}%"), unsafe_allow_html=True)
+    sss_c = "#059669" if avg_sss >= 0 else "#DC2626"
+    kpi_style = """<div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; padding:1rem; text-align:left; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+        <div style="color:#6B7280; font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">{label}</div>
+        <div style="color:{color}; font-size:2rem; font-weight:800; margin:0.2rem 0;">{value}</div>
+        <div style="color:#9CA3AF; font-size:0.78rem;">{sub}</div>
+    </div>"""
 
-    st.markdown("")
+    c1, c2, c3, c4, c5 = st.columns(5)
+    c1.markdown(kpi_style.format(label="TOTAL NET SALES", value=f"${total_sales:,.0f}", color="#1F2937",
+                sub=f"{len(sales_df)} stores"), unsafe_allow_html=True)
+    c2.markdown(kpi_style.format(label="SSS GROWTH", value=f"{avg_sss:+.1f}%", color=sss_c,
+                sub="vs last year"), unsafe_allow_html=True)
+    c3.markdown(kpi_style.format(label="AVG TICKET", value=f"${avg_ticket:.2f}", color="#1F2937",
+                sub="per transaction"), unsafe_allow_html=True)
+    c4.markdown(kpi_style.format(label="TRANSACTIONS", value=f"{total_txn:,}", color="#0D9488",
+                sub="total volume"), unsafe_allow_html=True)
+    c5.markdown(kpi_style.format(label="DIGITAL MIX", value=f"{avg_digital:.1f}%", color="#0D9488",
+                sub="online orders"), unsafe_allow_html=True)
 
+    st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
+
+    # ── Takeaways ──
+    st.markdown('<div style="font-weight:700; color:#1A3C34; font-size:1.05rem; margin:0.5rem 0 0.5rem 0;">Key Takeaways</div>', unsafe_allow_html=True)
+    takeaway_style = '<div style="border-left:4px solid {color}; padding:0.5rem 1rem; margin:0.4rem 0; background:#FAFBFC; border-radius:0 6px 6px 0;">{text}</div>'
+
+    n_positive = (sales_df["sss_growth"] > 0).sum()
+    n_negative = (sales_df["sss_growth"] < 0).sum()
+    n_declining = (sales_df["sss_growth"] < -3).sum()
+    st.markdown(takeaway_style.format(color="#1A3C34",
+        text=f'<b>${total_sales:,.0f} total net sales</b> across {len(sales_df)} stores, averaging <b>${avg_ticket:.2f}</b> per ticket with <b>{total_txn:,}</b> transactions.'),
+        unsafe_allow_html=True)
+
+    sss_arrow = "▲" if avg_sss > 0 else "▼"
+    sss_text_color = "#059669" if avg_sss > 0 else "#DC2626"
+    st.markdown(takeaway_style.format(color=sss_text_color,
+        text=f'<b>Same-store sales:</b> <span style="color:{sss_text_color}; font-weight:700;">{sss_arrow} {avg_sss:+.1f}%</span> average comp — {n_positive} stores positive, {n_negative} negative' + (f', <span style="color:#DC2626; font-weight:700;">{n_declining} declining &gt;3%</span>.' if n_declining > 0 else '.')),
+        unsafe_allow_html=True)
+
+    if len(sales_df) > 1:
+        top_store = sales_df.loc[sales_df["net_sales"].idxmax()]
+        bot_store = sales_df.loc[sales_df["net_sales"].idxmin()]
+        st.markdown(takeaway_style.format(color="#059669",
+            text=f'<b>Highest sales:</b> Store {top_store["store_num"]} {top_store["short_name"]} — ${int(top_store["net_sales"]):,} ({top_store["sss_growth"]:+.1f}% SSS).'),
+            unsafe_allow_html=True)
+        st.markdown(takeaway_style.format(color="#D97706",
+            text=f'<b>Lowest sales:</b> Store {bot_store["store_num"]} {bot_store["short_name"]} — ${int(bot_store["net_sales"]):,} ({bot_store["sss_growth"]:+.1f}% SSS).'),
+            unsafe_allow_html=True)
+
+    st.markdown("<div style='height:0.5rem;'></div>", unsafe_allow_html=True)
+
+    # ── Charts ──
     st.markdown('<div class="section-title">Net Sales by Store</div>', unsafe_allow_html=True)
     s_sorted = sales_df.sort_values("net_sales", ascending=False)
     fig_ns = go.Figure(go.Bar(
@@ -2042,15 +2097,33 @@ elif selected_tab == "Sales Performance":
         fig_tk.update_layout(**CHART_LAYOUT, height=370, yaxis_title="Avg Ticket ($)", xaxis_tickangle=-45)
         st.plotly_chart(fig_tk, use_container_width=True, key="sales_tk", config=CHART_CONFIG)
 
-    st.markdown('<div class="section-title">Sales Detail Table</div>', unsafe_allow_html=True)
-    stbl = sales_df[["short_name", "district", "net_sales", "transactions", "avg_ticket", "sss_growth", "digital_pct"]].copy()
-    stbl.columns = ["Store", "District", "Net Sales", "Transactions", "Avg Ticket", "SSS Growth %", "Digital %"]
-    stbl["Net Sales"] = stbl["Net Sales"].apply(lambda x: f"${x:,.0f}")
-    stbl["Avg Ticket"] = stbl["Avg Ticket"].apply(lambda x: f"${x:.2f}")
-    stbl["SSS Growth %"] = stbl["SSS Growth %"].apply(lambda x: f"{x:+.1f}%")
-    stbl["Digital %"] = stbl["Digital %"].apply(lambda x: f"{x:.1f}%")
-    stbl = stbl.sort_values("Store")
-    st.dataframe(stbl, use_container_width=True, hide_index=True)
+    # ── District-grouped tables ──
+    st.markdown("<div style='height:1.5rem;'></div>", unsafe_allow_html=True)
+    st.markdown('<div class="section-title" style="font-size:1.05rem;">Sales Detail by District</div>', unsafe_allow_html=True)
+
+    for district in sorted(sales_df["district"].unique()):
+        d_data = sales_df[sales_df["district"] == district].copy()
+        d_sales = d_data["net_sales"].sum()
+        d_txn = d_data["transactions"].sum()
+        d_sss = d_data["sss_growth"].mean()
+        sss_icon = "▲" if d_sss > 0 else "▼"
+
+        st.markdown(f"""
+        <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0; margin-top:1rem;
+                    display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-weight:700; font-size:0.95rem;">{district}</span>
+            <span style="font-size:0.82rem;">Sales: <b>${d_sales:,.0f}</b> &nbsp;|&nbsp; Txn: <b>{d_txn:,}</b> &nbsp;|&nbsp; SSS: <b>{d_sss:+.1f}%</b> {sss_icon} &nbsp;|&nbsp; Stores: <b>{len(d_data)}</b></span>
+        </div>
+        """, unsafe_allow_html=True)
+
+        dtbl = d_data[["store_num", "short_name", "net_sales", "transactions", "avg_ticket", "sss_growth", "digital_pct"]].copy()
+        dtbl.columns = ["Store #", "Store", "Net Sales", "Transactions", "Avg Ticket", "SSS Growth %", "Digital %"]
+        dtbl["Net Sales"] = dtbl["Net Sales"].apply(lambda x: f"${x:,.0f}")
+        dtbl["Avg Ticket"] = dtbl["Avg Ticket"].apply(lambda x: f"${x:.2f}")
+        dtbl["SSS Growth %"] = dtbl["SSS Growth %"].apply(lambda x: f"{x:+.1f}%")
+        dtbl["Digital %"] = dtbl["Digital %"].apply(lambda x: f"{x:.1f}%")
+        dtbl = dtbl.sort_values("Store")
+        st.dataframe(dtbl, use_container_width=True, hide_index=True)
 
 # ════════════════════════════════
 # LABOR DASHBOARD
@@ -2140,27 +2213,83 @@ elif selected_tab == "Labor Dashboard":
             week_display = selected_labor_week if selected_labor_week != "All Weeks" else ""
             time_display = f"{period_display} {week_display}".strip()
 
-            st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">Labor Dashboard &nbsp;|&nbsp; {time_display} &nbsp;|&nbsp; {len(labor_df)} stores</p>', unsafe_allow_html=True)
+            # ── HEADER ──
+            st.markdown(f"""
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.8rem;">
+                <div>
+                    <h2 style="color:#1A3C34; font-weight:800; margin:0; font-size:1.6rem;">Labor Dashboard</h2>
+                    <p style="color:#6B7280; font-size:0.88rem; margin:0.2rem 0 0 0;">
+                        FL Wingmen — {time_display} &nbsp;·&nbsp; {len(labor_df)} stores reporting
+                    </p>
+                </div>
+                <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1.2rem; border-radius:8px; font-weight:700; font-size:0.9rem; white-space:nowrap;">
+                    TARGET · <span style="color:#FFD700;">Labor ≤ 18%</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
-            k1, k2, k3, k4, k5 = st.columns(5)
+            # ── KPIs ──
             avg_labor = labor_df["actual_labor_pct"].mean()
             avg_var = labor_df["labor_variance"].mean()
             total_ot = labor_df["overtime_hours"].sum()
             total_hours = labor_df["actual_hours"].sum()
             total_cost = labor_df["actual_labor_cost"].sum()
 
-            labor_c = "green" if avg_labor <= 0.18 else ("orange" if avg_labor <= 0.20 else "red")
-            var_c = "green" if avg_var <= 0 else ("orange" if avg_var < 0.02 else "red")
-            ot_c = "green" if total_ot < 200 else ("orange" if total_ot < 400 else "red")
+            labor_c = "#059669" if avg_labor <= 0.18 else ("#D97706" if avg_labor <= 0.20 else "#DC2626")
+            var_c = "#059669" if avg_var <= 0 else ("#D97706" if avg_var < 0.02 else "#DC2626")
+            ot_c = "#059669" if total_ot < 200 else ("#D97706" if total_ot < 400 else "#DC2626")
 
-            k1.markdown(kpi_card("Avg Labor %", f"{avg_labor:.1%}", labor_c), unsafe_allow_html=True)
-            k2.markdown(kpi_card("Labor Variance", f"{avg_var:+.2%}", var_c), unsafe_allow_html=True)
-            k3.markdown(kpi_card("Total OT Hours", f"{total_ot:,.0f}", ot_c), unsafe_allow_html=True)
-            k4.markdown(kpi_card("Total Crew Hours", f"{total_hours:,.0f}"), unsafe_allow_html=True)
-            k5.markdown(kpi_card("Total Labor Cost", f"${total_cost:,.0f}"), unsafe_allow_html=True)
+            kpi_style = """<div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; padding:1rem; text-align:left; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                <div style="color:#6B7280; font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">{label}</div>
+                <div style="color:{color}; font-size:2rem; font-weight:800; margin:0.2rem 0;">{value}</div>
+                <div style="color:#9CA3AF; font-size:0.78rem;">{sub}</div>
+            </div>"""
 
-            st.markdown("")
+            c1, c2, c3, c4, c5 = st.columns(5)
+            c1.markdown(kpi_style.format(label="AVG LABOR %", value=f"{avg_labor:.1%}", color=labor_c,
+                        sub="target ≤ 18%"), unsafe_allow_html=True)
+            c2.markdown(kpi_style.format(label="LABOR VARIANCE", value=f"{avg_var:+.2%}", color=var_c,
+                        sub="actual vs scheduled"), unsafe_allow_html=True)
+            c3.markdown(kpi_style.format(label="TOTAL OT HOURS", value=f"{total_ot:,.0f}", color=ot_c,
+                        sub="overtime exposure"), unsafe_allow_html=True)
+            c4.markdown(kpi_style.format(label="TOTAL CREW HOURS", value=f"{total_hours:,.0f}", color="#1F2937",
+                        sub="all stores"), unsafe_allow_html=True)
+            c5.markdown(kpi_style.format(label="TOTAL LABOR COST", value=f"${total_cost:,.0f}", color="#1F2937",
+                        sub="actual spend"), unsafe_allow_html=True)
 
+            st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
+
+            # ── Takeaways ──
+            st.markdown(f'<div style="font-weight:700; color:#1A3C34; font-size:1.05rem; margin:0.5rem 0 0.5rem 0;">{time_display} Takeaways</div>', unsafe_allow_html=True)
+            takeaway_style = '<div style="border-left:4px solid {color}; padding:0.5rem 1rem; margin:0.4rem 0; background:#FAFBFC; border-radius:0 6px 6px 0;">{text}</div>'
+
+            n_over = (labor_df["actual_labor_pct"] > 0.18).sum()
+            n_under = (labor_df["actual_labor_pct"] <= 0.18).sum()
+            n_critical = (labor_df["actual_labor_pct"] > 0.20).sum()
+            summary_color = "#059669" if n_over == 0 else ("#D97706" if n_over < len(labor_df) / 2 else "#DC2626")
+            st.markdown(takeaway_style.format(color="#1A3C34",
+                text=f'<b>{avg_labor:.1%} avg labor</b> across {len(labor_df)} stores — <b>{n_under}</b> at or below 18% target, <b>{n_over}</b> above' + (f' (<span style="color:#DC2626; font-weight:700;">{n_critical} critical &gt;20%</span>).' if n_critical > 0 else '.')),
+                unsafe_allow_html=True)
+
+            var_arrow = "▲" if avg_var > 0 else "▼"
+            var_text_color = "#DC2626" if avg_var > 0 else "#059669"
+            st.markdown(takeaway_style.format(color=var_text_color,
+                text=f'<b>Variance:</b> <span style="color:{var_text_color}; font-weight:700;">{var_arrow} {avg_var:+.2%}</span> avg actual vs scheduled. Total OT: <b>{total_ot:,.0f} hours</b> (${total_cost:,.0f} total labor cost).'),
+                unsafe_allow_html=True)
+
+            if len(labor_df) > 1:
+                worst = labor_df.loc[labor_df["actual_labor_pct"].idxmax()]
+                best = labor_df.loc[labor_df["actual_labor_pct"].idxmin()]
+                st.markdown(takeaway_style.format(color="#DC2626",
+                    text=f'<b>Highest labor:</b> Store {worst["store_num"]} {worst["short_name"]} — {worst["actual_labor_pct"]:.1%} labor, {worst["overtime_hours"]:.0f} OT hrs.'),
+                    unsafe_allow_html=True)
+                st.markdown(takeaway_style.format(color="#059669",
+                    text=f'<b>Lowest labor:</b> Store {best["store_num"]} {best["short_name"]} — {best["actual_labor_pct"]:.1%} labor, {best["overtime_hours"]:.0f} OT hrs.'),
+                    unsafe_allow_html=True)
+
+            st.markdown("<div style='height:0.5rem;'></div>", unsafe_allow_html=True)
+
+            # ── Charts ──
             st.markdown('<div class="section-title">Labor % by Store (vs Schedule)</div>', unsafe_allow_html=True)
             lb_sorted = labor_df.sort_values("actual_labor_pct", ascending=False)
             lb_colors = [RED if v > 0.20 else (ORANGE if v > 0.18 else GREEN) for v in lb_sorted["actual_labor_pct"]]
@@ -2235,19 +2364,37 @@ elif selected_tab == "Labor Dashboard":
                     )
                     st.plotly_chart(fig_wt, use_container_width=True, key="labor_trend", config=CHART_CONFIG)
 
-            st.markdown('<div class="section-title">Labor Detail Table</div>', unsafe_allow_html=True)
-            ltbl = labor_df[["short_name", "config_district", "actual_sales", "actual_labor_pct", "schedule_labor_pct",
-                             "labor_variance", "guide_hours", "scheduled_hours", "actual_hours", "overtime_hours", "actual_labor_cost"]].copy()
-            ltbl.columns = ["Store", "District", "Actual Sales", "Labor %", "Sched Labor %",
-                            "Variance", "Guide Hrs", "Sched Hrs", "Actual Hrs", "OT Hrs", "Labor Cost"]
-            ltbl["Actual Sales"] = ltbl["Actual Sales"].apply(lambda x: f"${x:,.0f}")
-            ltbl["Labor %"] = ltbl["Labor %"].apply(lambda x: f"{x:.1%}")
-            ltbl["Sched Labor %"] = ltbl["Sched Labor %"].apply(lambda x: f"{x:.1%}")
-            ltbl["Variance"] = ltbl["Variance"].apply(lambda x: f"{x:+.2%}")
-            ltbl["Labor Cost"] = ltbl["Labor Cost"].apply(lambda x: f"${x:,.0f}")
-            ltbl["OT Hrs"] = ltbl["OT Hrs"].apply(lambda x: f"{x:.1f}")
-            ltbl = ltbl.sort_values("Store")
-            st.dataframe(ltbl, use_container_width=True, hide_index=True)
+            # ── District-grouped tables ──
+            st.markdown("<div style='height:1.5rem;'></div>", unsafe_allow_html=True)
+            st.markdown(f'<div class="section-title" style="font-size:1.05rem;">Labor Detail by District — {time_display}</div>', unsafe_allow_html=True)
+
+            for district in sorted(labor_df["config_district"].dropna().unique()):
+                d_data = labor_df[labor_df["config_district"] == district].copy()
+                d_labor = d_data["actual_labor_pct"].mean()
+                d_ot = d_data["overtime_hours"].sum()
+                d_cost = d_data["actual_labor_cost"].sum()
+                d_color = "#FFD700" if d_labor <= 0.18 else "#FF6B6B"
+
+                st.markdown(f"""
+                <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0; margin-top:1rem;
+                            display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight:700; font-size:0.95rem;">{district}</span>
+                    <span style="font-size:0.82rem;">Labor: <b>{d_labor:.1%}</b> &nbsp;|&nbsp; OT: <b>{d_ot:,.0f} hrs</b> &nbsp;|&nbsp; Cost: <b>${d_cost:,.0f}</b> &nbsp;|&nbsp; Stores: <b>{len(d_data)}</b></span>
+                </div>
+                """, unsafe_allow_html=True)
+
+                dtbl = d_data[["store_num", "short_name", "actual_sales", "actual_labor_pct", "schedule_labor_pct",
+                               "labor_variance", "guide_hours", "actual_hours", "overtime_hours", "actual_labor_cost"]].copy()
+                dtbl.columns = ["Store #", "Store", "Actual Sales", "Labor %", "Sched Labor %",
+                                "Variance", "Guide Hrs", "Actual Hrs", "OT Hrs", "Labor Cost"]
+                dtbl["Actual Sales"] = dtbl["Actual Sales"].apply(lambda x: f"${x:,.0f}")
+                dtbl["Labor %"] = dtbl["Labor %"].apply(lambda x: f"{x:.1%}")
+                dtbl["Sched Labor %"] = dtbl["Sched Labor %"].apply(lambda x: f"{x:.1%}")
+                dtbl["Variance"] = dtbl["Variance"].apply(lambda x: f"{x:+.2%}")
+                dtbl["Labor Cost"] = dtbl["Labor Cost"].apply(lambda x: f"${x:,.0f}")
+                dtbl["OT Hrs"] = dtbl["OT Hrs"].apply(lambda x: f"{x:.1f}")
+                dtbl = dtbl.sort_values("Store")
+                st.dataframe(dtbl, use_container_width=True, hide_index=True)
 
 # ════════════════════════════════
 # SMG (GUEST SATISFACTION)
