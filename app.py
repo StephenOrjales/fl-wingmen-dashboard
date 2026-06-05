@@ -790,8 +790,13 @@ if selected_tab == "KDS Dashboard":
                 <span style="font-weight:700; color:#1F2937; font-size:1.05rem;">Store Performance</span>
             </div>""", unsafe_allow_html=True)
 
+            DISTRICT_COLORS = {
+                "District 1": "#2563EB", "District 2": "#7C3AED", "District 3": "#0891B2",
+                "District 4": "#C2410C", "District 5": "#059669", "District 6": "#B45309",
+            }
+
             tbl = kds_week[["Store No", "Store Name", "District", "SOS", "SOS Status", "Adoption %", "Make Ahead %", "Waste %", "Pre-Bump %", "Adherence %"]].copy()
-            tbl = tbl.sort_values("SOS", na_position="last")
+            tbl = tbl.sort_values("Store No", ascending=True)
 
             # Keep raw values for conditional styling
             raw_sos = tbl["SOS"].copy()
@@ -800,6 +805,7 @@ if selected_tab == "KDS Dashboard":
             raw_waste = tbl["Waste %"].copy()
             raw_pb = tbl["Pre-Bump %"].copy()
             raw_adh = tbl["Adherence %"].copy()
+            raw_district = tbl["District"].copy()
 
             tbl["SOS"] = tbl["SOS"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
             tbl["Adoption %"] = tbl["Adoption %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
@@ -815,6 +821,7 @@ if selected_tab == "KDS Dashboard":
             raw_waste = raw_waste.reset_index(drop=True)
             raw_pb = raw_pb.reset_index(drop=True)
             raw_adh = raw_adh.reset_index(drop=True)
+            raw_district = raw_district.reset_index(drop=True)
 
             OFF_GUIDE = "color: #DC2626; font-weight: 700"
 
@@ -822,14 +829,10 @@ if selected_tab == "KDS Dashboard":
                 idx = row.name
                 styles = [""] * len(row)
                 cols = list(row.index)
-                # Row background by status
-                status = row["Status"]
-                if status == "Slow":
-                    styles = ["background-color: #FEE2E2"] * len(row)
-                elif status == "Fast":
-                    styles = ["background-color: #FEF3C7"] * len(row)
-                elif status == "Adherent":
-                    styles = ["background-color: #F0FDF4"] * len(row)
+                # District color
+                dist = raw_district.get(idx, "")
+                d_color = DISTRICT_COLORS.get(dist, "#374151")
+                styles[cols.index("District")] = f"color: {d_color}; font-weight: 600"
                 # Cell-level highlights for off-guide values
                 if pd.notna(raw_sos.get(idx)) and raw_sos[idx] > 10:
                     styles[cols.index("SOS")] += f"; {OFF_GUIDE}"
