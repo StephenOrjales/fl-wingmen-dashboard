@@ -2497,8 +2497,8 @@ elif selected_tab == "Scorecard":
     sc_df["score_dissat"] = sc_df["dissat_pct"].apply(lambda v: score_lower_better(v, 3, 12)) if "dissat_pct" in sc_df.columns else None
 
     score_cols = [c for c in sc_df.columns if c.startswith("score_")]
-    sc_df["composite"] = sc_df[score_cols].mean(axis=1)
-    sc_df["rank"] = sc_df["composite"].rank(ascending=False, method="min").astype("Int64")
+    sc_df["composite"] = sc_df[score_cols].mean(axis=1).fillna(0)
+    sc_df["rank"] = sc_df["composite"].rank(ascending=False, method="min").astype(int)
     sc_df = sc_df.sort_values("composite", ascending=False)
 
     if selected_store != "All Stores":
