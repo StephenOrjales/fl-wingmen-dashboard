@@ -833,15 +833,15 @@ if selected_tab == "KDS Dashboard":
                 # Cell-level highlights for off-guide values
                 if pd.notna(raw_sos.get(idx)) and raw_sos[idx] > 10:
                     styles[cols.index("SOS")] += f"; {OFF_GUIDE}"
-                if pd.notna(raw_adopt.get(idx)) and raw_adopt[idx] < 100:
+                if pd.notna(raw_adopt.get(idx)) and raw_adopt[idx] < 85:
                     styles[cols.index("Adoption %")] += f"; {OFF_GUIDE}"
                 if pd.notna(raw_ma.get(idx)) and raw_ma[idx] > 0:
                     styles[cols.index("Make Ahead %")] += f"; {OFF_GUIDE}"
                 if pd.notna(raw_waste.get(idx)) and raw_waste[idx] > 0:
                     styles[cols.index("Waste %")] += f"; {OFF_GUIDE}"
-                if pd.notna(raw_pb.get(idx)) and raw_pb[idx] > 0:
+                if pd.notna(raw_pb.get(idx)) and raw_pb[idx] > 0.5:
                     styles[cols.index("Pre-Bump %")] += f"; {OFF_GUIDE}"
-                if pd.notna(raw_adh.get(idx)) and raw_adh[idx] < 100:
+                if pd.notna(raw_adh.get(idx)) and raw_adh[idx] < 85:
                     styles[cols.index("Adherence %")] += f"; {OFF_GUIDE}"
                 return styles
 
@@ -915,15 +915,15 @@ if selected_tab == "KDS Dashboard":
                         styles = ["background-color: #FEF3C7"] * len(row)
                     if pd.notna(d_raw_sos.get(idx)) and d_raw_sos[idx] > 10:
                         styles[cols.index("SOS")] += f"; {OFF_GUIDE}"
-                    if pd.notna(d_raw_adopt.get(idx)) and d_raw_adopt[idx] < 100:
+                    if pd.notna(d_raw_adopt.get(idx)) and d_raw_adopt[idx] < 85:
                         styles[cols.index("Adoption %")] += f"; {OFF_GUIDE}"
                     if pd.notna(d_raw_ma.get(idx)) and d_raw_ma[idx] > 0:
                         styles[cols.index("Make Ahead %")] += f"; {OFF_GUIDE}"
                     if pd.notna(d_raw_waste.get(idx)) and d_raw_waste[idx] > 0:
                         styles[cols.index("Waste %")] += f"; {OFF_GUIDE}"
-                    if pd.notna(d_raw_pb.get(idx)) and d_raw_pb[idx] > 0:
+                    if pd.notna(d_raw_pb.get(idx)) and d_raw_pb[idx] > 0.5:
                         styles[cols.index("Pre-Bump %")] += f"; {OFF_GUIDE}"
-                    if pd.notna(d_raw_adh.get(idx)) and d_raw_adh[idx] < 100:
+                    if pd.notna(d_raw_adh.get(idx)) and d_raw_adh[idx] < 85:
                         styles[cols.index("Adherence %")] += f"; {OFF_GUIDE}"
                     return styles
 
