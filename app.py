@@ -316,7 +316,7 @@ with st.sidebar:
         store_options = ["All Stores"] + store_list
         selected_store = st.selectbox("Store", store_options, label_visibility="collapsed")
 
-    nav_options = ["KDS Adherence", "Schedule Guide", "Internal QSC Evals", "COGS Variance", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance", "Scorecard", "Watch List", "Trends", "Wing Worm"]
+    nav_options = ["KDS Dashboard", "KDS Adherence", "Schedule Guide", "Internal QSC Evals", "COGS Variance", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Q1 Performance", "Q2 Performance", "Scorecard", "Watch List", "Trends", "Wing Worm"]
     selected_tab = st.radio("Navigation", nav_options, label_visibility="collapsed")
 
     st.markdown("---")
@@ -346,9 +346,478 @@ def kpi_card(label, value, color=""):
 
 
 # ════════════════════════════════
-# KDS ADHERENCE
+# KDS DASHBOARD (new polished version)
 # ════════════════════════════════
-if selected_tab == "KDS Adherence":
+if selected_tab == "KDS Dashboard":
+
+    kds_file = DATA_DIR / "kds_dinner.csv"
+    if kds_file.exists():
+        kds_raw = pd.read_csv(kds_file)
+        periods_sorted = sorted(kds_raw["Period"].unique(), key=lambda x: (int(x[1]), int(x[3])))
+
+        # Apply sidebar filters
+        if selected_store != "All Stores":
+            sk_num = extract_store_number(selected_store).lstrip("0")
+            kds_raw = kds_raw[kds_raw["Store No"].astype(str) == sk_num]
+        elif selected_district != "All Districts":
+            d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
+            kds_raw = kds_raw[kds_raw["Store No"].astype(str).isin(d_nums)]
+
+        periods_sorted = [p for p in periods_sorted if p in kds_raw["Period"].unique()]
+        latest_period = periods_sorted[-1] if periods_sorted else ""
+
+        # ── HEADER ──
+        st.markdown(f"""
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.8rem;">
+            <div>
+                <h2 style="color:#1A3C34; font-weight:800; margin:0; font-size:1.6rem;">SOS Adherence Dashboard</h2>
+                <p style="color:#6B7280; font-size:0.88rem; margin:0.2rem 0 0 0;">
+                    FL Wingmen — {len(DISTRICTS)} districts, {len(STORE_TO_DISTRICT)} stores &nbsp;·&nbsp; Fri &amp; Sat Dinner daypart
+                </p>
+            </div>
+            <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1.2rem; border-radius:8px; font-weight:700; font-size:0.9rem; white-space:nowrap;">
+                TARGET BAND · <span style="color:#FFD700;">SOS &lt; 10 min</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ── Period selector (compact) ──
+        pcol1, pcol2 = st.columns([3, 1])
+        with pcol2:
+            period_options = list(reversed(periods_sorted))
+            sel_period = st.selectbox("Week", period_options, index=0, key="kds_dash_period", label_visibility="collapsed")
+
+        kds_week = kds_raw[kds_raw["Period"] == sel_period].copy()
+        kds_week["District"] = kds_week["Store No"].astype(str).map(STORE_TO_DISTRICT).fillna("Unassigned")
+
+        # SOS classification
+        def classify_sos(row):
+            if pd.isna(row["SOS"]):
+                return "No Data"
+            if row["SOS"] < 7:
+                return "Fast"
+            if row["SOS"] <= 10:
+                return "Adherent"
+            return "Slow"
+
+        kds_week["SOS Status"] = kds_week.apply(classify_sos, axis=1)
+
+        # Overall adherence classification
+        def classify_adherence(row):
+            if pd.isna(row["Adherence %"]):
+                return "No Data"
+            if row["Adherence %"] >= 80:
+                return "Adherent"
+            if row["Adherence %"] >= 60:
+                return "Needs Improvement"
+            return "Non-Adherent"
+
+        kds_week["Overall Status"] = kds_week.apply(classify_adherence, axis=1)
+
+        n_total_config = len(STORE_TO_DISTRICT)
+        n_reporting = kds_week["Store No"].nunique()
+        n_adherent = (kds_week["SOS Status"] == "Adherent").sum()
+        n_slow = (kds_week["SOS Status"] == "Slow").sum()
+        n_fast = (kds_week["SOS Status"] == "Fast").sum()
+        n_nodata = (kds_week["SOS Status"] == "No Data").sum()
+        pct_adherent = (n_adherent / n_reporting * 100) if n_reporting > 0 else 0
+
+        # ── SUB-TABS ──
+        tab_overview, tab_by_district, tab_offenders, tab_historical = st.tabs(
+            [f"📊 {sel_period} Overview", "🏢 By District", "🔴 Repeat Offenders", f"📈 Historical ({periods_sorted[0]}–{periods_sorted[-1]})"]
+        )
+
+        # ════════════════════
+        # TAB: OVERVIEW
+        # ════════════════════
+        with tab_overview:
+            # ── KPI Cards ──
+            c1, c2, c3, c4, c5 = st.columns(5)
+            kpi_style = """<div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; padding:1rem; text-align:left; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                <div style="color:#6B7280; font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">{label}</div>
+                <div style="color:{color}; font-size:2rem; font-weight:800; margin:0.2rem 0;">{value}</div>
+                <div style="color:#9CA3AF; font-size:0.78rem;">{sub}</div>
+            </div>"""
+
+            c1.markdown(kpi_style.format(label="REPORTING STORES", value=n_reporting, color="#1F2937",
+                        sub=f"of {n_total_config} total"), unsafe_allow_html=True)
+            c2.markdown(kpi_style.format(label="ADHERENT (SOS 7-10M)", value=n_adherent, color="#059669",
+                        sub=f"{pct_adherent:.1f}% of reporting"), unsafe_allow_html=True)
+            c3.markdown(kpi_style.format(label="SLOW OUTLIERS", value=n_slow, color="#DC2626",
+                        sub=f"{(n_slow/n_reporting*100) if n_reporting else 0:.0f}% of reporting"), unsafe_allow_html=True)
+            c4.markdown(kpi_style.format(label="FAST OUTLIERS", value=n_fast, color="#D97706",
+                        sub=f"{(n_fast/n_reporting*100) if n_reporting else 0:.0f}% of reporting"), unsafe_allow_html=True)
+            c5.markdown(kpi_style.format(label="NO DATA", value=n_nodata, color="#64748B",
+                        sub="stores not in export"), unsafe_allow_html=True)
+
+            st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
+
+            # ── Charts row: Donut + District Distribution ──
+            chart_l, chart_r = st.columns(2)
+
+            with chart_l:
+                st.markdown(f"""<div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; padding:1rem;">
+                    <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                        <span style="background:#1A3C34; color:#FFFFFF; padding:2px 10px; border-radius:4px; font-size:0.75rem; font-weight:700;">{sel_period}</span>
+                        <span style="font-weight:700; color:#1F2937;">Adherence Mix</span>
+                    </div>
+                </div>""", unsafe_allow_html=True)
+
+                donut_data = kds_week["SOS Status"].value_counts()
+                color_map = {"Adherent": "#059669", "Slow": "#DC2626", "Fast": "#D97706", "No Data": "#CBD5E1"}
+                labels = donut_data.index.tolist()
+                values = donut_data.values.tolist()
+                colors = [color_map.get(l, "#CBD5E1") for l in labels]
+                legend_labels = [f"Adherent (7-10m)" if l == "Adherent" else f"Slow Outlier (>10m)" if l == "Slow" else f"Fast Outlier (<7m)" if l == "Fast" else "No Data" for l in labels]
+
+                fig_donut = go.Figure(go.Pie(
+                    labels=legend_labels, values=values, hole=0.55,
+                    marker=dict(colors=colors),
+                    textinfo="percent", textfont=dict(size=13, color="#FFFFFF"),
+                    hovertemplate="%{label}: %{value} stores (%{percent})<extra></extra>",
+                    sort=False,
+                ))
+                fig_donut.update_layout(
+                    plot_bgcolor=CHART_BG, paper_bgcolor=CHART_BG,
+                    font=dict(color=FONT_COLOR, size=11),
+                    margin=dict(l=10, r=10, t=10, b=10),
+                    height=320,
+                    legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.05, font=dict(size=11)),
+                    showlegend=True,
+                )
+                st.plotly_chart(fig_donut, use_container_width=True, config=CHART_CONFIG)
+
+            with chart_r:
+                st.markdown(f"""<div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; padding:1rem;">
+                    <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                        <span style="background:#1A3C34; color:#FFFFFF; padding:2px 10px; border-radius:4px; font-size:0.75rem; font-weight:700;">{sel_period}</span>
+                        <span style="font-weight:700; color:#1F2937;">Distribution by District</span>
+                    </div>
+                </div>""", unsafe_allow_html=True)
+
+                dist_status = kds_week.groupby(["District", "SOS Status"]).size().unstack(fill_value=0)
+                for col in ["Adherent", "Slow", "Fast", "No Data"]:
+                    if col not in dist_status.columns:
+                        dist_status[col] = 0
+
+                fig_dist = go.Figure()
+                for status, color in [("Adherent", "#059669"), ("Slow", "#DC2626"), ("Fast", "#D97706"), ("No Data", "#CBD5E1")]:
+                    fig_dist.add_trace(go.Bar(
+                        x=dist_status.index, y=dist_status[status], name=status,
+                        marker_color=color, hovertemplate="%{x}<br>" + status + ": %{y}<extra></extra>",
+                    ))
+                dist_bar_layout = {**CHART_LAYOUT, "barmode": "stack",
+                                   "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, type="category", tickfont=dict(size=9)),
+                                   "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, dtick=5),
+                                   "legend": dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5, font=dict(size=10))}
+                fig_dist.update_layout(**dist_bar_layout, height=320, margin=dict(l=40, r=10, t=10, b=60))
+                st.plotly_chart(fig_dist, use_container_width=True, config=CHART_CONFIG)
+
+            # ── Takeaways ──
+            st.markdown(f'<div style="font-weight:700; color:#1A3C34; font-size:1.05rem; margin:1rem 0 0.5rem 0;">{sel_period} Takeaways</div>', unsafe_allow_html=True)
+
+            # Auto-generate insights
+            takeaway_style = '<div style="border-left:4px solid {color}; padding:0.5rem 1rem; margin:0.4rem 0; background:#FAFBFC; border-radius:0 6px 6px 0;">{text}</div>'
+
+            # 1. Overall adherence
+            prev_period = periods_sorted[periods_sorted.index(sel_period) - 1] if periods_sorted.index(sel_period) > 0 else None
+            delta_text = ""
+            if prev_period:
+                prev_week = kds_raw[kds_raw["Period"] == prev_period]
+                prev_pct = (prev_week["SOS"].dropna().between(0, 10, inclusive="right").sum() / len(prev_week) * 100) if len(prev_week) > 0 else 0
+                curr_pct = pct_adherent
+                delta = curr_pct - prev_pct
+                arrow = "▲" if delta > 0 else "▼"
+                delta_color = "#059669" if delta > 0 else "#DC2626"
+                delta_text = f' <span style="color:{delta_color}; font-weight:700;">{arrow} {abs(delta):.1f} pp vs {prev_period}</span>.'
+
+            st.markdown(takeaway_style.format(color="#1A3C34",
+                text=f'<b>{pct_adherent:.1f}% adherent</b> across {n_reporting} reporting stores.{delta_text} {n_slow} slow, {n_fast} fast, {n_nodata} no data.'),
+                unsafe_allow_html=True)
+
+            # 2. Best & worst district
+            dist_adh_rates = kds_week.groupby("District").apply(
+                lambda g: (g["SOS"].dropna().between(0, 10, inclusive="right").sum() / len(g) * 100) if len(g) > 0 else 0
+            ).sort_values(ascending=False)
+            if len(dist_adh_rates) > 0:
+                best_dist = dist_adh_rates.index[0]
+                best_dist_n = kds_week[kds_week["District"] == best_dist]["SOS"].dropna().between(0, 10, inclusive="right").sum()
+                best_dist_total = len(kds_week[kds_week["District"] == best_dist])
+                st.markdown(takeaway_style.format(color="#059669",
+                    text=f'<b>Best District:</b> {best_dist} — {int(best_dist_n)}/{best_dist_total} adherent ({dist_adh_rates.iloc[0]:.0f}%).'),
+                    unsafe_allow_html=True)
+            if len(dist_adh_rates) > 1:
+                worst_dist = dist_adh_rates.index[-1]
+                worst_dist_n = kds_week[kds_week["District"] == worst_dist]["SOS"].dropna().between(0, 10, inclusive="right").sum()
+                worst_dist_total = len(kds_week[kds_week["District"] == worst_dist])
+                st.markdown(takeaway_style.format(color="#DC2626",
+                    text=f'<b>Worst District:</b> {worst_dist} — {int(worst_dist_n)}/{worst_dist_total} adherent ({dist_adh_rates.iloc[-1]:.0f}%).'),
+                    unsafe_allow_html=True)
+
+            # 3. Worst & best single store
+            sos_valid = kds_week[kds_week["SOS"].notna()].copy()
+            if len(sos_valid) > 0:
+                worst_store = sos_valid.loc[sos_valid["SOS"].idxmax()]
+                best_store = sos_valid.loc[sos_valid["SOS"].idxmin()]
+                st.markdown(takeaway_style.format(color="#DC2626",
+                    text=f'<b>Worst single store:</b> {int(worst_store["Store No"])} {worst_store["Store Name"]} ({worst_store["SOS"]:.1f} min). '
+                         f'<b>Fastest:</b> {int(best_store["Store No"])} {best_store["Store Name"]} ({best_store["SOS"]:.1f} min).'),
+                    unsafe_allow_html=True)
+
+            st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
+
+            # ── Store Performance Table ──
+            st.markdown(f"""<div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                <span style="background:#1A3C34; color:#FFFFFF; padding:2px 10px; border-radius:4px; font-size:0.75rem; font-weight:700;">{sel_period}</span>
+                <span style="font-weight:700; color:#1F2937; font-size:1.05rem;">Store Performance</span>
+            </div>""", unsafe_allow_html=True)
+
+            tbl = kds_week[["Store No", "Store Name", "District", "SOS", "SOS Status", "Adoption %", "Make Ahead %", "Waste %", "Pre-Bump %", "Adherence %"]].copy()
+            tbl = tbl.sort_values("SOS", na_position="last")
+            tbl["SOS"] = tbl["SOS"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
+            tbl["Adoption %"] = tbl["Adoption %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
+            tbl["Make Ahead %"] = tbl["Make Ahead %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
+            tbl["Waste %"] = tbl["Waste %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "-")
+            tbl["Pre-Bump %"] = tbl["Pre-Bump %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "-")
+            tbl["Adherence %"] = tbl["Adherence %"].apply(lambda x: f"{x:.0f}%" if pd.notna(x) else "-")
+            tbl = tbl.rename(columns={"SOS Status": "Status", "Store No": "Store #"})
+            tbl = tbl.reset_index(drop=True)
+
+            def style_store_table(row):
+                styles = [""] * len(row)
+                status = row["Status"]
+                if status == "Slow":
+                    styles = ["background-color: #FEE2E2"] * len(row)
+                elif status == "Fast":
+                    styles = ["background-color: #FEF3C7"] * len(row)
+                elif status == "Adherent":
+                    styles = ["background-color: #F0FDF4"] * len(row)
+                return styles
+
+            styled_tbl = tbl.style.apply(style_store_table, axis=1)
+            st.dataframe(styled_tbl, use_container_width=True, hide_index=True, height=500)
+
+        # ════════════════════
+        # TAB: BY DISTRICT
+        # ════════════════════
+        with tab_by_district:
+            st.markdown(f'<div style="font-weight:700; color:#1A3C34; font-size:1.1rem; margin-bottom:0.5rem;">District Breakdown — {sel_period}</div>', unsafe_allow_html=True)
+
+            for district in sorted(kds_week["District"].unique()):
+                d_data = kds_week[kds_week["District"] == district].copy()
+                d_adherent = (d_data["SOS Status"] == "Adherent").sum()
+                d_slow = (d_data["SOS Status"] == "Slow").sum()
+                d_fast = (d_data["SOS Status"] == "Fast").sum()
+                d_total = len(d_data)
+                d_avg_sos = d_data["SOS"].mean() if d_data["SOS"].notna().any() else 0
+                d_avg_adh = d_data["Adherence %"].mean() if d_data["Adherence %"].notna().any() else 0
+
+                adh_pct = d_adherent / d_total * 100 if d_total > 0 else 0
+                header_color = "#059669" if adh_pct >= 70 else ("#D97706" if adh_pct >= 50 else "#DC2626")
+
+                badges = ""
+                if d_slow > 0:
+                    badges += f'<span style="background:#DC2626; color:#FFF; padding:2px 8px; border-radius:4px; font-size:0.75rem; margin-left:6px;">{d_slow} slow</span>'
+                if d_fast > 0:
+                    badges += f'<span style="background:#D97706; color:#FFF; padding:2px 8px; border-radius:4px; font-size:0.75rem; margin-left:4px;">{d_fast} fast</span>'
+
+                st.markdown(f"""
+                <div style="background:#1A3C34; color:#FFFFFF; padding:0.6rem 1rem; border-radius:8px 8px 0 0; margin-top:1rem;
+                            display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight:700; font-size:0.95rem;">{district}{badges}</span>
+                    <span style="font-size:0.82rem;">Adherent: <b>{d_adherent}/{d_total}</b> ({adh_pct:.0f}%) &nbsp;|&nbsp; Avg SOS: <b>{d_avg_sos:.1f}m</b> &nbsp;|&nbsp; Avg Adherence: <b>{d_avg_adh:.0f}%</b></span>
+                </div>
+                """, unsafe_allow_html=True)
+
+                d_tbl = d_data[["Store No", "Store Name", "SOS", "SOS Status", "Adoption %", "Make Ahead %", "Waste %", "Pre-Bump %", "Adherence %"]].copy()
+                d_tbl = d_tbl.sort_values("SOS", na_position="last")
+                d_tbl["SOS"] = d_tbl["SOS"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
+                d_tbl["Adoption %"] = d_tbl["Adoption %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
+                d_tbl["Make Ahead %"] = d_tbl["Make Ahead %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
+                d_tbl["Waste %"] = d_tbl["Waste %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "-")
+                d_tbl["Pre-Bump %"] = d_tbl["Pre-Bump %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "-")
+                d_tbl["Adherence %"] = d_data["Adherence %"].apply(lambda x: f"{x:.0f}%" if pd.notna(x) else "-")
+                d_tbl = d_tbl.rename(columns={"SOS Status": "Status", "Store No": "Store #"}).reset_index(drop=True)
+
+                def style_district_row(row):
+                    styles = [""] * len(row)
+                    status = row["Status"]
+                    if status == "Slow":
+                        styles = ["background-color: #FEE2E2"] * len(row)
+                    elif status == "Fast":
+                        styles = ["background-color: #FEF3C7"] * len(row)
+                    return styles
+
+                st.dataframe(d_tbl.style.apply(style_district_row, axis=1), use_container_width=True, hide_index=True)
+
+        # ════════════════════
+        # TAB: REPEAT OFFENDERS
+        # ════════════════════
+        with tab_offenders:
+            st.markdown('<div style="font-weight:700; color:#1A3C34; font-size:1.1rem; margin-bottom:0.3rem;">Repeat Offenders</div>', unsafe_allow_html=True)
+            st.markdown('<p style="color:#6B7280; font-size:0.85rem;">Stores consistently slow (SOS &gt; 10 min) or non-adherent (&lt;60% overall) across multiple weeks.</p>', unsafe_allow_html=True)
+
+            # Classify each store in each period
+            all_classified = kds_raw.copy()
+            all_classified["District"] = all_classified["Store No"].astype(str).map(STORE_TO_DISTRICT).fillna("Unassigned")
+            all_classified["Is Slow"] = all_classified["SOS"] > 10
+            all_classified["Is Non-Adherent"] = all_classified["Adherence %"] < 60
+
+            # Slow repeat offenders
+            slow_counts = all_classified[all_classified["Is Slow"]].groupby("Store No").agg(
+                Times_Slow=("Period", "count"),
+                Weeks=("Period", lambda x: ", ".join(sorted(x.unique(), key=lambda p: (int(p[1]), int(p[3]))))),
+                Avg_SOS=("SOS", "mean"),
+                Store_Name=("Store Name", "first"),
+            ).reset_index().sort_values("Times_Slow", ascending=False)
+            slow_counts["District"] = slow_counts["Store No"].astype(str).map(STORE_TO_DISTRICT).fillna("")
+
+            # Non-adherent repeat offenders
+            nonadh_counts = all_classified[all_classified["Is Non-Adherent"]].groupby("Store No").agg(
+                Times_Below=("Period", "count"),
+                Weeks=("Period", lambda x: ", ".join(sorted(x.unique(), key=lambda p: (int(p[1]), int(p[3]))))),
+                Avg_Adherence=("Adherence %", "mean"),
+                Store_Name=("Store Name", "first"),
+            ).reset_index().sort_values("Times_Below", ascending=False)
+            nonadh_counts["District"] = nonadh_counts["Store No"].astype(str).map(STORE_TO_DISTRICT).fillna("")
+
+            col_slow, col_nonadh = st.columns(2)
+            with col_slow:
+                st.markdown(f"""<div style="background:#DC2626; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0;">
+                    <span style="font-weight:700;">Slow SOS Repeat Offenders</span>
+                    <span style="float:right; font-size:0.82rem;">SOS &gt; 10 min</span>
+                </div>""", unsafe_allow_html=True)
+
+                if len(slow_counts) > 0:
+                    slow_display = slow_counts[["Store No", "Store_Name", "District", "Times_Slow", "Avg_SOS", "Weeks"]].copy()
+                    slow_display["Avg_SOS"] = slow_display["Avg_SOS"].apply(lambda x: f"{x:.1f} min")
+                    slow_display = slow_display.rename(columns={"Store_Name": "Store", "Times_Slow": "Times Slow", "Avg_SOS": "Avg SOS", "Weeks": "Weeks Flagged"})
+                    st.dataframe(slow_display, use_container_width=True, hide_index=True)
+                else:
+                    st.success("No repeat slow offenders!")
+
+            with col_nonadh:
+                st.markdown(f"""<div style="background:#D97706; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0;">
+                    <span style="font-weight:700;">Low Adherence Repeat Offenders</span>
+                    <span style="float:right; font-size:0.82rem;">Adherence &lt; 60%</span>
+                </div>""", unsafe_allow_html=True)
+
+                if len(nonadh_counts) > 0:
+                    nonadh_display = nonadh_counts[["Store No", "Store_Name", "District", "Times_Below", "Avg_Adherence", "Weeks"]].copy()
+                    nonadh_display["Avg_Adherence"] = nonadh_display["Avg_Adherence"].apply(lambda x: f"{x:.0f}%")
+                    nonadh_display = nonadh_display.rename(columns={"Store_Name": "Store", "Times_Below": "Times Flagged", "Avg_Adherence": "Avg Adherence", "Weeks": "Weeks Flagged"})
+                    st.dataframe(nonadh_display, use_container_width=True, hide_index=True)
+                else:
+                    st.success("No repeat low-adherence offenders!")
+
+            # Repeat offender frequency chart
+            st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
+            if len(slow_counts) > 0:
+                top_slow = slow_counts.head(15).copy()
+                top_slow["Label"] = top_slow["Store No"].astype(str) + " - " + top_slow["Store_Name"]
+                fig_repeat = go.Figure(go.Bar(
+                    x=top_slow["Label"], y=top_slow["Times_Slow"], text=top_slow["Times_Slow"].astype(int),
+                    textposition="outside", marker_color="#DC2626",
+                ))
+                repeat_layout = {**CHART_LAYOUT,
+                                 "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Weeks Slow", dtick=1),
+                                 "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, type="category", tickfont=dict(size=9))}
+                fig_repeat.update_layout(**repeat_layout, title="Slow SOS Frequency (All Weeks)", height=380, xaxis_tickangle=-45)
+                st.plotly_chart(fig_repeat, use_container_width=True, config=CHART_CONFIG)
+
+        # ════════════════════
+        # TAB: HISTORICAL
+        # ════════════════════
+        with tab_historical:
+            st.markdown(f'<div style="font-weight:700; color:#1A3C34; font-size:1.1rem; margin-bottom:0.5rem;">Historical Trend — {periods_sorted[0]} to {periods_sorted[-1]}</div>', unsafe_allow_html=True)
+
+            # Overall SOS adherence trend
+            hist = []
+            for p in periods_sorted:
+                pw = kds_raw[kds_raw["Period"] == p]
+                pw_valid = pw[pw["SOS"].notna()]
+                n_pw = len(pw_valid)
+                n_adh = pw_valid["SOS"].between(0, 10, inclusive="right").sum()
+                n_slow_p = (pw_valid["SOS"] > 10).sum()
+                n_fast_p = (pw_valid["SOS"] < 7).sum()
+                avg_sos_p = pw_valid["SOS"].mean() if len(pw_valid) > 0 else 0
+                avg_adh_p = pw["Adherence %"].mean() if pw["Adherence %"].notna().any() else 0
+                hist.append({
+                    "Period": p, "Adherent": n_adh, "Slow": n_slow_p, "Fast": n_fast_p,
+                    "Adherent %": (n_adh / n_pw * 100) if n_pw > 0 else 0,
+                    "Avg SOS": avg_sos_p, "Avg Adherence": avg_adh_p, "Total": n_pw,
+                })
+            hist_df = pd.DataFrame(hist)
+
+            # Adherence % trend line
+            fig_hist_line = go.Figure()
+            fig_hist_line.add_trace(go.Scatter(
+                x=hist_df["Period"], y=hist_df["Adherent %"],
+                mode="lines+markers+text", name="SOS Adherent %",
+                text=hist_df["Adherent %"].apply(lambda v: f"{v:.0f}%"), textposition="top center",
+                line=dict(color="#059669", width=3), marker=dict(size=10),
+            ))
+            fig_hist_line.add_trace(go.Scatter(
+                x=hist_df["Period"], y=hist_df["Avg Adherence"],
+                mode="lines+markers+text", name="Overall Adherence %",
+                text=hist_df["Avg Adherence"].apply(lambda v: f"{v:.0f}%"), textposition="bottom center",
+                line=dict(color="#0D9488", width=2, dash="dot"), marker=dict(size=8),
+            ))
+            hist_line_layout = {**CHART_LAYOUT,
+                                "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="% Adherent", range=[0, 100]),
+                                "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, type="category"),
+                                "legend": dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)}
+            fig_hist_line.update_layout(**hist_line_layout, title="Adherence Rate Trend", height=380)
+            st.plotly_chart(fig_hist_line, use_container_width=True, config=CHART_CONFIG)
+
+            # Stacked bar: Adherent / Slow / Fast per period
+            fig_hist_bar = go.Figure()
+            for status, color in [("Adherent", "#059669"), ("Slow", "#DC2626"), ("Fast", "#D97706")]:
+                fig_hist_bar.add_trace(go.Bar(
+                    x=hist_df["Period"], y=hist_df[status], name=status,
+                    marker_color=color, text=hist_df[status], textposition="inside",
+                ))
+            hist_bar_layout = {**CHART_LAYOUT, "barmode": "stack",
+                               "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Store Count"),
+                               "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, type="category"),
+                               "legend": dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)}
+            fig_hist_bar.update_layout(**hist_bar_layout, title="SOS Distribution by Week", height=380)
+            st.plotly_chart(fig_hist_bar, use_container_width=True, config=CHART_CONFIG)
+
+            # Avg SOS trend
+            fig_sos_trend = go.Figure()
+            fig_sos_trend.add_trace(go.Scatter(
+                x=hist_df["Period"], y=hist_df["Avg SOS"],
+                mode="lines+markers+text", name="Avg SOS",
+                text=hist_df["Avg SOS"].apply(lambda v: f"{v:.1f}m"), textposition="top center",
+                line=dict(color="#1A3C34", width=3), marker=dict(size=10),
+            ))
+            fig_sos_trend.add_hline(y=10, line_dash="dash", line_color="#DC2626", line_width=1.5,
+                                    annotation_text="10 min target", annotation_font=dict(color="#DC2626", size=10))
+            fig_sos_trend.add_hline(y=7, line_dash="dash", line_color="#D97706", line_width=1,
+                                    annotation_text="7 min floor", annotation_font=dict(color="#D97706", size=10))
+            sos_trend_layout = {**CHART_LAYOUT,
+                                "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Avg SOS (min)"),
+                                "xaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, type="category")}
+            fig_sos_trend.update_layout(**sos_trend_layout, title="Average SOS Trend", height=350)
+            st.plotly_chart(fig_sos_trend, use_container_width=True, config=CHART_CONFIG)
+
+            # ── Historical detail table ──
+            st.markdown('<div style="font-weight:700; color:#1F2937; font-size:1rem; margin:1rem 0 0.5rem 0;">Period Summary</div>', unsafe_allow_html=True)
+            hist_display = hist_df[["Period", "Total", "Adherent", "Slow", "Fast", "Adherent %", "Avg SOS", "Avg Adherence"]].copy()
+            hist_display["Adherent %"] = hist_display["Adherent %"].apply(lambda x: f"{x:.1f}%")
+            hist_display["Avg SOS"] = hist_display["Avg SOS"].apply(lambda x: f"{x:.1f} min")
+            hist_display["Avg Adherence"] = hist_display["Avg Adherence"].apply(lambda x: f"{x:.0f}%")
+            st.dataframe(hist_display, use_container_width=True, hide_index=True)
+
+    else:
+        st.warning("No KDS dinner data found. Place kds_dinner.csv in the data/ folder.")
+
+
+# ════════════════════════════════
+# KDS ADHERENCE (legacy)
+# ════════════════════════════════
+elif selected_tab == "KDS Adherence":
     st.markdown('<div class="section-title">KDS Dinner Adherence</div>', unsafe_allow_html=True)
     st.markdown('<p style="color:#6B7280; font-size:0.85rem;">Friday &amp; Saturday Dinner performance. Adherence % = metrics within standard ÷ total metrics checked. Thresholds: SOS &lt;10 min, Adoption ≥85%, Make Ahead ≤10%, Waste ≤5%, Pre-Bump ≤1.5%.</p>', unsafe_allow_html=True)
 
