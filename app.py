@@ -2702,13 +2702,13 @@ elif selected_tab == "Watch List":
 
         for _, r in eval_latest_data[eval_latest_data["No Eval"]].iterrows():
             snum = str(int(r["Store No"]))
-            dist = r["District"] if pd.notna(r.get("District")) else STORE_TO_DISTRICT.get(snum, "Unassigned")
+            dist = STORE_TO_DISTRICT.get(snum, "Unassigned")
             alerts.append({"store_num": snum, "Store": f"Store {snum}", "District": dist,
                            "Metric": "QSC Eval", "Value": "Missed", "Threshold": "Completed", "Severity": "Critical", "Source": f"QSC {eval_latest}"})
 
         for _, r in eval_latest_data[eval_latest_data["Red Flag"]].iterrows():
             snum = str(int(r["Store No"]))
-            dist = r["District"] if pd.notna(r.get("District")) else STORE_TO_DISTRICT.get(snum, "Unassigned")
+            dist = STORE_TO_DISTRICT.get(snum, "Unassigned")
             reason = "score=0" if (pd.notna(r.get("Score")) and r["Score"] == 0) else "<1hr duration"
             alerts.append({"store_num": snum, "Store": f"Store {snum}", "District": dist,
                            "Metric": "QSC Red Flag", "Value": reason, "Threshold": "No flags", "Severity": "Warning", "Source": f"QSC {eval_latest}"})
