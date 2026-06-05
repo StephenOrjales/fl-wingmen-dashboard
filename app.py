@@ -1119,6 +1119,8 @@ elif selected_tab == "Schedule Guide":
 
         # Render districts side by side (2 per row)
         for i in range(0, len(sorted_districts), 2):
+            if i > 0:
+                st.markdown('<hr style="border:none; border-top:1px solid #E2E8F0; margin:0.8rem 0 1rem 0;">', unsafe_allow_html=True)
             cols = st.columns(2)
             render_district_card(sorted_districts[i], cols[0])
             if i + 1 < len(sorted_districts):
