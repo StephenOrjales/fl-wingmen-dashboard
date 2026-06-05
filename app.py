@@ -2778,50 +2778,76 @@ elif selected_tab == "Watch List":
 
         st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
 
-        # ── District-grouped alert cards ──
-        st.markdown('<div class="section-title" style="font-size:1.05rem;">Alerts by District</div>', unsafe_allow_html=True)
+        # ── All stores by district ──
+        st.markdown('<div class="section-title" style="font-size:1.05rem;">All Stores by District</div>', unsafe_allow_html=True)
 
-        for district in sorted(alert_df["District"].unique()):
-            d_alerts = alert_df[alert_df["District"] == district]
-            d_crit = (d_alerts["Severity"] == "Critical").sum()
-            d_warn = (d_alerts["Severity"] == "Warning").sum()
-            d_stores = d_alerts["store_num"].nunique()
+        # Build alert lookup: store_num -> list of alerts
+        alert_by_store = {}
+        for _, a in alert_df.iterrows():
+            alert_by_store.setdefault(a["store_num"], []).append(a)
+
+        # Determine which districts to show
+        if selected_district != "All Districts":
+            districts_to_show = {selected_district: DISTRICTS[selected_district]}
+        else:
+            districts_to_show = DISTRICTS
+
+        for district, stores in sorted(districts_to_show.items()):
+            # Count alerts for this district
+            d_store_nums = [s.split(" - ")[0].strip().lstrip("0") for s in stores]
+            d_alerts_list = [a for sn in d_store_nums for a in alert_by_store.get(sn, [])]
+            d_crit = sum(1 for a in d_alerts_list if a["Severity"] == "Critical")
+            d_warn = sum(1 for a in d_alerts_list if a["Severity"] == "Warning")
+            d_flagged = sum(1 for sn in d_store_nums if sn in alert_by_store)
+            d_clean = len(d_store_nums) - d_flagged
 
             badge_html = ""
             if d_crit > 0:
                 badge_html += f'<span style="background:#DC2626; color:white; font-size:0.7rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:10px; margin-left:6px;">{d_crit} critical</span>'
             if d_warn > 0:
                 badge_html += f'<span style="background:#D97706; color:white; font-size:0.7rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:10px; margin-left:4px;">{d_warn} warning</span>'
+            if d_clean > 0:
+                badge_html += f'<span style="background:#059669; color:white; font-size:0.7rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:10px; margin-left:4px;">{d_clean} clear</span>'
 
             st.markdown(f"""
             <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0; margin-top:1rem;
                         display:flex; justify-content:space-between; align-items:center;">
                 <span style="font-weight:700; font-size:0.95rem;">{district}{badge_html}</span>
-                <span style="font-size:0.82rem;">{d_stores} stores &nbsp;|&nbsp; {len(d_alerts)} alerts</span>
+                <span style="font-size:0.82rem;">{len(d_store_nums)} stores &nbsp;|&nbsp; {len(d_alerts_list)} alerts</span>
             </div>
             """, unsafe_allow_html=True)
 
-            # Group alerts by store within district
-            stores_in_dist = sorted(d_alerts["store_num"].unique())
             cards_html = ""
-            for snum in stores_in_dist:
-                s_alerts = d_alerts[d_alerts["store_num"] == snum]
-                s_name = s_alerts["Store"].iloc[0]
-                has_crit = "Critical" in s_alerts["Severity"].values
-                border = "#DC2626" if has_crit else "#D97706"
+            for s in stores:
+                snum = s.split(" - ")[0].strip().lstrip("0")
+                sname = s.split("-", 2)[2].strip()[:25] if len(s.split("-", 2)) >= 3 else s[:25]
+                s_alerts = alert_by_store.get(snum, [])
 
-                issues = ""
-                for _, a in s_alerts.iterrows():
-                    dot_c = "#DC2626" if a["Severity"] == "Critical" else "#D97706"
-                    issues += f'<div style="padding:0.15rem 0; font-size:0.82rem; color:#374151;"><span style="color:{dot_c};">●</span> <b>{a["Metric"]}</b>: {a["Value"]} <span style="color:#9CA3AF;">({a["Source"]})</span></div>'
+                if s_alerts:
+                    has_crit = any(a["Severity"] == "Critical" for a in s_alerts)
+                    border = "#DC2626" if has_crit else "#D97706"
+                    bg = "#FEF2F2" if has_crit else "#FFFBEB"
+                    status_icon = f'<span style="color:#DC2626; font-weight:700;">⚠ {len(s_alerts)}</span>' if has_crit else f'<span style="color:#D97706; font-weight:700;">⚠ {len(s_alerts)}</span>'
 
-                cards_html += f"""<div style="border-left:4px solid {border}; padding:0.6rem 0.8rem; margin:0; border-bottom:1px solid #F1F5F9; background:#FFFFFF;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem;">
-                        <span style="color:#1F2937; font-weight:700; font-size:0.9rem;">#{snum} {s_name}</span>
-                        <span style="font-size:0.7rem; color:#9CA3AF;">{len(s_alerts)} alert{'s' if len(s_alerts) > 1 else ''}</span>
-                    </div>
-                    {issues}
-                </div>"""
+                    issues = ""
+                    for a in s_alerts:
+                        dot_c = "#DC2626" if a["Severity"] == "Critical" else "#D97706"
+                        issues += f'<div style="padding:0.1rem 0; font-size:0.8rem; color:#374151;"><span style="color:{dot_c};">●</span> <b>{a["Metric"]}</b>: {a["Value"]} <span style="color:#9CA3AF;">({a["Source"]})</span></div>'
+
+                    cards_html += f"""<div style="border-left:4px solid {border}; padding:0.5rem 0.8rem; border-bottom:1px solid #F1F5F9; background:{bg};">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem;">
+                            <span style="color:#1F2937; font-weight:700; font-size:0.88rem;">#{snum} {sname}</span>
+                            {status_icon}
+                        </div>
+                        {issues}
+                    </div>"""
+                else:
+                    cards_html += f"""<div style="border-left:4px solid #059669; padding:0.5rem 0.8rem; border-bottom:1px solid #F1F5F9; background:#FFFFFF;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="color:#1F2937; font-weight:600; font-size:0.88rem;">#{snum} {sname}</span>
+                            <span style="color:#059669; font-weight:700; font-size:0.82rem;">✓ Clear</span>
+                        </div>
+                    </div>"""
 
             st.markdown(f'<div style="border:1px solid #E2E8F0; border-radius:0 0 6px 6px; overflow:hidden; margin-bottom:0.5rem;">{cards_html}</div>', unsafe_allow_html=True)
 
