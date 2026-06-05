@@ -821,16 +821,33 @@ if selected_tab == "KDS Dashboard":
 # SCHEDULE GUIDE
 # ════════════════════════════════
 elif selected_tab == "Schedule Guide":
-    st.markdown('<div class="section-title">Scheduling Guide</div>', unsafe_allow_html=True)
-    st.markdown('<p style="color:#6B7280; font-size:0.85rem;">Weekly sales forecast and ideal staffing hours by store. Hours guide applies to hourly staff only (excludes GMs).</p>', unsafe_allow_html=True)
 
     sched_file = DATA_DIR / "schedule_guide.csv"
     if sched_file.exists():
         sched_df = pd.read_csv(sched_file)
 
-        # Period selector
         periods_avail = sorted(sched_df["Period"].unique().tolist())
-        sel_period = st.selectbox("Select Week", periods_avail, index=len(periods_avail) - 1)
+
+        # ── HEADER ──
+        st.markdown(f"""
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.8rem;">
+            <div>
+                <h2 style="color:#1A3C34; font-weight:800; margin:0; font-size:1.6rem;">Schedule Guide</h2>
+                <p style="color:#6B7280; font-size:0.88rem; margin:0.2rem 0 0 0;">
+                    Weekly sales forecast &amp; staffing hours &nbsp;·&nbsp; {len(DISTRICTS)} districts, {sched_df["Store No"].nunique()} stores
+                </p>
+            </div>
+            <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1.2rem; border-radius:8px; font-weight:700; font-size:0.9rem; white-space:nowrap;">
+                HOURS GUIDE · <span style="color:#B7E4C7;">Hourly staff only (excl. GMs)</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ── Period selector ──
+        pcol1, pcol2 = st.columns([3, 1])
+        with pcol2:
+            sel_period = st.selectbox("Week", list(reversed(periods_avail)), index=0, key="sched_period", label_visibility="collapsed")
+
         week_data = sched_df[sched_df["Period"] == sel_period].copy()
         start_dt = week_data["Start Date"].iloc[0] if len(week_data) > 0 else ""
         end_dt = week_data["End Date"].iloc[0] if len(week_data) > 0 else ""
@@ -843,8 +860,6 @@ elif selected_tab == "Schedule Guide":
             d_nums = {int(s.split(" - ")[0].strip()) for s in DISTRICTS.get(selected_district, [])}
             week_data = week_data[week_data["Store No"].isin(d_nums)]
 
-        st.markdown(f'<p style="color:#374151; font-size:0.9rem; font-weight:600;">Week: {start_dt} — {end_dt}</p>', unsafe_allow_html=True)
-
         # KPIs
         total_sales = week_data["Sales Forecast"].sum()
         total_hours = week_data["Hours Guide"].sum()
@@ -852,26 +867,78 @@ elif selected_tab == "Schedule Guide":
         avg_sales = total_sales / n_stores if n_stores else 0
         avg_hours = total_hours / n_stores if n_stores else 0
 
-        k1, k2, k3, k4, k5 = st.columns(5)
-        k1.markdown(f'<div class="kpi-box"><div class="kpi-label">Total Sales Forecast</div><div class="kpi-value">${total_sales:,.0f}</div></div>', unsafe_allow_html=True)
-        k2.markdown(f'<div class="kpi-box"><div class="kpi-label">Total Hours Guide</div><div class="kpi-value">{total_hours:,.0f}</div></div>', unsafe_allow_html=True)
-        k3.markdown(f'<div class="kpi-box"><div class="kpi-label">Stores</div><div class="kpi-value">{n_stores}</div></div>', unsafe_allow_html=True)
-        k4.markdown(f'<div class="kpi-box"><div class="kpi-label">Avg Sales / Store</div><div class="kpi-value">${avg_sales:,.0f}</div></div>', unsafe_allow_html=True)
-        k5.markdown(f'<div class="kpi-box"><div class="kpi-label">Avg Hours / Store</div><div class="kpi-value">{avg_hours:,.0f}</div></div>', unsafe_allow_html=True)
+        # Delta vs previous period
+        prev_idx = periods_avail.index(sel_period) - 1 if sel_period in periods_avail and periods_avail.index(sel_period) > 0 else -1
+        prev_sales = prev_hours = None
+        if prev_idx >= 0:
+            prev_p = periods_avail[prev_idx]
+            prev_data = sched_df[sched_df["Period"] == prev_p]
+            prev_sales = prev_data["Sales Forecast"].sum()
+            prev_hours = prev_data["Hours Guide"].sum()
+
+        kpi_style = """<div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; padding:1rem; text-align:left; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+            <div style="color:#6B7280; font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">{label}</div>
+            <div style="color:{color}; font-size:2rem; font-weight:800; margin:0.2rem 0;">{value}</div>
+            <div style="color:#9CA3AF; font-size:0.78rem;">{sub}</div>
+        </div>"""
+
+        c1, c2, c3, c4, c5 = st.columns(5)
+        c1.markdown(kpi_style.format(label="TOTAL SALES FORECAST", value=f"${total_sales:,.0f}", color="#1F2937",
+                    sub=f"week of {start_dt}"), unsafe_allow_html=True)
+        c2.markdown(kpi_style.format(label="TOTAL HOURS GUIDE", value=f"{total_hours:,.0f}", color="#0D9488",
+                    sub="hourly staff only"), unsafe_allow_html=True)
+        c3.markdown(kpi_style.format(label="STORES", value=n_stores, color="#1F2937",
+                    sub="reporting this week"), unsafe_allow_html=True)
+        c4.markdown(kpi_style.format(label="AVG SALES / STORE", value=f"${avg_sales:,.0f}", color="#1F2937",
+                    sub="per store average"), unsafe_allow_html=True)
+        c5.markdown(kpi_style.format(label="AVG HOURS / STORE", value=f"{avg_hours:,.0f}", color="#0D9488",
+                    sub="per store average"), unsafe_allow_html=True)
 
         st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
 
-        # Show data grouped by district like the PDF
+        # ── Takeaways ──
+        st.markdown(f'<div style="font-weight:700; color:#1A3C34; font-size:1.05rem; margin:0.5rem 0 0.5rem 0;">{sel_period} Takeaways</div>', unsafe_allow_html=True)
+        takeaway_style = '<div style="border-left:4px solid {color}; padding:0.5rem 1rem; margin:0.4rem 0; background:#FAFBFC; border-radius:0 6px 6px 0;">{text}</div>'
+
+        # Overall summary with delta
+        delta_text = ""
+        if prev_sales is not None:
+            sales_delta = total_sales - prev_sales
+            sales_pct = (sales_delta / prev_sales * 100) if prev_sales else 0
+            arrow = "▲" if sales_delta > 0 else "▼"
+            delta_color = "#059669" if sales_delta > 0 else "#DC2626"
+            delta_text = f' <span style="color:{delta_color}; font-weight:700;">{arrow} ${abs(sales_delta):,.0f} ({abs(sales_pct):.1f}%) vs {periods_avail[prev_idx]}</span>.'
+
+        st.markdown(takeaway_style.format(color="#1A3C34",
+            text=f'<b>${total_sales:,.0f} total forecast</b> across {n_stores} stores, {total_hours:,.0f} hours guided.{delta_text}'),
+            unsafe_allow_html=True)
+
+        # Highest & lowest sales stores
+        if len(week_data) > 1:
+            top_store = week_data.loc[week_data["Sales Forecast"].idxmax()]
+            bot_store = week_data.loc[week_data["Sales Forecast"].idxmin()]
+            st.markdown(takeaway_style.format(color="#059669",
+                text=f'<b>Highest forecast:</b> {int(top_store["Store No"])} {top_store["Store Name"]} — ${int(top_store["Sales Forecast"]):,} sales, {int(top_store["Hours Guide"]):,} hours.'),
+                unsafe_allow_html=True)
+            st.markdown(takeaway_style.format(color="#D97706",
+                text=f'<b>Lowest forecast:</b> {int(bot_store["Store No"])} {bot_store["Store Name"]} — ${int(bot_store["Sales Forecast"]):,} sales, {int(bot_store["Hours Guide"]):,} hours.'),
+                unsafe_allow_html=True)
+
+        # ── District-grouped tables ──
+        st.markdown("<div style='height:1.5rem;'></div>", unsafe_allow_html=True)
+        st.markdown(f'<div class="section-title" style="font-size:1.05rem;">Weekly Detail — {start_dt} to {end_dt}</div>', unsafe_allow_html=True)
+
         for district in sorted(week_data["District"].unique()):
             d_data = week_data[week_data["District"] == district].copy()
             d_sales = d_data["Sales Forecast"].sum()
             d_hours = d_data["Hours Guide"].sum()
+            d_n = len(d_data)
 
             st.markdown(f"""
             <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0; margin-top:1rem;
                         display:flex; justify-content:space-between; align-items:center;">
                 <span style="font-weight:700; font-size:0.95rem;">{district}</span>
-                <span style="font-size:0.82rem;">Sales: <b>${d_sales:,.0f}</b> &nbsp;|&nbsp; Hours: <b>{d_hours:,.0f}</b></span>
+                <span style="font-size:0.82rem;">Sales: <b>${d_sales:,.0f}</b> &nbsp;|&nbsp; Hours: <b>{d_hours:,.0f}</b> &nbsp;|&nbsp; Stores: <b>{d_n}</b></span>
             </div>
             """, unsafe_allow_html=True)
 
@@ -881,51 +948,6 @@ elif selected_tab == "Schedule Guide":
             display_df = display_df.reset_index(drop=True)
             st.dataframe(display_df, use_container_width=True, hide_index=True)
 
-        # District comparison chart
-        st.markdown("<div style='height:1.5rem;'></div>", unsafe_allow_html=True)
-        st.markdown('<div class="section-title" style="font-size:1rem;">District Comparison</div>', unsafe_allow_html=True)
-
-        dist_summary = week_data.groupby("District").agg(
-            Sales=("Sales Forecast", "sum"),
-            Hours=("Hours Guide", "sum"),
-            Stores=("Store No", "nunique"),
-        ).reset_index()
-
-        col_a, col_b = st.columns(2)
-        with col_a:
-            fig_s = px.bar(dist_summary, x="District", y="Sales", text_auto="$,.0f",
-                           color_discrete_sequence=[GREEN])
-            sched_layout = {**CHART_LAYOUT, "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Sales Forecast ($)")}
-            fig_s.update_layout(**sched_layout, title="Sales Forecast by District")
-            fig_s.update_traces(textposition="outside")
-            st.plotly_chart(fig_s, use_container_width=True, config=CHART_CONFIG)
-        with col_b:
-            fig_h = px.bar(dist_summary, x="District", y="Hours", text_auto=",.0f",
-                           color_discrete_sequence=[TEAL])
-            hours_layout = {**CHART_LAYOUT, "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Hours Guide")}
-            fig_h.update_layout(**hours_layout, title="Hours Guide by District")
-            fig_h.update_traces(textposition="outside")
-            st.plotly_chart(fig_h, use_container_width=True, config=CHART_CONFIG)
-
-        # Trend across weeks if multiple periods
-        if len(periods_avail) > 1:
-            st.markdown('<div class="section-title" style="font-size:1rem;">Week-over-Week Trend</div>', unsafe_allow_html=True)
-            trend_df = sched_df.groupby("Period").agg(
-                Sales=("Sales Forecast", "sum"),
-                Hours=("Hours Guide", "sum"),
-            ).reindex(periods_avail).reset_index()
-
-            col_c, col_d = st.columns(2)
-            with col_c:
-                fig_ts = px.line(trend_df, x="Period", y="Sales", markers=True, color_discrete_sequence=[GREEN])
-                ts_layout = {**CHART_LAYOUT, "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Total Sales ($)")}
-                fig_ts.update_layout(**ts_layout, title="Total Sales by Week")
-                st.plotly_chart(fig_ts, use_container_width=True, config=CHART_CONFIG)
-            with col_d:
-                fig_th = px.line(trend_df, x="Period", y="Hours", markers=True, color_discrete_sequence=[TEAL])
-                th_layout = {**CHART_LAYOUT, "yaxis": dict(gridcolor=GRID_COLOR, fixedrange=True, title="Total Hours")}
-                fig_th.update_layout(**th_layout, title="Total Hours by Week")
-                st.plotly_chart(fig_th, use_container_width=True, config=CHART_CONFIG)
     else:
         st.warning("No schedule data found. Place schedule_guide.csv in the data/ folder.")
 
