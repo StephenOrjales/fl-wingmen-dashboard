@@ -2590,50 +2590,61 @@ elif selected_tab == "Scorecard":
 # WATCH LIST
 # ════════════════════════════════
 elif selected_tab == "Watch List":
-    st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">Watch List &nbsp;|&nbsp; Stores exceeding key thresholds &nbsp;|&nbsp; Auto-generated alerts</p>', unsafe_allow_html=True)
+
+    # ── HEADER ──
+    st.markdown(f"""
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.8rem;">
+        <div>
+            <h2 style="color:#1A3C34; font-weight:800; margin:0; font-size:1.6rem;">Watch List</h2>
+            <p style="color:#6B7280; font-size:0.88rem; margin:0.2rem 0 0 0;">
+                Auto-generated alerts from KDS, Labor, COGS &amp; QSC data &nbsp;·&nbsp; {len(DISTRICTS)} districts
+            </p>
+        </div>
+        <div style="background:#DC2626; color:#FFFFFF; padding:0.5rem 1.2rem; border-radius:8px; font-weight:700; font-size:0.9rem; white-space:nowrap;">
+            🚨 THRESHOLD ALERTS
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     alerts = []
 
-    # KDS alerts
-    if not daily_df_all.empty:
-        latest_date = daily_df_all["data_date"].max()
-        latest = daily_df_all[daily_df_all["data_date"] == latest_date].copy()
-        if selected_store != "All Stores":
-            sk_num = extract_store_number(selected_store)
-            latest = latest[latest["store_num"] == sk_num]
-        elif selected_district != "All Districts":
-            d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
-            latest = latest[latest["store_num"].isin(d_nums)]
+    # ── KDS Alerts (latest week from kds_dinner.csv) ──
+    kds_wl_file = DATA_DIR / "kds_dinner.csv"
+    if kds_wl_file.exists():
+        kds_wl = pd.read_csv(kds_wl_file)
+        kds_wl_periods = sorted(kds_wl["Period"].unique(), key=lambda x: (int(x[1]), int(x[3])))
+        kds_wl_latest = kds_wl_periods[-1] if kds_wl_periods else ""
+        kds_latest = kds_wl[kds_wl["Period"] == kds_wl_latest].copy()
+        kds_latest["store_num"] = kds_latest["Store No"].astype(str)
+        kds_latest["district"] = kds_latest["store_num"].map(STORE_TO_DISTRICT).fillna("Unassigned")
 
-        sos_fail = latest[latest["sos_min"] >= 13]
-        for _, r in sos_fail.iterrows():
-            alerts.append({"Store": r["short_name"], "District": r.get("district", ""), "Metric": "SOS", "Value": f"{r['sos_min']:.1f} min", "Threshold": ">= 13 min", "Severity": "Critical"})
+        # SOS > 10 min
+        for _, r in kds_latest[kds_latest["SOS"] > 10].iterrows():
+            sev = "Critical" if r["SOS"] >= 13 else "Warning"
+            alerts.append({"store_num": r["store_num"], "Store": str(r["Store Name"])[:22], "District": r["district"],
+                           "Metric": "SOS", "Value": f"{r['SOS']:.1f} min", "Threshold": "≤ 10 min", "Severity": sev, "Source": f"KDS {kds_wl_latest}"})
 
-        sos_warn = latest[(latest["sos_min"] >= 10) & (latest["sos_min"] < 13)]
-        for _, r in sos_warn.iterrows():
-            alerts.append({"Store": r["short_name"], "District": r.get("district", ""), "Metric": "SOS", "Value": f"{r['sos_min']:.1f} min", "Threshold": "10-13 min", "Severity": "Warning"})
+        # Adoption < 85%
+        for _, r in kds_latest[kds_latest["Adoption %"].notna() & (kds_latest["Adoption %"] < 85)].iterrows():
+            alerts.append({"store_num": r["store_num"], "Store": str(r["Store Name"])[:22], "District": r["district"],
+                           "Metric": "Adoption", "Value": f"{r['Adoption %']:.1f}%", "Threshold": "≥ 85%", "Severity": "Critical", "Source": f"KDS {kds_wl_latest}"})
 
-        waste_fail = latest[latest["waste"] > 5]
-        for _, r in waste_fail.iterrows():
-            alerts.append({"Store": r["short_name"], "District": r.get("district", ""), "Metric": "Waste", "Value": f"{r['waste']:.2f}%", "Threshold": "> 5%", "Severity": "Critical"})
+        # Make Ahead > 10%
+        for _, r in kds_latest[kds_latest["Make Ahead %"].notna() & (kds_latest["Make Ahead %"] > 10)].iterrows():
+            alerts.append({"store_num": r["store_num"], "Store": str(r["Store Name"])[:22], "District": r["district"],
+                           "Metric": "Make Ahead", "Value": f"{r['Make Ahead %']:.1f}%", "Threshold": "≤ 10%", "Severity": "Critical", "Source": f"KDS {kds_wl_latest}"})
 
-        adopt_fail = latest[latest["bone_in_adopt"] < 85]
-        for _, r in adopt_fail.iterrows():
-            alerts.append({"Store": r["short_name"], "District": r.get("district", ""), "Metric": "Bone-In Adoption", "Value": f"{r['bone_in_adopt']:.1f}%", "Threshold": "< 85%", "Severity": "Critical"})
+        # Pre-Bump > 1.5%
+        for _, r in kds_latest[kds_latest["Pre-Bump %"].notna() & (kds_latest["Pre-Bump %"] > 1.5)].iterrows():
+            alerts.append({"store_num": r["store_num"], "Store": str(r["Store Name"])[:22], "District": r["district"],
+                           "Metric": "Pre-Bump", "Value": f"{r['Pre-Bump %']:.2f}%", "Threshold": "≤ 1.5%", "Severity": "Critical", "Source": f"KDS {kds_wl_latest}"})
 
-        ma_fail = latest[latest["make_ahead_rate"] > 10]
-        for _, r in ma_fail.iterrows():
-            alerts.append({"Store": r["short_name"], "District": r.get("district", ""), "Metric": "Make Ahead", "Value": f"{r['make_ahead_rate']:.1f}%", "Threshold": "> 10%", "Severity": "Critical"})
+        # Waste > 5%
+        for _, r in kds_latest[kds_latest["Waste %"].notna() & (kds_latest["Waste %"] > 5)].iterrows():
+            alerts.append({"store_num": r["store_num"], "Store": str(r["Store Name"])[:22], "District": r["district"],
+                           "Metric": "Waste", "Value": f"{r['Waste %']:.2f}%", "Threshold": "≤ 5%", "Severity": "Critical", "Source": f"KDS {kds_wl_latest}"})
 
-        pb_crit = latest[latest["pre_bump"] > 1.5]
-        for _, r in pb_crit.iterrows():
-            alerts.append({"Store": r["short_name"], "District": r.get("district", ""), "Metric": "Pre-Bump", "Value": f"{r['pre_bump']:.2f}%", "Threshold": "> 1.5%", "Severity": "Critical"})
-
-        pb_warn = latest[(latest["pre_bump"] > 0.5) & (latest["pre_bump"] <= 1.5)]
-        for _, r in pb_warn.iterrows():
-            alerts.append({"Store": r["short_name"], "District": r.get("district", ""), "Metric": "Pre-Bump", "Value": f"{r['pre_bump']:.2f}%", "Threshold": "0.5-1.5%", "Severity": "Warning"})
-
-    # Labor alerts
+    # ── Labor Alerts ──
     forecast_path = DATA_DIR / "forecast.xlsm"
     if forecast_path.exists():
         @st.cache_data(ttl=300)
@@ -2644,109 +2655,206 @@ elif selected_tab == "Watch List":
         if not wl_labor.empty:
             wl_labor["store_num"] = wl_labor["store"].apply(forecast_store_num)
             wl_labor["short_name"] = wl_labor["store"].apply(forecast_short_name)
-            wl_labor["config_district"] = wl_labor["store_num"].map(STORE_TO_DISTRICT)
-            la = wl_labor.groupby(["store_num", "short_name", "config_district"]).agg(
+            la = wl_labor.groupby(["store_num", "short_name"]).agg(
                 actual_sales=("actual_sales", "sum"), forecast_sales=("forecast_sales", "sum"),
                 actual_labor=("actual_labor", "sum"), schedule_labor=("schedule_labor", "sum"),
                 ovt_hours=("ovt_hours", "sum"),
             ).reset_index()
             la["labor_pct"] = la["actual_labor"] / la["actual_sales"]
             la["labor_var"] = la["labor_pct"] - (la["schedule_labor"] / la["forecast_sales"])
+            la["district"] = la["store_num"].map(STORE_TO_DISTRICT).fillna("Unassigned")
 
-            if selected_store != "All Stores":
-                sk_num = extract_store_number(selected_store)
-                la = la[la["store_num"] == sk_num]
-            elif selected_district != "All Districts":
-                d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
-                la = la[la["store_num"].isin(d_nums)]
+            for _, r in la[la["labor_pct"] > 0.18].iterrows():
+                sev = "Critical" if r["labor_pct"] > 0.20 else "Warning"
+                alerts.append({"store_num": r["store_num"], "Store": r["short_name"], "District": r["district"],
+                               "Metric": "Labor %", "Value": f"{r['labor_pct']:.1%}", "Threshold": "≤ 18%", "Severity": sev, "Source": "Labor YTD"})
 
-            labor_high = la[la["labor_pct"] > 0.20]
-            for _, r in labor_high.iterrows():
-                alerts.append({"Store": r["short_name"], "District": r.get("config_district", ""), "Metric": "Labor %", "Value": f"{r['labor_pct']:.1%}", "Threshold": "> 20%", "Severity": "Critical"})
+            for _, r in la[la["labor_var"] > 0.02].iterrows():
+                alerts.append({"store_num": r["store_num"], "Store": r["short_name"], "District": r["district"],
+                               "Metric": "Labor Variance", "Value": f"{r['labor_var']:+.2%}", "Threshold": "≤ +2%", "Severity": "Critical", "Source": "Labor YTD"})
 
-            labor_warn = la[(la["labor_pct"] > 0.18) & (la["labor_pct"] <= 0.20)]
-            for _, r in labor_warn.iterrows():
-                alerts.append({"Store": r["short_name"], "District": r.get("config_district", ""), "Metric": "Labor %", "Value": f"{r['labor_pct']:.1%}", "Threshold": "18-20%", "Severity": "Warning"})
+            for _, r in la[la["ovt_hours"] > 25].iterrows():
+                alerts.append({"store_num": r["store_num"], "Store": r["short_name"], "District": r["district"],
+                               "Metric": "Overtime", "Value": f"{r['ovt_hours']:.0f} hrs", "Threshold": "≤ 25 hrs", "Severity": "Warning", "Source": "Labor YTD"})
 
-            var_high = la[la["labor_var"] > 0.02]
-            for _, r in var_high.iterrows():
-                alerts.append({"Store": r["short_name"], "District": r.get("config_district", ""), "Metric": "Labor Variance", "Value": f"{r['labor_var']:+.2%}", "Threshold": "> +2%", "Severity": "Critical"})
+    # ── COGS Alerts ──
+    cogs_wl_file = DATA_DIR / "cogs_variance.csv"
+    if cogs_wl_file.exists():
+        cogs_wl = pd.read_csv(cogs_wl_file)
+        cogs_latest_period = sorted(cogs_wl["Period"].unique())[-1] if len(cogs_wl) > 0 else ""
+        cogs_latest = cogs_wl[cogs_wl["Period"] == cogs_latest_period].copy()
+        for _, r in cogs_latest[cogs_latest["COGS Variance %"].notna() & (cogs_latest["COGS Variance %"] > 2)].iterrows():
+            sev = "Critical" if r["COGS Variance %"] > 4 else "Warning"
+            snum = str(r["Store No"]).lstrip("0")
+            dist = STORE_TO_DISTRICT.get(snum, "Unassigned")
+            alerts.append({"store_num": snum, "Store": str(r["Store Name"])[:22], "District": dist,
+                           "Metric": "COGS Variance", "Value": f"{r['COGS Variance %']:.2f}%", "Threshold": "≤ 2%", "Severity": sev, "Source": f"COGS {cogs_latest_period}"})
 
-            ot_high = la[la["ovt_hours"] > 25]
-            for _, r in ot_high.iterrows():
-                alerts.append({"Store": r["short_name"], "District": r.get("config_district", ""), "Metric": "Overtime", "Value": f"{r['ovt_hours']:.1f} hrs", "Threshold": "> 25 hrs", "Severity": "Warning"})
+    # ── QSC Eval Alerts ──
+    eval_wl_file = DATA_DIR / "qsc_evals.csv"
+    if eval_wl_file.exists():
+        eval_wl = pd.read_csv(eval_wl_file)
+        eval_wl["No Eval"] = eval_wl["No Eval"].astype(bool)
+        eval_wl["Red Flag"] = eval_wl["Red Flag"].astype(bool)
+        eval_periods = sorted(eval_wl["Period"].unique(), key=lambda x: (int(x[1]), int(x[3])))
+        eval_latest = eval_periods[-1] if eval_periods else ""
+        eval_latest_data = eval_wl[eval_wl["Period"] == eval_latest]
 
-    if not alerts:
-        st.success("All stores within thresholds. No alerts.")
-    else:
+        for _, r in eval_latest_data[eval_latest_data["No Eval"]].iterrows():
+            snum = str(int(r["Store No"]))
+            dist = r["District"] if pd.notna(r.get("District")) else STORE_TO_DISTRICT.get(snum, "Unassigned")
+            alerts.append({"store_num": snum, "Store": f"Store {snum}", "District": dist,
+                           "Metric": "QSC Eval", "Value": "Missed", "Threshold": "Completed", "Severity": "Critical", "Source": f"QSC {eval_latest}"})
+
+        for _, r in eval_latest_data[eval_latest_data["Red Flag"]].iterrows():
+            snum = str(int(r["Store No"]))
+            dist = r["District"] if pd.notna(r.get("District")) else STORE_TO_DISTRICT.get(snum, "Unassigned")
+            reason = "score=0" if (pd.notna(r.get("Score")) and r["Score"] == 0) else "<1hr duration"
+            alerts.append({"store_num": snum, "Store": f"Store {snum}", "District": dist,
+                           "Metric": "QSC Red Flag", "Value": reason, "Threshold": "No flags", "Severity": "Warning", "Source": f"QSC {eval_latest}"})
+
+    # ── Apply sidebar filters ──
+    if alerts:
         alert_df = pd.DataFrame(alerts)
+        if selected_store != "All Stores":
+            sk_num = extract_store_number(selected_store)
+            alert_df = alert_df[alert_df["store_num"] == sk_num]
+        elif selected_district != "All Districts":
+            d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
+            alert_df = alert_df[alert_df["store_num"].isin(d_nums)]
+    else:
+        alert_df = pd.DataFrame()
 
-        critical_count = len(alert_df[alert_df["Severity"] == "Critical"])
-        warning_count = len(alert_df[alert_df["Severity"] == "Warning"])
-        stores_flagged = alert_df["Store"].nunique()
-        total_stores = len(STORE_TO_DISTRICT)
+    if alert_df.empty:
+        st.success("✅ All stores within thresholds. No alerts.")
+    else:
+        # ── KPIs ──
+        critical_count = (alert_df["Severity"] == "Critical").sum()
+        warning_count = (alert_df["Severity"] == "Warning").sum()
+        stores_flagged = alert_df["store_num"].nunique()
+        districts_flagged = alert_df["District"].nunique()
 
-        wk1, wk2, wk3 = st.columns(3)
-        wk1.markdown(kpi_card("Critical", str(critical_count), "red"), unsafe_allow_html=True)
-        wk2.markdown(kpi_card("Warnings", str(warning_count), "orange"), unsafe_allow_html=True)
-        wk3.markdown(kpi_card("Stores Flagged", f"{stores_flagged} / {total_stores}"), unsafe_allow_html=True)
+        kpi_style = """<div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; padding:1rem; text-align:left; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+            <div style="color:#6B7280; font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">{label}</div>
+            <div style="color:{color}; font-size:2rem; font-weight:800; margin:0.2rem 0;">{value}</div>
+            <div style="color:#9CA3AF; font-size:0.78rem;">{sub}</div>
+        </div>"""
 
-        st.markdown("")
+        c1, c2, c3, c4 = st.columns(4)
+        c1.markdown(kpi_style.format(label="CRITICAL ALERTS", value=critical_count, color="#DC2626",
+                    sub="immediate attention"), unsafe_allow_html=True)
+        c2.markdown(kpi_style.format(label="WARNINGS", value=warning_count, color="#D97706",
+                    sub="monitor closely"), unsafe_allow_html=True)
+        c3.markdown(kpi_style.format(label="STORES FLAGGED", value=f"{stores_flagged}/{len(STORE_TO_DISTRICT)}", color="#1F2937",
+                    sub=f"{stores_flagged/len(STORE_TO_DISTRICT)*100:.0f}% of fleet"), unsafe_allow_html=True)
+        c4.markdown(kpi_style.format(label="DISTRICTS AFFECTED", value=f"{districts_flagged}/{len(DISTRICTS)}", color="#1F2937",
+                    sub="with alerts"), unsafe_allow_html=True)
 
-        # Group by store — show each store as a card with its issues
-        st.markdown('<div class="section-title">Stores Needing Attention</div>', unsafe_allow_html=True)
-        store_groups = alert_df.groupby(["Store", "District"])
-        store_severity = alert_df.groupby("Store")["Severity"].apply(lambda x: "Critical" if "Critical" in x.values else "Warning")
-        store_order = store_severity.sort_values(ascending=True).index.tolist()
+        st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
 
-        for store_name in store_order:
-            store_alerts = alert_df[alert_df["Store"] == store_name]
-            district = store_alerts["District"].iloc[0]
-            has_critical = "Critical" in store_alerts["Severity"].values
-            border_color = RED if has_critical else ORANGE
-            badge_color = RED if has_critical else ORANGE
-            badge_text = "CRITICAL" if has_critical else "WARNING"
+        # ── Takeaways ──
+        st.markdown('<div style="font-weight:700; color:#1A3C34; font-size:1.05rem; margin:0.5rem 0 0.5rem 0;">Alert Summary</div>', unsafe_allow_html=True)
+        takeaway_style = '<div style="border-left:4px solid {color}; padding:0.5rem 1rem; margin:0.4rem 0; background:#FAFBFC; border-radius:0 6px 6px 0;">{text}</div>'
 
-            issues_html = ""
-            for _, row in store_alerts.iterrows():
-                sev_color = RED if row["Severity"] == "Critical" else ORANGE
-                dot = f'<span style="color:{sev_color};">&#9679;</span>'
-                issues_html += f'<div style="padding:0.2rem 0; font-size:0.82rem; color:#374151;">{dot} <strong>{row["Metric"]}</strong>: {row["Value"]} <span style="color:#9CA3AF;">(threshold: {row["Threshold"]})</span></div>'
+        # Most common alert types
+        metric_counts = alert_df["Metric"].value_counts()
+        top_metric = metric_counts.index[0]
+        st.markdown(takeaway_style.format(color="#1A3C34",
+            text=f'<b>{len(alert_df)} total alerts</b> across {stores_flagged} stores — <b>{critical_count} critical</b>, {warning_count} warnings.'),
+            unsafe_allow_html=True)
 
-            st.markdown(
-                f'<div style="border-left:4px solid {border_color}; background:#FFFFFF; border:1px solid #E8ECF0; border-left:4px solid {border_color}; border-radius:8px; padding:0.8rem 1rem; margin-bottom:0.6rem;">'
-                f'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">'
-                f'<span style="color:#1F2937; font-weight:700; font-size:0.95rem;">{store_name}</span>'
-                f'<div><span style="color:#6B7280; font-size:0.75rem; margin-right:0.6rem;">{district}</span>'
-                f'<span style="background:{badge_color}; color:white; font-size:0.65rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:10px;">{badge_text}</span></div>'
-                f'</div>{issues_html}</div>',
-                unsafe_allow_html=True,
-            )
+        st.markdown(takeaway_style.format(color="#DC2626",
+            text=f'<b>Most common issue:</b> {top_metric} ({metric_counts.iloc[0]} alerts). ' +
+                 ", ".join(f"{m}: {c}" for m, c in metric_counts.items() if m != top_metric)),
+            unsafe_allow_html=True)
 
-        st.markdown("")
+        # Worst district
+        dist_alert_counts = alert_df.groupby("District").size().sort_values(ascending=False)
+        worst_dist = dist_alert_counts.index[0]
+        worst_dist_crit = (alert_df[alert_df["District"] == worst_dist]["Severity"] == "Critical").sum()
+        st.markdown(takeaway_style.format(color="#D97706",
+            text=f'<b>Most alerts:</b> {worst_dist} — {dist_alert_counts.iloc[0]} alerts ({worst_dist_crit} critical).'),
+            unsafe_allow_html=True)
 
-        # Summary: how many stores fail each metric
-        st.markdown('<div class="section-title">Threshold Summary</div>', unsafe_allow_html=True)
-        thresholds_info = [
-            ("SOS", ">= 13 min", "Critical"), ("SOS", "10-13 min", "Warning"),
-            ("Bone-In Adoption", "< 85%", "Critical"), ("Make Ahead", "> 10%", "Critical"),
-            ("Waste", "> 5%", "Critical"), ("Pre-Bump", "> 1.5%", "Critical"), ("Pre-Bump", "0.5-1.5%", "Warning"),
-            ("Labor %", "> 20%", "Critical"), ("Labor %", "18-20%", "Warning"),
-            ("Labor Variance", "> +2%", "Critical"), ("Overtime", "> 25 hrs", "Warning"),
+        st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
+
+        # ── District-grouped alert cards ──
+        st.markdown('<div class="section-title" style="font-size:1.05rem;">Alerts by District</div>', unsafe_allow_html=True)
+
+        for district in sorted(alert_df["District"].unique()):
+            d_alerts = alert_df[alert_df["District"] == district]
+            d_crit = (d_alerts["Severity"] == "Critical").sum()
+            d_warn = (d_alerts["Severity"] == "Warning").sum()
+            d_stores = d_alerts["store_num"].nunique()
+
+            badge_html = ""
+            if d_crit > 0:
+                badge_html += f'<span style="background:#DC2626; color:white; font-size:0.7rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:10px; margin-left:6px;">{d_crit} critical</span>'
+            if d_warn > 0:
+                badge_html += f'<span style="background:#D97706; color:white; font-size:0.7rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:10px; margin-left:4px;">{d_warn} warning</span>'
+
+            st.markdown(f"""
+            <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0; margin-top:1rem;
+                        display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:700; font-size:0.95rem;">{district}{badge_html}</span>
+                <span style="font-size:0.82rem;">{d_stores} stores &nbsp;|&nbsp; {len(d_alerts)} alerts</span>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # Group alerts by store within district
+            stores_in_dist = sorted(d_alerts["store_num"].unique())
+            cards_html = ""
+            for snum in stores_in_dist:
+                s_alerts = d_alerts[d_alerts["store_num"] == snum]
+                s_name = s_alerts["Store"].iloc[0]
+                has_crit = "Critical" in s_alerts["Severity"].values
+                border = "#DC2626" if has_crit else "#D97706"
+
+                issues = ""
+                for _, a in s_alerts.iterrows():
+                    dot_c = "#DC2626" if a["Severity"] == "Critical" else "#D97706"
+                    issues += f'<div style="padding:0.15rem 0; font-size:0.82rem; color:#374151;"><span style="color:{dot_c};">●</span> <b>{a["Metric"]}</b>: {a["Value"]} <span style="color:#9CA3AF;">({a["Source"]})</span></div>'
+
+                cards_html += f"""<div style="border-left:4px solid {border}; padding:0.6rem 0.8rem; margin:0; border-bottom:1px solid #F1F5F9; background:#FFFFFF;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem;">
+                        <span style="color:#1F2937; font-weight:700; font-size:0.9rem;">#{snum} {s_name}</span>
+                        <span style="font-size:0.7rem; color:#9CA3AF;">{len(s_alerts)} alert{'s' if len(s_alerts) > 1 else ''}</span>
+                    </div>
+                    {issues}
+                </div>"""
+
+            st.markdown(f'<div style="border:1px solid #E2E8F0; border-radius:0 0 6px 6px; overflow:hidden; margin-bottom:0.5rem;">{cards_html}</div>', unsafe_allow_html=True)
+
+        # ── Threshold Reference ──
+        st.markdown("<div style='height:1.5rem;'></div>", unsafe_allow_html=True)
+        st.markdown('<div class="section-title" style="font-size:1.05rem;">Threshold Reference</div>', unsafe_allow_html=True)
+        ref_html = """
+        <table style="width:100%; border-collapse:collapse; border:1px solid #E2E8F0; border-radius:6px; overflow:hidden;">
+            <thead><tr style="background:#F1F5F9;">
+                <th style="padding:0.5rem 0.8rem; text-align:left; font-size:0.75rem; color:#6B7280; font-weight:600; text-transform:uppercase; border-bottom:2px solid #E2E8F0;">Metric</th>
+                <th style="padding:0.5rem 0.8rem; text-align:center; font-size:0.75rem; color:#6B7280; font-weight:600; text-transform:uppercase; border-bottom:2px solid #E2E8F0;">Threshold</th>
+                <th style="padding:0.5rem 0.8rem; text-align:center; font-size:0.75rem; color:#6B7280; font-weight:600; text-transform:uppercase; border-bottom:2px solid #E2E8F0;">Severity</th>
+                <th style="padding:0.5rem 0.8rem; text-align:left; font-size:0.75rem; color:#6B7280; font-weight:600; text-transform:uppercase; border-bottom:2px solid #E2E8F0;">Source</th>
+            </tr></thead><tbody>"""
+        thresholds = [
+            ("SOS", "> 10 min (≥13 critical)", "Warning / Critical", "KDS Dinner"),
+            ("Adoption %", "< 85%", "Critical", "KDS Dinner"),
+            ("Make Ahead %", "> 10%", "Critical", "KDS Dinner"),
+            ("Pre-Bump %", "> 1.5%", "Critical", "KDS Dinner"),
+            ("Waste %", "> 5%", "Critical", "KDS Dinner"),
+            ("Labor %", "> 18% (>20% critical)", "Warning / Critical", "Labor Forecast"),
+            ("Labor Variance", "> +2%", "Critical", "Labor Forecast"),
+            ("Overtime", "> 25 hrs", "Warning", "Labor Forecast"),
+            ("COGS Variance", "> 2% (>4% critical)", "Warning / Critical", "COGS Data"),
+            ("QSC Eval", "Missed evaluation", "Critical", "QSC Evals"),
+            ("QSC Red Flag", "Score=0 or <1hr", "Warning", "QSC Evals"),
         ]
-        summary_rows = []
-        for metric, threshold, severity in thresholds_info:
-            matching = alert_df[(alert_df["Metric"] == metric) & (alert_df["Severity"] == severity)]
-            count = len(matching)
-            if count > 0:
-                store_names = ", ".join(sorted(matching["Store"].unique())[:5])
-                if len(matching["Store"].unique()) > 5:
-                    store_names += f" +{len(matching['Store'].unique()) - 5} more"
-                summary_rows.append({"Metric": metric, "Threshold": threshold, "Severity": severity, "Count": count, "Stores": store_names})
-
-        if summary_rows:
-            sum_df = pd.DataFrame(summary_rows)
-            st.dataframe(sum_df, use_container_width=True, hide_index=True)
+        for i, (metric, thresh, sev, source) in enumerate(thresholds):
+            bg = "#FFFFFF" if i % 2 == 0 else "#F9FAFB"
+            sev_color = "#DC2626" if "Critical" in sev else "#D97706"
+            ref_html += f'<tr style="background:{bg};"><td style="padding:0.4rem 0.8rem; border-bottom:1px solid #F1F5F9; font-weight:600; color:#1F2937;">{metric}</td><td style="padding:0.4rem 0.8rem; border-bottom:1px solid #F1F5F9; text-align:center; color:#374151;">{thresh}</td><td style="padding:0.4rem 0.8rem; border-bottom:1px solid #F1F5F9; text-align:center; color:{sev_color}; font-weight:600;">{sev}</td><td style="padding:0.4rem 0.8rem; border-bottom:1px solid #F1F5F9; color:#6B7280;">{source}</td></tr>'
+        ref_html += "</tbody></table>"
+        st.markdown(ref_html, unsafe_allow_html=True)
 
 # ════════════════════════════════
 # TRENDS
