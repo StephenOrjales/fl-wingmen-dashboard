@@ -1853,10 +1853,10 @@ elif selected_tab == "Sales Performance":
         </div>"""
 
         c1, c2, c3, c4 = st.columns(4)
-        c1.markdown(kpi_style.format(label="NET SALES", value=f"${total_net:,.0f}", color="#1F2937",
-                    sub=f"{len(sj_week)} stores"), unsafe_allow_html=True)
-        c2.markdown(kpi_style.format(label="GROSS SALES", value=f"${total_gross:,.0f}", color="#1F2937",
+        c1.markdown(kpi_style.format(label="GROSS SALES", value=f"${total_gross:,.0f}", color="#1F2937",
                     sub=f"incl. tax & comps"), unsafe_allow_html=True)
+        c2.markdown(kpi_style.format(label="NET SALES", value=f"${total_net:,.0f}", color="#1F2937",
+                    sub=f"{len(sj_week)} stores"), unsafe_allow_html=True)
         c3.markdown(kpi_style.format(label="CHECK AVG", value=f"${avg_check:.2f}", color="#0D9488",
                     sub=f"{total_checks:,} total checks"), unsafe_allow_html=True)
         cos_color = "#DC2626" if total_cos < -50 else ("#D97706" if total_cos < 0 else "#059669")
@@ -1949,7 +1949,7 @@ elif selected_tab == "Sales Performance":
             </div>
             """, unsafe_allow_html=True)
 
-            dtbl = d_data[["Store No", "Store Name Short", "Net Sales", "Gross Sales", "Checks Total", "Check Avg",
+            dtbl = d_data[["Store No", "Store Name Short", "Gross Sales", "Net Sales", "Checks Total", "Check Avg",
                            "Void Count", "Void Sales", "Refund", "Cash Over/Short", "Online Sales"]].copy()
             dtbl = dtbl.sort_values("Store No", key=lambda x: x.astype(int))
 
@@ -1959,7 +1959,7 @@ elif selected_tab == "Sales Performance":
             # Keep raw cash O/S for styling
             raw_cos = dtbl["Cash Over/Short"].reset_index(drop=True)
 
-            dtbl.columns = ["Store #", "Store", "Net Sales", "Gross Sales", "Checks", "Check Avg",
+            dtbl.columns = ["Store #", "Store", "Gross Sales", "Net Sales", "Checks", "Check Avg",
                             "Voids", "Void $", "Refund $", "Cash O/S", "Online $", "Online %"]
             dtbl["Net Sales"] = dtbl["Net Sales"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "-")
             dtbl["Gross Sales"] = dtbl["Gross Sales"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "-")
