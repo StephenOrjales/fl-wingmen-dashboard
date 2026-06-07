@@ -470,8 +470,8 @@ if selected_tab == "KDS Dashboard":
         """, unsafe_allow_html=True)
 
         # ── Period selector + Export ──
-        pcol1, pcol2, pcol3 = st.columns([2, 1, 1])
-        with pcol2:
+        pcol1, pcol2, pcol3 = st.columns([1, 1, 2])
+        with pcol1:
             period_options = list(reversed(periods_sorted))
             sel_period = st.selectbox("Week", period_options, index=0, key="kds_dash_period", label_visibility="collapsed")
 
@@ -590,7 +590,7 @@ if selected_tab == "KDS Dashboard":
             # Freeze top row
             ws.freeze_panes = "A2"
 
-        with pcol3:
+        with pcol2:
             st.markdown("<div style='height:0.3rem;'></div>", unsafe_allow_html=True)
             export_buf = io.BytesIO()
             with pd.ExcelWriter(export_buf, engine="openpyxl") as writer:
