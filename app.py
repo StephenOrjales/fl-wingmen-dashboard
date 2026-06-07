@@ -1859,7 +1859,7 @@ elif selected_tab == "Sales Performance":
                     sub=f"{len(sj_week)} stores"), unsafe_allow_html=True)
         c3.markdown(kpi_style.format(label="CHECK AVG", value=f"${avg_check:.2f}", color="#0D9488",
                     sub=f"{total_checks:,} total checks"), unsafe_allow_html=True)
-        cos_color = "#DC2626" if total_cos < -50 else ("#D97706" if total_cos < 0 else "#059669")
+        cos_color = "#DC2626" if (total_cos < -2 or total_cos > 2) else "#059669"
         c4.markdown(kpi_style.format(label="CASH OVER/SHORT", value=f"${total_cos:+,.2f}", color=cos_color,
                     sub="net week"), unsafe_allow_html=True)
 
