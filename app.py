@@ -387,7 +387,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    nav_options = ["KDS Dashboard", "Schedule Guide", "Internal QSC Evals", "COGS Variance", "Sales Performance", "Labor Dashboard", "SMG (Guest Satisfaction)", "District Comparison", "Scorecard", "Watch List", "Wing Worm"]
+    nav_options = ["Sales Performance", "KDS Dashboard", "Schedule Guide", "Internal QSC Evals", "Labor Dashboard", "COGS Variance", "SMG (Guest Satisfaction)", "District Comparison", "Scorecard", "Watch List", "Wing Worm"]
     selected_tab = st.radio("Nav", nav_options, label_visibility="collapsed")
 
     st.markdown("---")
