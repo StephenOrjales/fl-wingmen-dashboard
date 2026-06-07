@@ -165,22 +165,27 @@ for i in range(0, len(pdf.pages), 2):
 
     all_rows.append(row)
 
-df = pd.DataFrame(all_rows)
-df = df.sort_values('Store No', key=lambda x: x.astype(int))
-print(f'\nTotal stores: {len(df)}')
-print(f'Period: {df["Period"].iloc[0] if len(df) > 0 else "?"}')
-print(f'\nNet Sales stats:')
-print(f'  Total: ${df["Net Sales"].sum():,.2f}')
-print(f'  Avg:   ${df["Net Sales"].mean():,.2f}')
-print(f'  Min:   ${df["Net Sales"].min():,.2f}')
-print(f'  Max:   ${df["Net Sales"].max():,.2f}')
-print(f'\nVoid Count total: {df["Void Count"].sum()}')
-print(f'Void Sales total: ${df["Void Sales"].sum():,.2f}')
-print(f'Cash Over/Short total: ${df["Cash Over/Short"].sum():,.2f}')
-print(f'\nDaypart sales totals:')
-for dp in ['Lunch', 'Snack', 'Dinner', 'Late']:
-    print(f'  {dp}: ${df[f"{dp} Sales"].sum():,.2f}')
+new_df = pd.DataFrame(all_rows)
+new_period = new_df["Period"].iloc[0] if len(new_df) > 0 else "?"
+print(f'\nParsed {len(new_df)} stores for {new_period}')
 
 out = Path(r'C:\Users\sorja\Downloads\Wingstop Data\data\sales_journal.csv')
-df.to_csv(out, index=False)
+
+# Merge with existing data (append new period, replace if period already exists)
+if out.exists():
+    existing = pd.read_csv(out)
+    existing = existing[existing["Period"] != new_period]  # remove old data for this period
+    combined = pd.concat([existing, new_df], ignore_index=True)
+else:
+    combined = new_df
+
+combined = combined.sort_values(['Period', 'Store No'])
+combined.to_csv(out, index=False)
+
+print(f'Total rows: {len(combined)}')
+print(f'Periods: {sorted(combined["Period"].unique())}')
+print(f'\n{new_period} stats:')
+print(f'  Net Sales Total: ${new_df["Net Sales"].sum():,.2f}')
+print(f'  Void Count: {new_df["Void Count"].sum()}')
+print(f'  Cash Over/Short: ${new_df["Cash Over/Short"].sum():,.2f}')
 print(f'\nSaved to {out}')
