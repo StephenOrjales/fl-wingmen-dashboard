@@ -1789,166 +1789,181 @@ elif selected_tab == "COGS Variance":
 # SALES PERFORMANCE
 # ════════════════════════════════
 elif selected_tab == "Sales Performance":
-    import numpy as np
-    np.random.seed(42)
+    sales_file = DATA_DIR / "sales_journal.csv"
+    if not sales_file.exists():
+        st.warning("No sales journal data found. Run parse_sales_journal.py first.")
+    else:
+        sj = pd.read_csv(sales_file)
+        sj["Store No"] = sj["Store No"].astype(str)
+        sj["District"] = sj["Store No"].map(STORE_TO_DISTRICT).fillna("Unassigned")
 
-    all_stores = []
-    for dist, stores in DISTRICTS.items():
-        for s in stores:
-            snum = s.split(" - ")[0].strip().lstrip("0")
-            sname = s.split("-", 2)[2].strip()[:22] if len(s.split("-", 2)) >= 3 else s[:22]
-            all_stores.append({"store": s, "store_num": snum, "short_name": sname, "district": dist})
-    sales_df = pd.DataFrame(all_stores)
+        # Apply sidebar filters
+        if selected_store != "All Stores":
+            sk_num = extract_store_number(selected_store).lstrip("0")
+            sj = sj[sj["Store No"] == sk_num]
+        elif selected_district != "All Districts":
+            d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
+            sj = sj[sj["Store No"].isin(d_nums)]
 
-    sales_df["net_sales"] = np.random.uniform(28000, 65000, len(sales_df)).round(0)
-    sales_df["transactions"] = np.random.randint(400, 1100, len(sales_df))
-    sales_df["avg_ticket"] = (sales_df["net_sales"] / sales_df["transactions"]).round(2)
-    sales_df["sales_ly"] = (sales_df["net_sales"] * np.random.uniform(0.88, 1.05, len(sales_df))).round(0)
-    sales_df["sss_growth"] = ((sales_df["net_sales"] - sales_df["sales_ly"]) / sales_df["sales_ly"] * 100).round(1)
-    sales_df["digital_pct"] = np.random.uniform(35, 72, len(sales_df)).round(1)
+        # Period selector
+        sj_periods = sorted(sj["Period"].unique(), key=lambda x: (int(x[1]), int(x[3])))
+        sel_sales_period = st.selectbox("Period", list(reversed(sj_periods)), index=0, key="sales_period")
+        sj_week = sj[sj["Period"] == sel_sales_period].copy()
 
-    if selected_store != "All Stores":
-        sk_num = extract_store_number(selected_store)
-        sales_df = sales_df[sales_df["store_num"] == sk_num]
-    elif selected_district != "All Districts":
-        d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
-        sales_df = sales_df[sales_df["store_num"].isin(d_nums)]
+        # Store name lookup
+        store_name_map = {}
+        for dist, stores in DISTRICTS.items():
+            for s in stores:
+                snum = s.split(" - ")[0].strip().lstrip("0")
+                parts = s.split(" - ")
+                store_name_map[snum] = parts[-1].strip() if len(parts) >= 3 else s
 
-    # ── HEADER ──
-    st.markdown(f"""
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.8rem;">
-        <div>
-            <h2 style="color:#1A3C34; font-weight:800; margin:0; font-size:1.6rem;">Sales Performance</h2>
-            <p style="color:#6B7280; font-size:0.88rem; margin:0.2rem 0 0 0;">
-                FL Wingmen — {len(DISTRICTS)} districts, {len(sales_df)} stores &nbsp;·&nbsp; Weekly net sales &amp; comps
-            </p>
-        </div>
-        <div style="background:#D97706; color:#FFFFFF; padding:0.5rem 1.2rem; border-radius:8px; font-weight:700; font-size:0.9rem; white-space:nowrap;">
-            ⚠️ SAMPLE DATA · <span style="color:#FEF3C7;">Random values for demo</span>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+        sj_week["Store Name Short"] = sj_week["Store No"].map(store_name_map).fillna("")
 
-    # ── KPIs ──
-    total_sales = sales_df["net_sales"].sum()
-    avg_sss = sales_df["sss_growth"].mean()
-    avg_ticket = sales_df["avg_ticket"].mean()
-    total_txn = sales_df["transactions"].sum()
-    avg_digital = sales_df["digital_pct"].mean()
-
-    sss_c = "#059669" if avg_sss >= 0 else "#DC2626"
-    kpi_style = """<div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; padding:1rem; text-align:left; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
-        <div style="color:#6B7280; font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">{label}</div>
-        <div style="color:{color}; font-size:2rem; font-weight:800; margin:0.2rem 0;">{value}</div>
-        <div style="color:#9CA3AF; font-size:0.78rem;">{sub}</div>
-    </div>"""
-
-    c1, c2, c3, c4, c5 = st.columns(5)
-    c1.markdown(kpi_style.format(label="TOTAL NET SALES", value=f"${total_sales:,.0f}", color="#1F2937",
-                sub=f"{len(sales_df)} stores"), unsafe_allow_html=True)
-    c2.markdown(kpi_style.format(label="SSS GROWTH", value=f"{avg_sss:+.1f}%", color=sss_c,
-                sub="vs last year"), unsafe_allow_html=True)
-    c3.markdown(kpi_style.format(label="AVG TICKET", value=f"${avg_ticket:.2f}", color="#1F2937",
-                sub="per transaction"), unsafe_allow_html=True)
-    c4.markdown(kpi_style.format(label="TRANSACTIONS", value=f"{total_txn:,}", color="#0D9488",
-                sub="total volume"), unsafe_allow_html=True)
-    c5.markdown(kpi_style.format(label="DIGITAL MIX", value=f"{avg_digital:.1f}%", color="#0D9488",
-                sub="online orders"), unsafe_allow_html=True)
-
-    st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
-
-    # ── Takeaways ──
-    st.markdown('<div style="font-weight:700; color:#1A3C34; font-size:1.05rem; margin:0.5rem 0 0.5rem 0;">Key Takeaways</div>', unsafe_allow_html=True)
-    takeaway_style = '<div style="border-left:4px solid {color}; padding:0.5rem 1rem; margin:0.4rem 0; background:#FAFBFC; border-radius:0 6px 6px 0;">{text}</div>'
-
-    n_positive = (sales_df["sss_growth"] > 0).sum()
-    n_negative = (sales_df["sss_growth"] < 0).sum()
-    n_declining = (sales_df["sss_growth"] < -3).sum()
-    st.markdown(takeaway_style.format(color="#1A3C34",
-        text=f'<b>${total_sales:,.0f} total net sales</b> across {len(sales_df)} stores, averaging <b>${avg_ticket:.2f}</b> per ticket with <b>{total_txn:,}</b> transactions.'),
-        unsafe_allow_html=True)
-
-    sss_arrow = "▲" if avg_sss > 0 else "▼"
-    sss_text_color = "#059669" if avg_sss > 0 else "#DC2626"
-    st.markdown(takeaway_style.format(color=sss_text_color,
-        text=f'<b>Same-store sales:</b> <span style="color:{sss_text_color}; font-weight:700;">{sss_arrow} {avg_sss:+.1f}%</span> average comp — {n_positive} stores positive, {n_negative} negative' + (f', <span style="color:#DC2626; font-weight:700;">{n_declining} declining &gt;3%</span>.' if n_declining > 0 else '.')),
-        unsafe_allow_html=True)
-
-    if len(sales_df) > 1:
-        top_store = sales_df.loc[sales_df["net_sales"].idxmax()]
-        bot_store = sales_df.loc[sales_df["net_sales"].idxmin()]
-        st.markdown(takeaway_style.format(color="#059669",
-            text=f'<b>Highest sales:</b> Store {top_store["store_num"]} {top_store["short_name"]} — ${int(top_store["net_sales"]):,} ({top_store["sss_growth"]:+.1f}% SSS).'),
-            unsafe_allow_html=True)
-        st.markdown(takeaway_style.format(color="#D97706",
-            text=f'<b>Lowest sales:</b> Store {bot_store["store_num"]} {bot_store["short_name"]} — ${int(bot_store["net_sales"]):,} ({bot_store["sss_growth"]:+.1f}% SSS).'),
-            unsafe_allow_html=True)
-
-    st.markdown("<div style='height:0.5rem;'></div>", unsafe_allow_html=True)
-
-    # ── Charts ──
-    st.markdown('<div class="section-title">Net Sales by Store</div>', unsafe_allow_html=True)
-    s_sorted = sales_df.sort_values("net_sales", ascending=False)
-    fig_ns = go.Figure(go.Bar(
-        x=s_sorted["short_name"], y=s_sorted["net_sales"],
-        marker_color=TEAL,
-        hovertemplate="%{x}<br>Sales: $%{y:,.0f}<extra></extra>",
-    ))
-    fig_ns.update_layout(**CHART_LAYOUT, height=380, yaxis_title="Net Sales ($)", xaxis_tickangle=-45)
-    st.plotly_chart(fig_ns, use_container_width=True, key="sales_ns", config=CHART_CONFIG)
-
-    sl, sr = st.columns(2)
-    with sl:
-        st.markdown('<div class="section-title">Same-Store Sales Growth %</div>', unsafe_allow_html=True)
-        sss_sorted = sales_df.sort_values("sss_growth")
-        sss_colors = [RED if v < -3 else (ORANGE if v < 0 else GREEN) for v in sss_sorted["sss_growth"]]
-        fig_sss = go.Figure(go.Bar(
-            x=sss_sorted["short_name"], y=sss_sorted["sss_growth"],
-            marker_color=sss_colors,
-            hovertemplate="%{x}<br>SSS: %{y:+.1f}%<extra></extra>",
-        ))
-        fig_sss.add_hline(y=0, line_color="#BDBDBD", line_width=1)
-        fig_sss.update_layout(**CHART_LAYOUT, height=370, yaxis_title="SSS Growth %", xaxis_tickangle=-45)
-        st.plotly_chart(fig_sss, use_container_width=True, key="sales_sss", config=CHART_CONFIG)
-
-    with sr:
-        st.markdown('<div class="section-title">Average Ticket by Store</div>', unsafe_allow_html=True)
-        tk_sorted = sales_df.sort_values("avg_ticket", ascending=False)
-        fig_tk = go.Figure(go.Bar(
-            x=tk_sorted["short_name"], y=tk_sorted["avg_ticket"],
-            marker_color=GOLD,
-            hovertemplate="%{x}<br>Avg Ticket: $%{y:.2f}<extra></extra>",
-        ))
-        fig_tk.update_layout(**CHART_LAYOUT, height=370, yaxis_title="Avg Ticket ($)", xaxis_tickangle=-45)
-        st.plotly_chart(fig_tk, use_container_width=True, key="sales_tk", config=CHART_CONFIG)
-
-    # ── District-grouped tables ──
-    st.markdown("<div style='height:1.5rem;'></div>", unsafe_allow_html=True)
-    st.markdown('<div class="section-title" style="font-size:1.05rem;">Sales Detail by District</div>', unsafe_allow_html=True)
-
-    for district in sorted(sales_df["district"].unique()):
-        d_data = sales_df[sales_df["district"] == district].copy()
-        d_sales = d_data["net_sales"].sum()
-        d_txn = d_data["transactions"].sum()
-        d_sss = d_data["sss_growth"].mean()
-        sss_icon = "▲" if d_sss > 0 else "▼"
-
+        # ── HEADER ──
+        date_range = f'{sj_week["Start Date"].iloc[0]} - {sj_week["End Date"].iloc[0]}' if len(sj_week) > 0 else ''
         st.markdown(f"""
-        <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0; margin-top:1rem;
-                    display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-weight:700; font-size:0.95rem;">{district}</span>
-            <span style="font-size:0.82rem;">Sales: <b>${d_sales:,.0f}</b> &nbsp;|&nbsp; Txn: <b>{d_txn:,}</b> &nbsp;|&nbsp; SSS: <b>{d_sss:+.1f}%</b> {sss_icon} &nbsp;|&nbsp; Stores: <b>{len(d_data)}</b></span>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.8rem;">
+            <div>
+                <h2 style="color:#1A3C34; font-weight:800; margin:0; font-size:1.6rem;">Sales Performance</h2>
+                <p style="color:#6B7280; font-size:0.88rem; margin:0.2rem 0 0 0;">
+                    FL Wingmen — {len(sj_week)} stores &nbsp;·&nbsp; {sel_sales_period} ({date_range})
+                </p>
+            </div>
+            <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1.2rem; border-radius:8px; font-weight:700; font-size:0.9rem; white-space:nowrap;">
+                {sel_sales_period} · <span style="color:#B7E4C7;">Net Week</span>
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
-        dtbl = d_data[["store_num", "short_name", "net_sales", "transactions", "avg_ticket", "sss_growth", "digital_pct"]].copy()
-        dtbl.columns = ["Store #", "Store", "Net Sales", "Transactions", "Avg Ticket", "SSS Growth %", "Digital %"]
-        dtbl["Net Sales"] = dtbl["Net Sales"].apply(lambda x: f"${x:,.0f}")
-        dtbl["Avg Ticket"] = dtbl["Avg Ticket"].apply(lambda x: f"${x:.2f}")
-        dtbl["SSS Growth %"] = dtbl["SSS Growth %"].apply(lambda x: f"{x:+.1f}%")
-        dtbl["Digital %"] = dtbl["Digital %"].apply(lambda x: f"{x:.1f}%")
-        dtbl = dtbl.sort_values("Store")
-        st.dataframe(dtbl, use_container_width=True, hide_index=True)
+        # ── KPIs ──
+        total_net = sj_week["Net Sales"].sum()
+        total_gross = sj_week["Gross Sales"].sum()
+        total_voids = int(sj_week["Void Count"].sum()) if sj_week["Void Count"].notna().any() else 0
+        total_void_sales = sj_week["Void Sales"].sum() if sj_week["Void Sales"].notna().any() else 0
+        total_refunds = sj_week["Refund"].sum() if sj_week["Refund"].notna().any() else 0
+        total_cos = sj_week["Cash Over/Short"].sum() if sj_week["Cash Over/Short"].notna().any() else 0
+        total_checks = int(sj_week["Checks Total"].sum()) if sj_week["Checks Total"].notna().any() else 0
+        avg_check = sj_week["Check Avg"].mean() if sj_week["Check Avg"].notna().any() else 0
+
+        kpi_style = """<div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; padding:1rem; text-align:left; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+            <div style="color:#6B7280; font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">{label}</div>
+            <div style="color:{color}; font-size:1.8rem; font-weight:800; margin:0.2rem 0;">{value}</div>
+            <div style="color:#9CA3AF; font-size:0.78rem;">{sub}</div>
+        </div>"""
+
+        c1, c2, c3, c4 = st.columns(4)
+        c1.markdown(kpi_style.format(label="NET SALES", value=f"${total_net:,.0f}", color="#1F2937",
+                    sub=f"{len(sj_week)} stores"), unsafe_allow_html=True)
+        c2.markdown(kpi_style.format(label="GROSS SALES", value=f"${total_gross:,.0f}", color="#1F2937",
+                    sub=f"incl. tax & comps"), unsafe_allow_html=True)
+        c3.markdown(kpi_style.format(label="CHECK AVG", value=f"${avg_check:.2f}", color="#0D9488",
+                    sub=f"{total_checks:,} total checks"), unsafe_allow_html=True)
+        cos_color = "#DC2626" if total_cos < -50 else ("#D97706" if total_cos < 0 else "#059669")
+        c4.markdown(kpi_style.format(label="CASH OVER/SHORT", value=f"${total_cos:+,.2f}", color=cos_color,
+                    sub="net week"), unsafe_allow_html=True)
+
+        st.markdown("<div style='height:0.3rem;'></div>", unsafe_allow_html=True)
+
+        c5, c6, c7, c8 = st.columns(4)
+        c5.markdown(kpi_style.format(label="VOID COUNT", value=f"{total_voids:,}", color="#D97706",
+                    sub=f"${total_void_sales:,.2f} void sales"), unsafe_allow_html=True)
+        c6.markdown(kpi_style.format(label="REFUNDS", value=f"${abs(total_refunds):,.2f}", color="#DC2626",
+                    sub="total refund $"), unsafe_allow_html=True)
+        online_total = sj_week["Online Sales"].sum() if sj_week["Online Sales"].notna().any() else 0
+        online_pct = (online_total / total_net * 100) if total_net > 0 else 0
+        c7.markdown(kpi_style.format(label="ONLINE SALES", value=f"${online_total:,.0f}", color="#0D9488",
+                    sub=f"{online_pct:.1f}% of net sales"), unsafe_allow_html=True)
+        total_discount = sj_week["Total Discount"].sum() if sj_week["Total Discount"].notna().any() else 0
+        disc_pct = (total_discount / total_net * 100) if total_net > 0 else 0
+        c8.markdown(kpi_style.format(label="DISCOUNTS", value=f"${total_discount:,.0f}", color="#D97706",
+                    sub=f"{disc_pct:.2f}% of net"), unsafe_allow_html=True)
+
+        st.markdown("<div style='height:0.5rem;'></div>", unsafe_allow_html=True)
+
+        # ── Daypart Sales Breakdown ──
+        st.markdown('<div class="section-title">Daypart Sales Mix</div>', unsafe_allow_html=True)
+        dp_data = []
+        for dp in ["Lunch", "Snack", "Dinner", "Late"]:
+            dp_sales = sj_week[f"{dp} Sales"].sum() if sj_week[f"{dp} Sales"].notna().any() else 0
+            dp_tickets = int(sj_week[f"{dp} Tickets"].sum()) if sj_week[f"{dp} Tickets"].notna().any() else 0
+            dp_avg = (dp_sales / dp_tickets) if dp_tickets > 0 else 0
+            dp_data.append({"Daypart": dp, "Sales": dp_sales, "Tickets": dp_tickets, "Avg Ticket": dp_avg})
+
+        dp_df = pd.DataFrame(dp_data)
+        dp_total = dp_df["Sales"].sum()
+
+        dp_cols = st.columns(4)
+        dp_colors = {"Lunch": "#0D9488", "Snack": "#D97706", "Dinner": "#2D6A4F", "Late": "#7C3AED"}
+        for i, (_, dpr) in enumerate(dp_df.iterrows()):
+            pct = (dpr["Sales"] / dp_total * 100) if dp_total > 0 else 0
+            dp_cols[i].markdown(kpi_style.format(
+                label=dpr["Daypart"].upper(), value=f"${dpr['Sales']:,.0f}",
+                color=dp_colors.get(dpr["Daypart"], "#1F2937"),
+                sub=f"{pct:.1f}% · {dpr['Tickets']:,} tickets · ${dpr['Avg Ticket']:.2f} avg"
+            ), unsafe_allow_html=True)
+
+        st.markdown("<div style='height:0.3rem;'></div>", unsafe_allow_html=True)
+
+        # Daypart donut chart
+        fig_dp = go.Figure(go.Pie(
+            labels=dp_df["Daypart"], values=dp_df["Sales"], hole=0.55,
+            marker=dict(colors=[dp_colors[dp] for dp in dp_df["Daypart"]]),
+            textinfo="percent", textfont=dict(size=13, color="#FFFFFF"),
+            hovertemplate="%{label}<br>$%{value:,.0f} (%{percent})<extra></extra>",
+        ))
+        fig_dp.update_layout(plot_bgcolor=CHART_BG, paper_bgcolor=CHART_BG, font=dict(color=FONT_COLOR, size=11),
+                             margin=dict(l=10, r=10, t=10, b=10), height=280,
+                             legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5))
+        st.plotly_chart(fig_dp, use_container_width=True, config=CHART_CONFIG, key="sales_dp_donut")
+
+        st.markdown("<div style='height:0.5rem;'></div>", unsafe_allow_html=True)
+
+        # ── Charts ──
+        st.markdown('<div class="section-title">Net Sales by Store</div>', unsafe_allow_html=True)
+        s_sorted = sj_week.sort_values("Net Sales", ascending=False)
+        fig_ns = go.Figure(go.Bar(
+            x=s_sorted["Store Name Short"], y=s_sorted["Net Sales"],
+            marker_color=TEAL,
+            hovertemplate="Store %{x}<br>Net Sales: $%{y:,.0f}<extra></extra>",
+        ))
+        fig_ns.update_layout(**CHART_LAYOUT, height=380, yaxis_title="Net Sales ($)", xaxis_tickangle=-45)
+        st.plotly_chart(fig_ns, use_container_width=True, key="sales_ns", config=CHART_CONFIG)
+
+        # ── District-grouped tables ──
+        st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
+        st.markdown('<div class="section-title" style="font-size:1.05rem;">Sales Detail by District</div>', unsafe_allow_html=True)
+
+        for district in sorted(sj_week["District"].unique()):
+            d_data = sj_week[sj_week["District"] == district].copy()
+            d_net = d_data["Net Sales"].sum()
+            d_checks = int(d_data["Checks Total"].sum()) if d_data["Checks Total"].notna().any() else 0
+            d_voids = int(d_data["Void Count"].sum()) if d_data["Void Count"].notna().any() else 0
+            d_cos = d_data["Cash Over/Short"].sum() if d_data["Cash Over/Short"].notna().any() else 0
+
+            st.markdown(f"""
+            <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1rem; border-radius:6px 6px 0 0; margin-top:1rem;
+                        display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:700; font-size:0.95rem;">{district}</span>
+                <span style="font-size:0.82rem;">Net: <b>${d_net:,.0f}</b> &nbsp;|&nbsp; Checks: <b>{d_checks:,}</b> &nbsp;|&nbsp; Voids: <b>{d_voids}</b> &nbsp;|&nbsp; Cash O/S: <b>${d_cos:+,.2f}</b></span>
+            </div>
+            """, unsafe_allow_html=True)
+
+            dtbl = d_data[["Store No", "Store Name Short", "Net Sales", "Gross Sales", "Checks Total", "Check Avg",
+                           "Void Count", "Void Sales", "Refund", "Cash Over/Short", "Online Sales"]].copy()
+            dtbl = dtbl.sort_values("Store No", key=lambda x: x.astype(int))
+            dtbl.columns = ["Store #", "Store", "Net Sales", "Gross Sales", "Checks", "Check Avg",
+                            "Voids", "Void $", "Refund $", "Cash O/S", "Online $"]
+            dtbl["Net Sales"] = dtbl["Net Sales"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "-")
+            dtbl["Gross Sales"] = dtbl["Gross Sales"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "-")
+            dtbl["Check Avg"] = dtbl["Check Avg"].apply(lambda x: f"${x:.2f}" if pd.notna(x) else "-")
+            dtbl["Void $"] = dtbl["Void $"].apply(lambda x: f"${x:,.2f}" if pd.notna(x) else "-")
+            dtbl["Refund $"] = dtbl["Refund $"].apply(lambda x: f"${x:,.2f}" if pd.notna(x) else "-")
+            dtbl["Cash O/S"] = dtbl["Cash O/S"].apply(lambda x: f"${x:+,.2f}" if pd.notna(x) else "-")
+            dtbl["Online $"] = dtbl["Online $"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "-")
+            dtbl["Checks"] = dtbl["Checks"].apply(lambda x: f"{int(x):,}" if pd.notna(x) else "-")
+            dtbl["Voids"] = dtbl["Voids"].apply(lambda x: f"{int(x)}" if pd.notna(x) else "-")
+            st.dataframe(dtbl, use_container_width=True, hide_index=True)
 
 # ════════════════════════════════
 # LABOR DASHBOARD
