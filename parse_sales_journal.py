@@ -9,18 +9,81 @@ pdf_path = sys.argv[1] if len(sys.argv) > 1 else r'C:\Users\sorja\Downloads\1.03
 pdf = pdfplumber.open(pdf_path)
 print(f'Pages: {len(pdf.pages)}')
 
-all_rows = []
 
-for i in range(0, len(pdf.pages), 2):
-    page1 = pdf.pages[i].extract_text() or ''
-    page2 = pdf.pages[i + 1].extract_text() if i + 1 < len(pdf.pages) else ''
+def parse_dollar(text, pattern):
+    m = re.search(pattern, text)
+    if m:
+        val = m.group(1).replace(',', '').replace('$', '').replace('(', '-').replace(')', '')
+        try:
+            return float(val)
+        except ValueError:
+            return None
+    return None
 
-    # Extract store number from header like "0079 - FL - Plantation - W"
-    store_match = re.match(r'(\d+)\s*-\s*[Ff][Ll]\s*-\s*', page1)
-    if not store_match:
+
+def parse_int(text, pattern):
+    m = re.search(pattern, text)
+    if m:
+        val = m.group(1).replace(',', '')
+        try:
+            return int(val)
+        except ValueError:
+            return None
+    return None
+
+
+def parse_pct(text, pattern):
+    m = re.search(pattern, text)
+    if m:
+        val = m.group(1).replace('%', '')
+        try:
+            return float(val)
+        except ValueError:
+            return None
+    return None
+
+
+# Group pages by store — each store has a main page and a daypart page
+# Some stores may have extra pages, so detect by content rather than assuming pairs
+stores_pages = []  # list of {'main': text, 'daypart': text}
+current = None
+
+for i in range(len(pdf.pages)):
+    text = pdf.pages[i].extract_text() or ''
+    has_daypart = 'Day Part Sales' in text
+    store_match = re.match(r'(\d+)\s*-\s*[Ff][Ll]\s*-', text)
+
+    if has_daypart:
+        # This is a daypart page — attach to current store
+        if current:
+            current['daypart'] = text
+            stores_pages.append(current)
+            current = None
+    elif store_match:
+        # This is a main page for a (possibly new) store
+        store_no = str(int(store_match.group(1)))
+        if current and current.get('store_no') == store_no:
+            # Extra main page for same store — merge text
+            current['main'] += '\n' + text
+        else:
+            # New store — save previous if it exists without daypart
+            if current:
+                stores_pages.append(current)
+            current = {'store_no': store_no, 'main': text, 'daypart': ''}
+    else:
         print(f'  Skipping page {i+1}: no store match')
-        continue
-    store_no = str(int(store_match.group(1)))
+
+# Don't forget the last store if it had no daypart page
+if current:
+    stores_pages.append(current)
+
+print(f'Stores found: {len(stores_pages)}')
+
+all_rows = []
+for sp in stores_pages:
+    page1 = sp['main']
+    page2 = sp['daypart']
+    store_no = sp['store_no']
 
     # Extract period/week
     period_match = re.search(r'Period:\s*(\d+)\s+Week:\s*(\d+)', page1)
@@ -34,36 +97,6 @@ for i in range(0, len(pdf.pages), 2):
     start_date = date_match.group(1) if date_match else ''
     end_date = date_match.group(2) if date_match else ''
 
-    def parse_dollar(text, pattern):
-        m = re.search(pattern, text)
-        if m:
-            val = m.group(1).replace(',', '').replace('$', '').replace('(', '-').replace(')', '')
-            try:
-                return float(val)
-            except ValueError:
-                return None
-        return None
-
-    def parse_int(text, pattern):
-        m = re.search(pattern, text)
-        if m:
-            val = m.group(1).replace(',', '')
-            try:
-                return int(val)
-            except ValueError:
-                return None
-        return None
-
-    def parse_pct(text, pattern):
-        m = re.search(pattern, text)
-        if m:
-            val = m.group(1).replace('%', '')
-            try:
-                return float(val)
-            except ValueError:
-                return None
-        return None
-
     # Page 1 metrics
     net_sales = parse_dollar(page1, r'= Net Sales\s+\$?([\d,]+\.?\d*)')
     gross_sales = parse_dollar(page1, r'= Gross Sales\s+\$?([\d,]+\.?\d*)')
@@ -72,28 +105,28 @@ for i in range(0, len(pdf.pages), 2):
     sales_tax = parse_dollar(page1, r'\+ Sales Tax\s+\$?([\d,]+\.?\d*)')
     void_count = parse_int(page1, r'Void Count\s+(\d+)')
     void_sales = parse_dollar(page1, r'Void Sales\s+\$?([\d,]+\.?\d*)')
-    refund = parse_dollar(page1, r'Refund \$\s+\-?\$?([\d,]+\.?\d*)')
-    # Check for negative refund
+
+    # Refund (may be negative)
+    refund = None
     refund_match = re.search(r'Refund \$\s+(-?\$?[\d,]+\.?\d*)', page1)
     if refund_match:
         val = refund_match.group(1).replace(',', '').replace('$', '')
         try:
             refund = float(val)
         except ValueError:
-            refund = None
+            pass
 
-    cash_over_short_match = re.search(r'Cash Over/Short\s+\(?\$?([\d,]+\.?\d*)\)?', page1)
+    # Cash Over/Short (negative if in parens)
     cash_over_short = None
-    if cash_over_short_match:
-        val = cash_over_short_match.group(1).replace(',', '')
+    cos_match = re.search(r'Cash Over/Short\s+(\(?\$?[\d,]+\.?\d*\)?)', page1)
+    if cos_match:
+        raw = cos_match.group(1)
+        is_neg = '(' in raw
+        val = raw.replace('(', '').replace(')', '').replace('$', '').replace(',', '')
         try:
-            cash_over_short = float(val)
+            cash_over_short = -float(val) if is_neg else float(val)
         except ValueError:
             pass
-        # Check if negative (in parens)
-        full = re.search(r'Cash Over/Short\s+(\(?\$?[\d,]+\.?\d*\)?)', page1)
-        if full and '(' in full.group(1):
-            cash_over_short = -cash_over_short
 
     checks_total = parse_int(page1, r'Checks - TOTAL\s+([\d,]+)')
     check_avg = parse_dollar(page1, r'Check Average\s+\$?([\d,]+\.?\d*)')
@@ -186,6 +219,7 @@ print(f'Total rows: {len(combined)}')
 print(f'Periods: {sorted(combined["Period"].unique())}')
 print(f'\n{new_period} stats:')
 print(f'  Net Sales Total: ${new_df["Net Sales"].sum():,.2f}')
+print(f'  Stores: {len(new_df)}')
 print(f'  Void Count: {new_df["Void Count"].sum()}')
 print(f'  Cash Over/Short: ${new_df["Cash Over/Short"].sum():,.2f}')
 print(f'\nSaved to {out}')
