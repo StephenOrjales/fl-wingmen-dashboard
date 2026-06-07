@@ -791,8 +791,8 @@ if selected_tab == "KDS Dashboard":
             </div>""", unsafe_allow_html=True)
 
             DISTRICT_COLORS = {
-                "District 1": "#DC2626", "District 2": "#7C3AED", "District 3": "#0369A1",
-                "District 4": "#C2410C", "District 5": "#059669", "District 6": "#B45309",
+                "District 1": "#BE185D", "District 2": "#7C3AED", "District 3": "#0369A1",
+                "District 4": "#C2410C", "District 5": "#059669", "District 6": "#4338CA",
             }
             OFF_GUIDE = "color: #DC2626; font-weight: 700"
 
