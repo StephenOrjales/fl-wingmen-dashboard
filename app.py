@@ -1952,8 +1952,15 @@ elif selected_tab == "Sales Performance":
             dtbl = d_data[["Store No", "Store Name Short", "Net Sales", "Gross Sales", "Checks Total", "Check Avg",
                            "Void Count", "Void Sales", "Refund", "Cash Over/Short", "Online Sales"]].copy()
             dtbl = dtbl.sort_values("Store No", key=lambda x: x.astype(int))
+
+            # Online % column
+            dtbl["Online %"] = dtbl.apply(lambda r: (r["Online Sales"] / r["Net Sales"] * 100) if pd.notna(r["Online Sales"]) and pd.notna(r["Net Sales"]) and r["Net Sales"] > 0 else None, axis=1)
+
+            # Keep raw cash O/S for styling
+            raw_cos = dtbl["Cash Over/Short"].reset_index(drop=True)
+
             dtbl.columns = ["Store #", "Store", "Net Sales", "Gross Sales", "Checks", "Check Avg",
-                            "Voids", "Void $", "Refund $", "Cash O/S", "Online $"]
+                            "Voids", "Void $", "Refund $", "Cash O/S", "Online $", "Online %"]
             dtbl["Net Sales"] = dtbl["Net Sales"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "-")
             dtbl["Gross Sales"] = dtbl["Gross Sales"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "-")
             dtbl["Check Avg"] = dtbl["Check Avg"].apply(lambda x: f"${x:.2f}" if pd.notna(x) else "-")
@@ -1961,9 +1968,21 @@ elif selected_tab == "Sales Performance":
             dtbl["Refund $"] = dtbl["Refund $"].apply(lambda x: f"${x:,.2f}" if pd.notna(x) else "-")
             dtbl["Cash O/S"] = dtbl["Cash O/S"].apply(lambda x: f"${x:+,.2f}" if pd.notna(x) else "-")
             dtbl["Online $"] = dtbl["Online $"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "-")
+            dtbl["Online %"] = dtbl["Online %"].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "-")
             dtbl["Checks"] = dtbl["Checks"].apply(lambda x: f"{int(x):,}" if pd.notna(x) else "-")
             dtbl["Voids"] = dtbl["Voids"].apply(lambda x: f"{int(x)}" if pd.notna(x) else "-")
-            st.dataframe(dtbl, use_container_width=True, hide_index=True)
+            dtbl = dtbl.reset_index(drop=True)
+
+            def style_sales_row(row):
+                idx = row.name
+                cols = list(row.index)
+                styles = [""] * len(row)
+                cos_val = raw_cos.get(idx)
+                if pd.notna(cos_val) and (cos_val < -2 or cos_val > 2):
+                    styles[cols.index("Cash O/S")] = "color: #DC2626; font-weight: 700"
+                return styles
+
+            st.dataframe(dtbl.style.apply(style_sales_row, axis=1), use_container_width=True, hide_index=True)
 
 # ════════════════════════════════
 # LABOR DASHBOARD
