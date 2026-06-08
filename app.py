@@ -794,10 +794,16 @@ if selected_tab == "KDS Dashboard":
             st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
 
             # ── Store Performance Table ──
-            st.markdown(f"""<div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
-                <span style="background:#1A3C34; color:#FFFFFF; padding:2px 10px; border-radius:4px; font-size:0.75rem; font-weight:700;">{sel_period}</span>
-                <span style="font-weight:700; color:#1F2937; font-size:1.05rem;">Store Performance</span>
-            </div>""", unsafe_allow_html=True)
+            sort_col1, sort_col2 = st.columns([3, 1])
+            with sort_col1:
+                st.markdown(f"""<div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                    <span style="background:#1A3C34; color:#FFFFFF; padding:2px 10px; border-radius:4px; font-size:0.75rem; font-weight:700;">{sel_period}</span>
+                    <span style="font-weight:700; color:#1F2937; font-size:1.05rem;">Store Performance</span>
+                </div>""", unsafe_allow_html=True)
+            with sort_col2:
+                sort_options = {"Store #": ("Store No", True), "SOS (Fastest)": ("SOS", True), "SOS (Slowest)": ("SOS", False), "Adherence % (Low→High)": ("Adherence %", True), "Adherence % (High→Low)": ("Adherence %", False)}
+                sort_choice = st.selectbox("Sort by", list(sort_options.keys()), index=0, key="kds_sort", label_visibility="collapsed")
+                sort_key, sort_asc = sort_options[sort_choice]
 
             DISTRICT_COLORS = {
                 "District 1": "#EC4899", "District 2": "#7C3AED", "District 3": "#0369A1",
@@ -806,7 +812,7 @@ if selected_tab == "KDS Dashboard":
             OFF_GUIDE = "color: #DC2626; font-weight: 700"
 
             tbl = kds_week[["Store No", "Store Name", "District", "SOS", "SOS Status", "Adoption %", "Make Ahead %", "Waste %", "Pre-Bump %", "Adherence %"]].copy()
-            tbl = tbl.sort_values("Store No", ascending=True)
+            tbl = tbl.sort_values(sort_key, ascending=sort_asc, na_position="last")
 
             # Build HTML table with district bubbles and off-guide highlights
             perf_cols = ["Store #", "Store Name", "District", "SOS", "Status", "Adoption %", "Make Ahead %", "Waste %", "Pre-Bump %", "Adherence %"]
