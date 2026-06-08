@@ -2309,7 +2309,7 @@ elif selected_tab == "SMG (Guest Satisfaction)":
         </div>"""
 
         sat_c = "#059669" if avg_sat >= 95 else ("#D97706" if avg_sat >= 90 else "#DC2626")
-        dissat_c = "#059669" if avg_dissat <= 5 else ("#D97706" if avg_dissat <= 8 else "#DC2626")
+        dissat_c = "#059669" if avg_dissat <= 3 else ("#D97706" if avg_dissat <= 5 else "#DC2626")
         acc_c = "#059669" if avg_acc >= 97 else ("#D97706" if avg_acc >= 95 else "#DC2626")
         greet_c = "#059669" if avg_greeted >= 95 else ("#D97706" if avg_greeted >= 90 else "#DC2626")
 
@@ -2317,7 +2317,7 @@ elif selected_tab == "SMG (Guest Satisfaction)":
         k1.markdown(kpi_style.format(label="SATISFACTION", value=f"{avg_sat:.1f}%", color=sat_c,
                     sub=f"{total_surveys:,} surveys"), unsafe_allow_html=True)
         k2.markdown(kpi_style.format(label="DISSATISFACTION", value=f"{avg_dissat:.1f}%", color=dissat_c,
-                    sub="target ≤ 5%"), unsafe_allow_html=True)
+                    sub="target ≤ 3%"), unsafe_allow_html=True)
         k3.markdown(kpi_style.format(label="ORDER ACCURACY", value=f"{avg_acc:.1f}%", color=acc_c,
                     sub="target ≥ 97%"), unsafe_allow_html=True)
         k4.markdown(kpi_style.format(label="GREETED WITH SMILE", value=f"{avg_greeted:.1f}%", color=greet_c,
@@ -2328,14 +2328,14 @@ elif selected_tab == "SMG (Guest Satisfaction)":
         # ── Dissatisfaction Chart ──
         st.markdown('<div class="section-title">Dissatisfaction % by Store (lower is better)</div>', unsafe_allow_html=True)
         dis_sorted = smg_raw.sort_values("Dissatisfaction %", ascending=False)
-        dis_colors = [RED if v > 8 else (ORANGE if v > 5 else GREEN) for v in dis_sorted["Dissatisfaction %"]]
+        dis_colors = [RED if v > 5 else (ORANGE if v > 3 else GREEN) for v in dis_sorted["Dissatisfaction %"]]
         fig_dis = go.Figure(go.Bar(
             x=dis_sorted["Store Name"], y=dis_sorted["Dissatisfaction %"],
             marker_color=dis_colors,
             hovertemplate="%{x}<br>Dissat: %{y:.2f}%<extra></extra>",
         ))
-        fig_dis.add_hline(y=5, line_dash="dash", line_color=RED, line_width=1.5,
-                          annotation_text="5% target", annotation_font=dict(color="#DC2626", size=10))
+        fig_dis.add_hline(y=3, line_dash="dash", line_color=RED, line_width=1.5,
+                          annotation_text="3% target", annotation_font=dict(color="#DC2626", size=10))
         fig_dis.update_layout(**CHART_LAYOUT, height=380, yaxis_title="Dissatisfaction %", xaxis_tickangle=-45)
         st.plotly_chart(fig_dis, use_container_width=True, key="smg_dissat", config=CHART_CONFIG)
 
@@ -2406,7 +2406,7 @@ elif selected_tab == "SMG (Guest Satisfaction)":
                 idx = row.name
                 cols = list(row.index)
                 styles = [""] * len(row)
-                if pd.notna(raw_dissat.get(idx)) and raw_dissat[idx] > 5:
+                if pd.notna(raw_dissat.get(idx)) and raw_dissat[idx] > 3:
                     styles[cols.index("Dissat %")] = OFF_SMG
                 if pd.notna(raw_inacc.get(idx)) and raw_inacc[idx] > 3:
                     styles[cols.index("Inaccurate %")] = OFF_SMG
