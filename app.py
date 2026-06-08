@@ -2258,11 +2258,15 @@ elif selected_tab == "Labor Dashboard":
 # SMG (GUEST SATISFACTION)
 # ════════════════════════════════
 elif selected_tab == "SMG (Guest Satisfaction)":
-    smg_path = DATA_DIR / "smg_surveys.csv"
-    if not smg_path.exists():
-        st.warning("No SMG data found. Place smg_surveys.csv in the data/ folder.")
+    smg_files = {"Q1 (12/28/2025 – 3/28/2026)": "smg_q1.csv", "Q2 (3/29/2026 – 6/27/2026)": "smg_q2.csv"}
+    available_smg = {k: v for k, v in smg_files.items() if (DATA_DIR / v).exists()}
+
+    if not available_smg:
+        st.warning("No SMG data found. Place smg_q1.csv or smg_q2.csv in the data/ folder.")
     else:
-        smg_raw = pd.read_csv(smg_path)
+        smg_options = list(available_smg.keys())
+        smg_sel = st.selectbox("Quarter", smg_options, index=len(smg_options) - 1, key="smg_quarter")
+        smg_raw = pd.read_csv(DATA_DIR / available_smg[smg_sel])
         smg_raw["District"] = smg_raw["Store No"].astype(str).map(STORE_TO_DISTRICT).fillna("Unassigned")
         smg_raw["Satisfaction %"] = 100 - smg_raw["Dissatisfaction %"]
         smg_raw["Order Accuracy %"] = 100 - smg_raw["Inaccurate Order %"]
@@ -2281,18 +2285,22 @@ elif selected_tab == "SMG (Guest Satisfaction)":
             <div>
                 <h2 style="color:#1A3C34; font-weight:800; margin:0; font-size:1.4rem;">Guest Satisfaction (SMG)</h2>
                 <p style="color:#6B7280; font-size:0.85rem; margin:0.2rem 0 0 0;">
-                    Q2 (3/29/2026 – 6/27/2026) &nbsp;·&nbsp; {len(smg_raw)} stores &nbsp;·&nbsp; {int(smg_raw["Survey Count"].sum()):,} total surveys
+                    {smg_sel} &nbsp;·&nbsp; {len(smg_raw)} stores &nbsp;·&nbsp; {int(smg_raw["Survey Count"].sum()):,} total surveys
                 </p>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-        # ── KPI Cards ──
-        avg_sat = smg_raw["Satisfaction %"].mean()
-        avg_dissat = smg_raw["Dissatisfaction %"].mean()
-        avg_acc = smg_raw["Order Accuracy %"].mean()
-        avg_greeted = smg_raw["Greeted with Smile %"].mean()
+        # ── KPI Cards (weighted by survey count) ──
         total_surveys = int(smg_raw["Survey Count"].sum())
+        if total_surveys > 0:
+            avg_dissat = (smg_raw["Dissatisfaction %"] * smg_raw["Survey Count"]).sum() / total_surveys
+            avg_inacc = (smg_raw["Inaccurate Order %"] * smg_raw["Survey Count"]).sum() / total_surveys
+            avg_greeted = (smg_raw["Greeted with Smile %"] * smg_raw["Survey Count"]).sum() / total_surveys
+        else:
+            avg_dissat = avg_inacc = avg_greeted = 0
+        avg_sat = 100 - avg_dissat
+        avg_acc = 100 - avg_inacc
 
         kpi_style = """<div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; padding:1rem; text-align:left; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
             <div style="color:#6B7280; font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">{label}</div>
