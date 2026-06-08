@@ -234,6 +234,15 @@ def fiscal_week_label(d):
     return week_start, f"W{week_num}"
 
 
+def fmt_sos(minutes):
+    """Format decimal minutes (e.g. 8.5) as M:SS (e.g. 8:30)."""
+    if pd.isna(minutes):
+        return "-"
+    m = int(minutes)
+    s = int(round((minutes - m) * 60))
+    return f"{m}:{s:02d}"
+
+
 def parse_time_to_minutes(t):
     if pd.isna(t) or not isinstance(t, str):
         return None
@@ -664,7 +673,7 @@ if selected_tab == "KDS Dashboard":
                         sub=f"{(n_fast/n_reporting*100) if n_reporting else 0:.0f}% of reporting"), unsafe_allow_html=True)
             avg_sos_kpi = kds_week["SOS"].mean() if kds_week["SOS"].notna().any() else 0
             sos_kpi_color = "#059669" if avg_sos_kpi < 10 else ("#D97706" if avg_sos_kpi < 13 else "#DC2626")
-            c5.markdown(kpi_style.format(label="AVG SOS", value=f"{avg_sos_kpi:.1f}m", color=sos_kpi_color,
+            c5.markdown(kpi_style.format(label="AVG SOS", value=fmt_sos(avg_sos_kpi), color=sos_kpi_color,
                         sub="target < 10 min"), unsafe_allow_html=True)
 
             st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
@@ -778,8 +787,8 @@ if selected_tab == "KDS Dashboard":
                 worst_store = sos_valid.loc[sos_valid["SOS"].idxmax()]
                 best_store = sos_valid.loc[sos_valid["SOS"].idxmin()]
                 st.markdown(takeaway_style.format(color="#DC2626",
-                    text=f'<b>Worst single store:</b> {int(worst_store["Store No"])} {worst_store["Store Name"]} ({worst_store["SOS"]:.1f} min). '
-                         f'<b>Fastest:</b> {int(best_store["Store No"])} {best_store["Store Name"]} ({best_store["SOS"]:.1f} min).'),
+                    text=f'<b>Worst single store:</b> {int(worst_store["Store No"])} {worst_store["Store Name"]} ({fmt_sos(worst_store["SOS"])}). '
+                         f'<b>Fastest:</b> {int(best_store["Store No"])} {best_store["Store Name"]} ({fmt_sos(best_store["SOS"])}).'),
                     unsafe_allow_html=True)
 
             st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
@@ -815,7 +824,7 @@ if selected_tab == "KDS Dashboard":
                 adh_raw = r["Adherence %"]
 
                 # Format values
-                sos_fmt = f"{sos_raw:.1f}" if pd.notna(sos_raw) else "-"
+                sos_fmt = fmt_sos(sos_raw)
                 adopt_fmt = f"{adopt_raw:.1f}" if pd.notna(adopt_raw) else "-"
                 ma_fmt = f"{ma_raw:.1f}" if pd.notna(ma_raw) else "-"
                 waste_fmt = f"{waste_raw:.2f}" if pd.notna(waste_raw) else "-"
@@ -889,7 +898,7 @@ if selected_tab == "KDS Dashboard":
                 <div style="background:#1A3C34; color:#FFFFFF; padding:0.6rem 1rem; border-radius:8px 8px 0 0; margin-top:1rem;
                             display:flex; justify-content:space-between; align-items:center;">
                     <span style="font-weight:700; font-size:0.95rem;">{district}{badges}</span>
-                    <span style="font-size:0.82rem;">Adherent: <b>{d_adherent}/{d_total}</b> ({adh_pct:.0f}%) &nbsp;|&nbsp; Avg SOS: <b>{d_avg_sos:.1f}m</b> &nbsp;|&nbsp; Avg Adherence: <b>{d_avg_adh:.0f}%</b></span>
+                    <span style="font-size:0.82rem;">Adherent: <b>{d_adherent}/{d_total}</b> ({adh_pct:.0f}%) &nbsp;|&nbsp; Avg SOS: <b>{fmt_sos(d_avg_sos)}</b> &nbsp;|&nbsp; Avg Adherence: <b>{d_avg_adh:.0f}%</b></span>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -903,7 +912,7 @@ if selected_tab == "KDS Dashboard":
                 d_raw_pb = d_tbl["Pre-Bump %"].copy()
                 d_raw_adh = d_tbl["Adherence %"].copy()
 
-                d_tbl["SOS"] = d_tbl["SOS"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
+                d_tbl["SOS"] = d_tbl["SOS"].apply(fmt_sos)
                 d_tbl["Adoption %"] = d_tbl["Adoption %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
                 d_tbl["Make Ahead %"] = d_tbl["Make Ahead %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
                 d_tbl["Waste %"] = d_tbl["Waste %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "-")
@@ -977,7 +986,7 @@ if selected_tab == "KDS Dashboard":
 
                 if len(slow_counts) > 0:
                     slow_display = slow_counts[["Store No", "Store_Name", "District", "Times_Slow", "Avg_SOS", "Weeks"]].copy()
-                    slow_display["Avg_SOS"] = slow_display["Avg_SOS"].apply(lambda x: f"{x:.1f} min")
+                    slow_display["Avg_SOS"] = slow_display["Avg_SOS"].apply(fmt_sos)
                     slow_display = slow_display.rename(columns={"Store_Name": "Store", "Times_Slow": "Times Slow", "Avg_SOS": "Avg SOS", "Weeks": "Weeks Flagged"})
                     st.dataframe(slow_display, use_container_width=True, hide_index=True)
                 else:
@@ -1096,7 +1105,7 @@ if selected_tab == "KDS Dashboard":
             fig_sos_trend.add_trace(go.Scatter(
                 x=hist_df["Period"], y=hist_df["Avg SOS"],
                 mode="lines+markers+text", name="Avg SOS",
-                text=hist_df["Avg SOS"].apply(lambda v: f"{v:.1f}m"), textposition="top center",
+                text=hist_df["Avg SOS"].apply(fmt_sos), textposition="top center",
                 line=dict(color="#1A3C34", width=3), marker=dict(size=10),
             ))
             fig_sos_trend.add_hline(y=10, line_dash="dash", line_color="#DC2626", line_width=1.5,
@@ -1113,7 +1122,7 @@ if selected_tab == "KDS Dashboard":
             st.markdown('<div style="font-weight:700; color:#1F2937; font-size:1rem; margin:1rem 0 0.5rem 0;">Period Summary</div>', unsafe_allow_html=True)
             hist_display = hist_df[["Period", "Total", "Adherent", "Slow", "Fast", "Adherent %", "Avg SOS", "Avg Adherence"]].copy()
             hist_display["Adherent %"] = hist_display["Adherent %"].apply(lambda x: f"{x:.1f}%")
-            hist_display["Avg SOS"] = hist_display["Avg SOS"].apply(lambda x: f"{x:.1f} min")
+            hist_display["Avg SOS"] = hist_display["Avg SOS"].apply(fmt_sos)
             hist_display["Avg Adherence"] = hist_display["Avg Adherence"].apply(lambda x: f"{x:.0f}%")
             st.dataframe(hist_display, use_container_width=True, hide_index=True)
 
@@ -2582,7 +2591,7 @@ elif selected_tab == "District Comparison":
         fig_dsos = go.Figure(go.Bar(
             x=district_agg["district"], y=district_agg["avg_sos"],
             marker_color=sos_colors,
-            hovertemplate="%{x}<br>SOS: %{y:.1f} min<extra></extra>",
+            hovertemplate="%{x}<br>SOS: %{text}<extra></extra>",
         ))
         fig_dsos.add_hline(y=10, line_dash="dash", line_color=RED, line_width=1.5)
         fig_dsos.update_layout(**CHART_LAYOUT, height=350, yaxis_title="SOS (min)")
@@ -2598,7 +2607,7 @@ elif selected_tab == "District Comparison":
     dtbl["Labor Variance %"] = dtbl["Labor Variance %"].apply(lambda x: f"{x:+.2%}" if pd.notna(x) else "—")
     dtbl["Total OT Hrs"] = dtbl["Total OT Hrs"].apply(lambda x: f"{x:.0f}")
     dtbl["Avg OSAT %"] = dtbl["Avg OSAT %"].apply(lambda x: f"{x:.1f}%")
-    dtbl["Avg SOS (min)"] = dtbl["Avg SOS (min)"].apply(lambda x: f"{x:.1f}")
+    dtbl["Avg SOS (min)"] = dtbl["Avg SOS (min)"].apply(fmt_sos)
     st.dataframe(dtbl, use_container_width=True, hide_index=True)
 
 # ════════════════════════════════
@@ -2748,7 +2757,7 @@ elif selected_tab == "Scorecard":
 
     sc_tbl = sc_df[["rank", "short_name", "district"]].copy()
     sc_tbl["Composite"] = sc_df["composite"].apply(lambda x: f"{x:.0f}" if pd.notna(x) else "—")
-    sc_tbl["SOS"] = sc_df["sos_min"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "—") if "sos_min" in sc_df.columns else "—"
+    sc_tbl["SOS"] = sc_df["sos_min"].apply(fmt_sos) if "sos_min" in sc_df.columns else "—"
     sc_tbl["Pre-Bump"] = sc_df["pre_bump"].apply(lambda x: f"{x:.2f}%" if pd.notna(x) else "—") if "pre_bump" in sc_df.columns else "—"
     sc_tbl["Adoption"] = sc_df["bone_in_adopt"].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "—") if "bone_in_adopt" in sc_df.columns else "—"
     sc_tbl["Waste"] = sc_df["waste"].apply(lambda x: f"{x:.2f}%" if pd.notna(x) else "—") if "waste" in sc_df.columns else "—"
@@ -2811,7 +2820,7 @@ elif selected_tab == "Watch List":
         for _, r in kds_latest[kds_latest["SOS"] > 10].iterrows():
             sev = "Critical" if r["SOS"] >= 13 else "Warning"
             alerts.append({"store_num": r["store_num"], "Store": str(r["Store Name"])[:22], "District": r["district"],
-                           "Metric": "SOS", "Value": f"{r['SOS']:.1f} min", "Threshold": "≤ 10 min", "Severity": sev, "Source": f"KDS {kds_wl_latest}"})
+                           "Metric": "SOS", "Value": fmt_sos(r['SOS']), "Threshold": "≤ 10:00", "Severity": sev, "Source": f"KDS {kds_wl_latest}"})
 
         # Adoption < 85%
         for _, r in kds_latest[kds_latest["Adoption %"].notna() & (kds_latest["Adoption %"] < 85)].iterrows():
