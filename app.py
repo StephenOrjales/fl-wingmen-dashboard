@@ -2873,7 +2873,7 @@ elif selected_tab == "Scorecard":
         ("KDS", "Pre-Bump ≤ 0.5%", "KDS Pre-Bump", lambda v: v <= 0.5 if pd.notna(v) else None),
         ("Labor", "Labor ≤ 18%", "Labor %", lambda v: v <= 18 if pd.notna(v) else None),
         ("SMG", "Dissat ≤ 3%", "SMG Dissat", lambda v: v <= 3 if pd.notna(v) else None),
-        ("SMG", "Inaccurate ≤ 5%", "SMG Inaccurate", lambda v: v <= 5 if pd.notna(v) else None),
+        ("SMG", "Inaccurate ≤ 3%", "SMG Inaccurate", lambda v: v <= 3 if pd.notna(v) else None),
         ("QSC", "QSC 5 Stars", "QSC Stars", lambda v: v >= 5 if pd.notna(v) else None),
         ("FlavorLab", "Completion ≥ 95%", "FlavorLab %", lambda v: v >= 95 if pd.notna(v) else None),
         ("COGS", "COGS Var ≤ 1%", "COGS Var", lambda v: v <= 1 if pd.notna(v) else None),
