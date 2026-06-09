@@ -2879,14 +2879,16 @@ elif selected_tab == "Scorecard":
         fl_map = fl.set_index("Store No")
         sc["FlavorLab %"] = sc["Store No"].map(fl_map["Avg_Completion_Rate"])
 
-    # --- COGS (latest period) ---
+    # --- COGS (QTD — current quarter periods) ---
     cogs_path = DATA_DIR / "cogs_variance.csv"
     if cogs_path.exists():
         cogs = pd.read_csv(cogs_path)
         cogs["Store No"] = cogs["Store No"].astype(str)
-        latest_cogs = sorted(cogs["Period"].unique())[-1]
-        cogs_latest = cogs[cogs["Period"] == latest_cogs].set_index("Store No")
-        sc["COGS Var"] = sc["Store No"].map(cogs_latest["COGS Variance %"])
+        cogs["_p"] = cogs["Period"].str.extract(r"P(\d+)").astype(int)
+        cogs_qtr = cogs[cogs["_p"].isin(_qtr_period_nums)]
+        if not cogs_qtr.empty:
+            cogs_avg = cogs_qtr.groupby("Store No")["COGS Variance %"].mean()
+            sc["COGS Var"] = sc["Store No"].map(cogs_avg)
 
     # ── Adherence checks (pass/fail like KDS adherence) ──
     checks = [
@@ -2925,6 +2927,12 @@ elif selected_tab == "Scorecard":
     elif selected_district != "All Districts":
         d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
         sc = sc[sc["Store No"].isin(d_nums)]
+
+    # ── Quarter filter ──
+    _sc_qtr_col1, _sc_qtr_spacer = st.columns([1, 4])
+    with _sc_qtr_col1:
+        _qtr_options = ["Q2 (P4-P6)"]  # only Q2 data available currently
+        _selected_sc_qtr = st.selectbox("Quarter", _qtr_options, key="sc_quarter")
 
     # ── HEADER ──
     avg_adh = sc["Adherence %"].mean()
