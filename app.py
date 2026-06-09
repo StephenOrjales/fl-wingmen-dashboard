@@ -2846,9 +2846,9 @@ elif selected_tab == "Scorecard":
         qsc = pd.read_csv(qsc_path)
         qsc["Store No"] = qsc["Store No"].astype(str)
         latest_qsc = sorted(qsc["Period"].unique(), key=lambda x: (int(x[1]), int(x[3])))[-1]
-        qsc_latest = qsc[qsc["Period"] == latest_qsc]
-        qsc_avg = qsc_latest.groupby("Store No")["Score"].mean()
-        sc["QSC Score"] = sc["Store No"].map(qsc_avg)
+        qsc_latest = qsc[(qsc["Period"] == latest_qsc) & (qsc["Stars"].notna()) & (qsc["Stars"] > 0)]
+        qsc_avg_stars = qsc_latest.groupby("Store No")["Stars"].mean()
+        sc["QSC Stars"] = sc["Store No"].map(qsc_avg_stars)
 
     # --- FlavorLab ---
     fl_path = DATA_DIR / "flavorlab.csv"
@@ -2877,7 +2877,7 @@ elif selected_tab == "Scorecard":
         ("Labor", "Labor ≤ 18%", "Labor %", lambda v: v <= 18 if pd.notna(v) else None),
         ("SMG", "Dissat ≤ 3%", "SMG Dissat", lambda v: v <= 3 if pd.notna(v) else None),
         ("SMG", "Inaccurate ≤ 5%", "SMG Inaccurate", lambda v: v <= 5 if pd.notna(v) else None),
-        ("QSC", "QSC Score ≥ 90", "QSC Score", lambda v: v >= 90 if pd.notna(v) else None),
+        ("QSC", "QSC 5 Stars", "QSC Stars", lambda v: v >= 5 if pd.notna(v) else None),
         ("FlavorLab", "Completion ≥ 95%", "FlavorLab %", lambda v: v >= 95 if pd.notna(v) else None),
         ("COGS", "COGS Var ≤ 1%", "COGS Var", lambda v: v <= 1 if pd.notna(v) else None),
     ]
