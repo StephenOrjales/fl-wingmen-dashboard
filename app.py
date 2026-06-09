@@ -2450,10 +2450,10 @@ elif selected_tab == "FlavorLab":
             d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
             fl_df = fl_df[fl_df["Store No"].isin(d_nums)]
 
-        overall_pct = fl_df["Completions"].sum() / fl_df["Total_Courses"].sum() * 100 if fl_df["Total_Courses"].sum() > 0 else 0
+        overall_pct = fl_df["Avg_Completion_Rate"].mean() if len(fl_df) > 0 else 0
         total_emp = fl_df["Employees"].sum()
         total_incomplete = fl_df["Incomplete"].sum()
-        stores_100 = len(fl_df[fl_df["Completion_Pct"] >= 100])
+        stores_100 = len(fl_df[fl_df["Avg_Completion_Rate"] >= 100])
 
         # ── HEADER ──
         st.markdown(f"""
@@ -2482,8 +2482,8 @@ elif selected_tab == "FlavorLab":
         </div>"""
 
         c1, c2, c3, c4 = st.columns(4)
-        c1.markdown(kpi_style.format(label="OVERALL COMPLETION", value=f"{overall_pct:.1f}%", color=ov_c,
-                    sub=f"{fl_df['Completions'].sum():,} / {fl_df['Total_Courses'].sum():,} courses"), unsafe_allow_html=True)
+        c1.markdown(kpi_style.format(label="AVG COMPLETION RATE", value=f"{overall_pct:.0f}%", color=ov_c,
+                    sub=f"avg across {total_emp} employees"), unsafe_allow_html=True)
         c2.markdown(kpi_style.format(label="INCOMPLETE COURSES", value=f"{total_incomplete:,}", color=inc_c,
                     sub="courses remaining"), unsafe_allow_html=True)
         c3.markdown(kpi_style.format(label="100% STORES", value=f"{stores_100} / {len(fl_df)}", color=s100_c,
@@ -2495,14 +2495,14 @@ elif selected_tab == "FlavorLab":
 
         # ── BAR CHART: Completion % by Store ──
         import plotly.express as px
-        chart_df = fl_df.sort_values("Completion_Pct", ascending=True).copy()
+        chart_df = fl_df.sort_values("Avg_Completion_Rate", ascending=True).copy()
         chart_df["label"] = chart_df["Store No"] + " " + chart_df["Store Name"]
-        chart_df["bar_color"] = chart_df["Completion_Pct"].apply(
+        chart_df["bar_color"] = chart_df["Avg_Completion_Rate"].apply(
             lambda x: "#059669" if x >= 98 else ("#D97706" if x >= 95 else "#DC2626"))
 
-        fig = px.bar(chart_df, x="Completion_Pct", y="label", orientation="h",
+        fig = px.bar(chart_df, x="Avg_Completion_Rate", y="label", orientation="h",
                      color="bar_color", color_discrete_map="identity",
-                     text=chart_df["Completion_Pct"].apply(lambda x: f"{x:.1f}%"))
+                     text=chart_df["Avg_Completion_Rate"].apply(lambda x: f"{x:.1f}%"))
         fig.update_layout(
             title=dict(text="Course Completion % by Store", font=dict(size=16, color="#1A3C34")),
             xaxis=dict(title="Completion %", range=[0, 105], dtick=10),
@@ -2520,8 +2520,8 @@ elif selected_tab == "FlavorLab":
         # ── TABLE ──
         st.markdown('<div style="font-weight:700; color:#1A3C34; font-size:1.1rem; margin:0.5rem 0 0.3rem 0;">Store Breakdown</div>', unsafe_allow_html=True)
 
-        tbl = fl_df[["Store No", "Store Name", "District", "Employees", "Total_Courses", "Completions", "Incomplete", "Completion_Pct"]].copy()
-        tbl = tbl.rename(columns={"Total_Courses": "Courses", "Completion_Pct": "Completion %"})
+        tbl = fl_df[["Store No", "Store Name", "District", "Employees", "Total_Courses", "Completions", "Incomplete", "Avg_Completion_Rate"]].copy()
+        tbl = tbl.rename(columns={"Total_Courses": "Courses", "Avg_Completion_Rate": "Completion %"})
         tbl = tbl.sort_values("Store No", key=lambda x: x.astype(int))
 
         raw_pct = tbl["Completion %"].copy().reset_index(drop=True)
@@ -2560,8 +2560,9 @@ elif selected_tab == "FlavorLab":
             Courses=("Total_Courses", "sum"),
             Completions=("Completions", "sum"),
             Incomplete=("Incomplete", "sum"),
+            **{"Completion %": ("Avg_Completion_Rate", "mean")},
         ).reset_index()
-        dist_summary["Completion %"] = (dist_summary["Completions"] / dist_summary["Courses"] * 100).round(1)
+        dist_summary["Completion %"] = dist_summary["Completion %"].round(1)
         dist_summary = dist_summary.sort_values("District")
 
         raw_d_pct = dist_summary["Completion %"].copy().reset_index(drop=True)
