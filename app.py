@@ -2508,7 +2508,7 @@ elif selected_tab == "FlavorLab":
             xaxis=dict(title="Completion %", range=[0, 105], dtick=10),
             yaxis=dict(title=""),
             showlegend=False,
-            height=max(400, len(chart_df) * 28),
+            height=max(300, len(chart_df) * 18),
             margin=dict(l=10, r=20, t=40, b=30),
             plot_bgcolor="#FAFAFA",
         )
