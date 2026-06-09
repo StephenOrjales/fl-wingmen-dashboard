@@ -206,6 +206,12 @@ CHART_BG = "#FFFFFF"
 GRID_COLOR = "#F1F5F9"
 FONT_COLOR = "#374151"
 
+DISTRICT_COLORS = {
+    "District 1": "#EC4899", "District 2": "#7C3AED", "District 3": "#0369A1",
+    "District 4": "#CA8A04", "District 5": "#059669", "District 6": "#4338CA",
+}
+OFF_GUIDE = "color: #DC2626; font-weight: 700"
+
 CHART_LAYOUT = dict(
     plot_bgcolor=CHART_BG,
     paper_bgcolor=CHART_BG,
@@ -799,12 +805,6 @@ if selected_tab == "KDS Dashboard":
                 <span style="font-weight:700; color:#1F2937; font-size:1.05rem;">Store Performance</span>
                 <span style="color:#9CA3AF; font-size:0.75rem; margin-left:0.5rem;">Click any column header to sort</span>
             </div>""", unsafe_allow_html=True)
-
-            DISTRICT_COLORS = {
-                "District 1": "#EC4899", "District 2": "#7C3AED", "District 3": "#0369A1",
-                "District 4": "#CA8A04", "District 5": "#059669", "District 6": "#4338CA",
-            }
-            OFF_GUIDE = "color: #DC2626; font-weight: 700"
 
             tbl = kds_week[["Store No", "Store Name", "District", "SOS", "SOS Status", "Adoption %", "Make Ahead %", "Waste %", "Pre-Bump %", "Adherence %"]].copy()
             tbl = tbl.sort_values("Store No", ascending=True)
