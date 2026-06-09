@@ -3018,7 +3018,7 @@ elif selected_tab == "Scorecard":
         if pd.notna(adh):
             if adh < 50:
                 styles[cols.index("Adherence %")] = f"color: #DC2626; font-weight: 700"
-            elif adh >= 100:
+            elif adh >= 90:
                 styles[cols.index("Adherence %")] = f"color: #059669; font-weight: 700"
         return styles
 
