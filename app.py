@@ -848,7 +848,7 @@ if selected_tab == "KDS Dashboard":
                     styles[cols.index("SOS")] += f"; {OFF_GUIDE}"
                 if pd.notna(raw_adopt.get(idx)) and raw_adopt[idx] < 85:
                     styles[cols.index("Adoption %")] += f"; {OFF_GUIDE}"
-                if pd.notna(raw_ma.get(idx)) and raw_ma[idx] > 0:
+                if pd.notna(raw_ma.get(idx)) and raw_ma[idx] > 10:
                     styles[cols.index("Make Ahead %")] += f"; {OFF_GUIDE}"
                 if pd.notna(raw_waste.get(idx)) and raw_waste[idx] > 0:
                     styles[cols.index("Waste %")] += f"; {OFF_GUIDE}"
@@ -932,7 +932,7 @@ if selected_tab == "KDS Dashboard":
                         styles[cols.index("SOS")] += f"; {OFF_GUIDE}"
                     if pd.notna(d_raw_adopt.get(idx)) and d_raw_adopt[idx] < 85:
                         styles[cols.index("Adoption %")] += f"; {OFF_GUIDE}"
-                    if pd.notna(d_raw_ma.get(idx)) and d_raw_ma[idx] > 0:
+                    if pd.notna(d_raw_ma.get(idx)) and d_raw_ma[idx] > 10:
                         styles[cols.index("Make Ahead %")] += f"; {OFF_GUIDE}"
                     if pd.notna(d_raw_waste.get(idx)) and d_raw_waste[idx] > 0:
                         styles[cols.index("Waste %")] += f"; {OFF_GUIDE}"
