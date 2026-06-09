@@ -2806,7 +2806,7 @@ elif selected_tab == "Scorecard":
         sc["KDS SOS"] = sc["Store No"].map(kds_latest["SOS"])
         sc["KDS Adoption"] = sc["Store No"].map(kds_latest["Adoption %"])
         sc["KDS Make Ahead"] = sc["Store No"].map(kds_latest["Make Ahead %"])
-        sc["KDS Waste"] = sc["Store No"].map(kds_latest["Waste %"])
+        # KDS Waste excluded from scorecard per user request
         sc["KDS Pre-Bump"] = sc["Store No"].map(kds_latest["Pre-Bump %"])
     else:
         latest_kds_period = "—"
@@ -2870,7 +2870,6 @@ elif selected_tab == "Scorecard":
         ("KDS", "SOS < 10 min", "KDS SOS", lambda v: v < 10 if pd.notna(v) else None),
         ("KDS", "Adoption ≥ 85%", "KDS Adoption", lambda v: v >= 85 if pd.notna(v) else None),
         ("KDS", "Make Ahead ≤ 10%", "KDS Make Ahead", lambda v: v <= 10 if pd.notna(v) else None),
-        ("KDS", "Waste ≤ 5%", "KDS Waste", lambda v: v <= 5 if pd.notna(v) else None),
         ("KDS", "Pre-Bump ≤ 0.5%", "KDS Pre-Bump", lambda v: v <= 0.5 if pd.notna(v) else None),
         ("Labor", "Labor ≤ 18%", "Labor %", lambda v: v <= 18 if pd.notna(v) else None),
         ("SMG", "Dissat ≤ 3%", "SMG Dissat", lambda v: v <= 3 if pd.notna(v) else None),
