@@ -2796,30 +2796,49 @@ elif selected_tab == "Scorecard":
     # Each check is: (category, label, column, pass_fn)
     # pass_fn returns True/False/None(missing)
 
-    # --- KDS (latest period) ---
+    # --- Determine current quarter (Q1=P1-P3, Q2=P4-P6, etc.) ---
+    # Find the latest period across data to determine which quarter we're in
+    _qtr_periods = {1: [1,2,3], 2: [4,5,6], 3: [7,8,9], 4: [10,11,12]}
+    _current_qtr = 2  # default to Q2
     kds_path = DATA_DIR / "kds_dinner.csv"
     if kds_path.exists():
         kds_all = pd.read_csv(kds_path)
         kds_all["Store No"] = kds_all["Store No"].astype(str)
         latest_kds_period = sorted(kds_all["Period"].unique(), key=lambda x: (int(x[1]), int(x[3])))[-1]
-        kds_latest = kds_all[kds_all["Period"] == latest_kds_period].set_index("Store No")
-        sc["KDS SOS"] = sc["Store No"].map(kds_latest["SOS"])
-        sc["KDS Adoption"] = sc["Store No"].map(kds_latest["Adoption %"])
-        sc["KDS Make Ahead"] = sc["Store No"].map(kds_latest["Make Ahead %"])
-        # KDS Waste excluded from scorecard per user request
-        sc["KDS Pre-Bump"] = sc["Store No"].map(kds_latest["Pre-Bump %"])
+        _latest_p = int(latest_kds_period[1])
+        for q, ps in _qtr_periods.items():
+            if _latest_p in ps:
+                _current_qtr = q
+                break
     else:
+        kds_all = pd.DataFrame()
         latest_kds_period = "—"
+    _qtr_period_nums = _qtr_periods[_current_qtr]
+    _qtr_label = f"Q{_current_qtr} (P{_qtr_period_nums[0]}-P{_qtr_period_nums[-1]})"
 
-    # --- Labor (latest period in forecast) ---
+    # --- KDS (QTD — all weeks in current quarter) ---
+    if not kds_all.empty:
+        kds_qtr = kds_all[kds_all["Period"].apply(lambda x: int(x[1]) in _qtr_period_nums)]
+        kds_qtd = kds_qtr.groupby("Store No").agg(
+            SOS=("SOS", "mean"),
+            **{"Adoption %": ("Adoption %", "mean")},
+            **{"Make Ahead %": ("Make Ahead %", "mean")},
+            **{"Pre-Bump %": ("Pre-Bump %", "mean")},
+        )
+        sc["KDS SOS"] = sc["Store No"].map(kds_qtd["SOS"])
+        sc["KDS Adoption"] = sc["Store No"].map(kds_qtd["Adoption %"])
+        sc["KDS Make Ahead"] = sc["Store No"].map(kds_qtd["Make Ahead %"])
+        # KDS Waste excluded from scorecard per user request
+        sc["KDS Pre-Bump"] = sc["Store No"].map(kds_qtd["Pre-Bump %"])
+        kds_weeks_in_qtr = sorted(kds_qtr["Period"].unique(), key=lambda x: (int(x[1]), int(x[3])))
+
+    # --- Labor (QTD — current quarter) ---
     forecast_path = DATA_DIR / "forecast.xlsm"
     if forecast_path.exists():
         @st.cache_data(ttl=300)
         def load_sc_labor2():
             raw = pd.read_excel(forecast_path, sheet_name="Forecast_Data")
-            r26 = raw[raw["year"] == 2026].copy()
-            latest_p = r26["period"].max()
-            return r26[r26["period"] == latest_p]
+            return raw[(raw["year"] == 2026) & (raw["period"].isin(_qtr_period_nums))].copy()
         sc_labor = load_sc_labor2()
         if not sc_labor.empty:
             sc_labor["store_num"] = sc_labor["store"].apply(forecast_store_num)
@@ -2915,7 +2934,7 @@ elif selected_tab == "Scorecard":
         <div>
             <h2 style="color:#1A3C34; font-weight:800; margin:0; font-size:1.6rem;">Scorecard</h2>
             <p style="color:#6B7280; font-size:0.88rem; margin:0.2rem 0 0 0;">
-                Weighted adherence across {total_checks} metrics &nbsp;·&nbsp; {len(sc)} stores
+                {_qtr_label} QTD &nbsp;·&nbsp; Weighted adherence across {total_checks} metrics &nbsp;·&nbsp; {len(sc)} stores
             </p>
         </div>
         <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1.2rem; border-radius:8px; font-weight:700; font-size:0.9rem; white-space:nowrap;">
@@ -2979,7 +2998,8 @@ elif selected_tab == "Scorecard":
 
     # ── Detail table with pass/fail per check ──
     st.markdown('<div style="font-weight:700; color:#1A3C34; font-size:1.1rem; margin:0.5rem 0 0.3rem 0;">Scorecard Detail</div>', unsafe_allow_html=True)
-    st.markdown(f'<p style="color:#6B7280; font-size:0.82rem;">✅ = on target &nbsp;&nbsp; ❌ = off guide &nbsp;&nbsp; — = no data &nbsp;&nbsp; KDS: {latest_kds_period}</p>', unsafe_allow_html=True)
+    _kds_range = f"{kds_weeks_in_qtr[0]}–{kds_weeks_in_qtr[-1]}" if kds_all is not None and not kds_all.empty and len(kds_weeks_in_qtr) > 0 else "—"
+    st.markdown(f'<p style="color:#6B7280; font-size:0.82rem;">✅ = on target &nbsp;&nbsp; ❌ = off guide &nbsp;&nbsp; — = no data &nbsp;&nbsp; {_qtr_label} QTD &nbsp;·&nbsp; KDS: {_kds_range}</p>', unsafe_allow_html=True)
 
     tbl_data = []
     for _, row in sc.iterrows():
