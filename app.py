@@ -240,7 +240,7 @@ def fmt_sos(minutes):
         return "-"
     m = int(minutes)
     s = int(round((minutes - m) * 60))
-    return f"{m}:{s:02d}"
+    return f"{m:02d}:{s:02d}"
 
 
 def parse_time_to_minutes(t):
