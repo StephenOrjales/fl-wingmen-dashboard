@@ -2826,10 +2826,14 @@ elif selected_tab == "Scorecard":
             la = sc_labor.groupby("store_num").agg(
                 actual_sales=("actual_sales", "sum"),
                 actual_labor=("actual_labor", "sum"),
+                forecast_sales=("forecast_sales", "sum"),
+                schedule_labor=("schedule_labor", "sum"),
             ).reset_index()
-            la["labor_pct"] = (la["actual_labor"] / la["actual_sales"] * 100)
-            labor_map = dict(zip(la["store_num"].astype(str), la["labor_pct"]))
-            sc["Labor %"] = sc["Store No"].map(labor_map)
+            la["labor_pct"] = la["actual_labor"] / la["actual_sales"]
+            la["sched_labor_pct"] = la["schedule_labor"] / la["forecast_sales"]
+            la["labor_var"] = (la["labor_pct"] - la["sched_labor_pct"]) * 100  # as percentage points
+            labor_var_map = dict(zip(la["store_num"].astype(str), la["labor_var"]))
+            sc["Labor Var %"] = sc["Store No"].map(labor_var_map)
 
     # --- SMG (latest quarter) ---
     smg_q2 = DATA_DIR / "smg_q2.csv"
@@ -2871,7 +2875,7 @@ elif selected_tab == "Scorecard":
         ("KDS", "Adoption ≥ 85%", "KDS Adoption", lambda v: v >= 85 if pd.notna(v) else None),
         ("KDS", "Make Ahead ≤ 10%", "KDS Make Ahead", lambda v: v <= 10 if pd.notna(v) else None),
         ("KDS", "Pre-Bump ≤ 0.5%", "KDS Pre-Bump", lambda v: v <= 0.5 if pd.notna(v) else None),
-        ("Labor", "Labor ≤ 18%", "Labor %", lambda v: v <= 18 if pd.notna(v) else None),
+        ("Labor", "Labor Var ≤ 1.5%", "Labor Var %", lambda v: v <= 1.5 if pd.notna(v) else None),
         ("SMG", "Dissat ≤ 3%", "SMG Dissat", lambda v: v <= 3 if pd.notna(v) else None),
         ("SMG", "Inaccurate ≤ 3%", "SMG Inaccurate", lambda v: v <= 3 if pd.notna(v) else None),
         ("QSC", "QSC 5 Stars", "QSC Stars", lambda v: v >= 5 if pd.notna(v) else None),
