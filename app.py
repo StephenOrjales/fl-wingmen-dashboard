@@ -2783,173 +2783,317 @@ elif selected_tab == "District Comparison":
 elif selected_tab == "Scorecard":
     import numpy as np
 
+    # ── Build store roster ──
     all_stores = []
     for dist, stores in DISTRICTS.items():
         for s in stores:
             snum = s.split(" - ")[0].strip().lstrip("0")
-            sname = s.split("-", 2)[2].strip()[:22] if len(s.split("-", 2)) >= 3 else s[:22]
-            all_stores.append({"store_num": snum, "short_name": sname, "district": dist})
-    sc_df = pd.DataFrame(all_stores)
+            sname = s.split("-", 2)[2].strip()[:25] if len(s.split("-", 2)) >= 3 else s[:25]
+            all_stores.append({"Store No": snum, "Store Name": sname, "District": dist})
+    sc = pd.DataFrame(all_stores)
 
-    # KDS data (latest date)
-    if not daily_df_all.empty:
-        latest = daily_df_all[daily_df_all["data_date"] == daily_df_all["data_date"].max()]
-        kds_map = latest.set_index("store_num")[["sos_min", "pre_bump", "bone_in_adopt", "make_ahead_rate", "waste"]].to_dict("index")
-        for col in ["sos_min", "pre_bump", "bone_in_adopt", "make_ahead_rate", "waste"]:
-            sc_df[col] = sc_df["store_num"].map(lambda s, c=col: kds_map.get(s, {}).get(c))
+    # ── Define adherence checks: metric, target, pass condition ──
+    # Each check is: (category, label, column, pass_fn)
+    # pass_fn returns True/False/None(missing)
 
-    # Labor data
+    # --- KDS (latest period) ---
+    kds_path = DATA_DIR / "kds_dinner.csv"
+    if kds_path.exists():
+        kds_all = pd.read_csv(kds_path)
+        kds_all["Store No"] = kds_all["Store No"].astype(str)
+        latest_kds_period = sorted(kds_all["Period"].unique(), key=lambda x: (int(x[1]), int(x[3])))[-1]
+        kds_latest = kds_all[kds_all["Period"] == latest_kds_period].set_index("Store No")
+        sc["KDS SOS"] = sc["Store No"].map(kds_latest["SOS"])
+        sc["KDS Adoption"] = sc["Store No"].map(kds_latest["Adoption %"])
+        sc["KDS Make Ahead"] = sc["Store No"].map(kds_latest["Make Ahead %"])
+        sc["KDS Waste"] = sc["Store No"].map(kds_latest["Waste %"])
+        sc["KDS Pre-Bump"] = sc["Store No"].map(kds_latest["Pre-Bump %"])
+    else:
+        latest_kds_period = "—"
+
+    # --- Labor (latest period in forecast) ---
     forecast_path = DATA_DIR / "forecast.xlsm"
     if forecast_path.exists():
         @st.cache_data(ttl=300)
-        def load_sc_labor():
+        def load_sc_labor2():
             raw = pd.read_excel(forecast_path, sheet_name="Forecast_Data")
-            return raw[raw["year"] == 2026].copy()
-        sc_labor = load_sc_labor()
+            r26 = raw[raw["year"] == 2026].copy()
+            latest_p = r26["period"].max()
+            return r26[r26["period"] == latest_p]
+        sc_labor = load_sc_labor2()
         if not sc_labor.empty:
             sc_labor["store_num"] = sc_labor["store"].apply(forecast_store_num)
             la = sc_labor.groupby("store_num").agg(
-                actual_sales=("actual_sales", "sum"), forecast_sales=("forecast_sales", "sum"),
-                actual_labor=("actual_labor", "sum"), schedule_labor=("schedule_labor", "sum"),
-                ovt_hours=("ovt_hours", "sum"),
+                actual_sales=("actual_sales", "sum"),
+                actual_labor=("actual_labor", "sum"),
             ).reset_index()
-            la["labor_pct"] = la["actual_labor"] / la["actual_sales"]
-            la["sched_labor_pct"] = la["schedule_labor"] / la["forecast_sales"]
-            la["labor_var"] = la["labor_pct"] - la["sched_labor_pct"]
-            for col in ["labor_pct", "labor_var", "ovt_hours"]:
-                sc_df[col] = sc_df["store_num"].map(dict(zip(la["store_num"].astype(str), la[col])))
+            la["labor_pct"] = (la["actual_labor"] / la["actual_sales"] * 100)
+            labor_map = dict(zip(la["store_num"].astype(str), la["labor_pct"]))
+            sc["Labor %"] = sc["Store No"].map(labor_map)
 
-    # SMG data
-    smg_path = DATA_DIR / "smg_q1.xlsx"
-    if smg_path.exists():
-        @st.cache_data(ttl=300)
-        def load_sc_smg():
-            raw = pd.read_excel(smg_path, header=None, skiprows=2)
-            raw.columns = ["Store", "Measure", "Current", "LastYear", "Difference", "Count", "Count_Current", "Count_LastYear"]
-            raw = raw[(raw["Measure"] != "Measure") & (raw["Store"] != "Combined")].copy()
-            raw["Current"] = pd.to_numeric(raw["Current"], errors="coerce")
-            store_pat = raw["Store"].str.extract(r"^(\d+)\s*-\s*(.*)")
-            raw["store_num"] = store_pat[0].str.lstrip("0")
-            return raw
-        sc_smg = load_sc_smg()
-        dissat = sc_smg[sc_smg["Measure"] == "Dissatisfaction"]
-        sc_df["dissat_pct"] = sc_df["store_num"].map(dict(zip(dissat["store_num"], dissat["Current"] * 100)))
+    # --- SMG (latest quarter) ---
+    smg_q2 = DATA_DIR / "smg_q2.csv"
+    if smg_q2.exists():
+        smg = pd.read_csv(smg_q2)
+        smg["Store No"] = smg["Store No"].astype(str)
+        smg_map = smg.set_index("Store No")
+        sc["SMG Dissat"] = sc["Store No"].map(smg_map["Dissatisfaction %"])
+        sc["SMG Inaccurate"] = sc["Store No"].map(smg_map["Inaccurate Order %"])
 
-    # Scoring: each metric gets 0-100 points
-    def score_sos(v):
-        if pd.isna(v): return None
-        if v < 10: return 100
-        if v < 13: return 70
-        return max(0, 100 - (v - 10) * 10)
+    # --- QSC Evals (latest period) ---
+    qsc_path = DATA_DIR / "qsc_evals.csv"
+    if qsc_path.exists():
+        qsc = pd.read_csv(qsc_path)
+        qsc["Store No"] = qsc["Store No"].astype(str)
+        latest_qsc = sorted(qsc["Period"].unique(), key=lambda x: (int(x[1]), int(x[3])))[-1]
+        qsc_latest = qsc[qsc["Period"] == latest_qsc]
+        qsc_avg = qsc_latest.groupby("Store No")["Score"].mean()
+        sc["QSC Score"] = sc["Store No"].map(qsc_avg)
 
-    def score_lower_better(v, good, bad):
-        if pd.isna(v): return None
-        if v <= good: return 100
-        if v >= bad: return 0
-        return max(0, 100 - (v - good) / (bad - good) * 100)
+    # --- FlavorLab ---
+    fl_path = DATA_DIR / "flavorlab.csv"
+    if fl_path.exists():
+        fl = pd.read_csv(fl_path)
+        fl["Store No"] = fl["Store No"].astype(str)
+        fl_map = fl.set_index("Store No")
+        sc["FlavorLab %"] = sc["Store No"].map(fl_map["Avg_Completion_Rate"])
 
-    def score_higher_better(v, bad, good):
-        if pd.isna(v): return None
-        if v >= good: return 100
-        if v <= bad: return 0
-        return (v - bad) / (good - bad) * 100
+    # --- COGS (latest period) ---
+    cogs_path = DATA_DIR / "cogs_variance.csv"
+    if cogs_path.exists():
+        cogs = pd.read_csv(cogs_path)
+        cogs["Store No"] = cogs["Store No"].astype(str)
+        latest_cogs = sorted(cogs["Period"].unique())[-1]
+        cogs_latest = cogs[cogs["Period"] == latest_cogs].set_index("Store No")
+        sc["COGS Var"] = sc["Store No"].map(cogs_latest["COGS Variance %"])
 
-    sc_df["score_sos"] = sc_df["sos_min"].apply(score_sos) if "sos_min" in sc_df.columns else None
-    sc_df["score_prebump"] = sc_df["pre_bump"].apply(lambda v: score_lower_better(v, 0.5, 3)) if "pre_bump" in sc_df.columns else None
-    sc_df["score_adopt"] = sc_df["bone_in_adopt"].apply(lambda v: score_higher_better(v, 70, 95)) if "bone_in_adopt" in sc_df.columns else None
-    sc_df["score_waste"] = sc_df["waste"].apply(lambda v: score_lower_better(v, 2, 8)) if "waste" in sc_df.columns else None
-    sc_df["score_labor"] = sc_df["labor_pct"].apply(lambda v: score_lower_better(v * 100, 18, 24) if pd.notna(v) else None) if "labor_pct" in sc_df.columns else None
-    sc_df["score_dissat"] = sc_df["dissat_pct"].apply(lambda v: score_lower_better(v, 3, 12)) if "dissat_pct" in sc_df.columns else None
+    # ── Adherence checks (pass/fail like KDS adherence) ──
+    checks = [
+        ("KDS", "SOS < 10 min", "KDS SOS", lambda v: v < 10 if pd.notna(v) else None),
+        ("KDS", "Adoption ≥ 85%", "KDS Adoption", lambda v: v >= 85 if pd.notna(v) else None),
+        ("KDS", "Make Ahead ≤ 10%", "KDS Make Ahead", lambda v: v <= 10 if pd.notna(v) else None),
+        ("KDS", "Waste ≤ 5%", "KDS Waste", lambda v: v <= 5 if pd.notna(v) else None),
+        ("KDS", "Pre-Bump ≤ 0.5%", "KDS Pre-Bump", lambda v: v <= 0.5 if pd.notna(v) else None),
+        ("Labor", "Labor ≤ 18%", "Labor %", lambda v: v <= 18 if pd.notna(v) else None),
+        ("SMG", "Dissat ≤ 3%", "SMG Dissat", lambda v: v <= 3 if pd.notna(v) else None),
+        ("SMG", "Inaccurate ≤ 5%", "SMG Inaccurate", lambda v: v <= 5 if pd.notna(v) else None),
+        ("QSC", "QSC Score ≥ 90", "QSC Score", lambda v: v >= 90 if pd.notna(v) else None),
+        ("FlavorLab", "Completion ≥ 95%", "FlavorLab %", lambda v: v >= 95 if pd.notna(v) else None),
+        ("COGS", "COGS Var ≤ 1%", "COGS Var", lambda v: v <= 1 if pd.notna(v) else None),
+    ]
 
-    score_cols = [c for c in sc_df.columns if c.startswith("score_")]
-    sc_df["composite"] = sc_df[score_cols].mean(axis=1).fillna(0)
-    sc_df["rank"] = sc_df["composite"].rank(ascending=False, method="min").astype(int)
-    sc_df = sc_df.sort_values("composite", ascending=False)
+    # Compute pass/fail for each check
+    for cat, label, col, fn in checks:
+        check_col = f"chk_{label}"
+        if col in sc.columns:
+            sc[check_col] = sc[col].apply(fn)
+        else:
+            sc[check_col] = None
 
+    check_cols = [f"chk_{label}" for _, label, _, _ in checks]
+    sc["Checks Passed"] = sc[check_cols].apply(lambda r: sum(1 for v in r if v is True), axis=1)
+    sc["Checks Total"] = sc[check_cols].apply(lambda r: sum(1 for v in r if v is not None), axis=1)
+    sc["Adherence %"] = (sc["Checks Passed"] / sc["Checks Total"] * 100).round(0)
+    sc["Adherence %"] = sc["Adherence %"].fillna(0)
+    sc["Rank"] = sc["Adherence %"].rank(ascending=False, method="min").astype(int)
+    sc = sc.sort_values(["Adherence %", "Checks Passed"], ascending=[False, False])
+
+    # ── Sidebar filters ──
     if selected_store != "All Stores":
         sk_num = extract_store_number(selected_store)
-        sc_df = sc_df[sc_df["store_num"] == sk_num]
+        sc = sc[sc["Store No"] == sk_num]
     elif selected_district != "All Districts":
         d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
-        sc_df = sc_df[sc_df["store_num"].isin(d_nums)]
+        sc = sc[sc["Store No"].isin(d_nums)]
 
-    st.markdown(f'<p style="color:#6B7280; font-size:0.85rem;">Store Scorecard &nbsp;|&nbsp; {len(sc_df)} stores &nbsp;|&nbsp; Composite score across KDS, Labor &amp; SMG</p>', unsafe_allow_html=True)
+    # ── HEADER ──
+    avg_adh = sc["Adherence %"].mean()
+    total_checks = len(checks)
+    st.markdown(f"""
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.8rem;">
+        <div>
+            <h2 style="color:#1A3C34; font-weight:800; margin:0; font-size:1.6rem;">Scorecard</h2>
+            <p style="color:#6B7280; font-size:0.88rem; margin:0.2rem 0 0 0;">
+                Weighted adherence across {total_checks} metrics &nbsp;·&nbsp; {len(sc)} stores
+            </p>
+        </div>
+        <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1.2rem; border-radius:8px; font-weight:700; font-size:0.9rem; white-space:nowrap;">
+            AVG ADHERENCE · <span style="color:#FFD700;">{avg_adh:.0f}%</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    # Top 5 / Bottom 5
-    if len(sc_df) > 5:
-        t5, b5 = st.columns(2)
-        with t5:
-            st.markdown('<div class="section-title">Top 5 Stores</div>', unsafe_allow_html=True)
-            top5 = sc_df.head(5)
-            for _, row in top5.iterrows():
-                score = row["composite"]
-                color = GREEN if score >= 75 else (ORANGE if score >= 50 else RED)
-                st.markdown(f'<div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem 0.8rem; margin:0.3rem 0; background:#FFFFFF; border-left:4px solid {color}; border-radius:4px; border:1px solid #E8ECF0;">'
-                            f'<span style="color:#1F2937; font-weight:600;">#{int(row["rank"])} {row["short_name"]}</span>'
-                            f'<span style="color:{color}; font-weight:700; font-size:1.1rem;">{score:.0f}</span></div>', unsafe_allow_html=True)
-        with b5:
-            st.markdown('<div class="section-title">Bottom 5 Stores</div>', unsafe_allow_html=True)
-            bot5 = sc_df.tail(5).iloc[::-1]
-            for _, row in bot5.iterrows():
-                score = row["composite"]
-                color = GREEN if score >= 75 else (ORANGE if score >= 50 else RED)
-                st.markdown(f'<div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem 0.8rem; margin:0.3rem 0; background:#FFFFFF; border-left:4px solid {color}; border-radius:4px; border:1px solid #E8ECF0;">'
-                            f'<span style="color:#1F2937; font-weight:600;">#{int(row["rank"])} {row["short_name"]}</span>'
-                            f'<span style="color:{color}; font-weight:700; font-size:1.1rem;">{score:.0f}</span></div>', unsafe_allow_html=True)
+    # ── KPIs ──
+    full_pass = len(sc[sc["Adherence %"] == 100])
+    below_50 = len(sc[sc["Adherence %"] < 50])
+    adh_c = GREEN if avg_adh >= 80 else (ORANGE if avg_adh >= 60 else RED)
 
-    # Composite score chart
-    st.markdown('<div class="section-title">Composite Score by Store</div>', unsafe_allow_html=True)
-    sc_colors = [GREEN if v >= 75 else (ORANGE if v >= 50 else RED) for v in sc_df["composite"]]
-    fig_sc = go.Figure(go.Bar(
-        x=sc_df["short_name"], y=sc_df["composite"],
-        marker_color=sc_colors,
-        text=sc_df["composite"].apply(lambda x: f"{x:.0f}"),
-        textposition="outside", textfont=dict(size=9, color="#374151"),
-        hovertemplate="%{x}<br>Score: %{y:.1f}<extra></extra>",
-    ))
-    sc_layout = {**CHART_LAYOUT, "yaxis": dict(range=[0, 110], gridcolor=GRID_COLOR, fixedrange=True)}
-    fig_sc.update_layout(**sc_layout, height=400, yaxis_title="Composite Score", xaxis_tickangle=-45)
-    st.plotly_chart(fig_sc, use_container_width=True, key="sc_composite", config=CHART_CONFIG)
+    kpi_style = """<div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; padding:1rem; text-align:left; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+        <div style="color:#6B7280; font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">{label}</div>
+        <div style="color:{color}; font-size:2rem; font-weight:800; margin:0.2rem 0;">{value}</div>
+        <div style="color:#9CA3AF; font-size:0.78rem;">{sub}</div>
+    </div>"""
 
-    # Stoplight table
-    st.markdown('<div class="section-title">Scorecard Detail</div>', unsafe_allow_html=True)
+    c1, c2, c3, c4 = st.columns(4)
+    c1.markdown(kpi_style.format(label="AVG ADHERENCE", value=f"{avg_adh:.0f}%", color=adh_c,
+                sub=f"across {total_checks} checks"), unsafe_allow_html=True)
+    c2.markdown(kpi_style.format(label="100% ADHERENT", value=f"{full_pass}", color=GREEN if full_pass > 0 else ORANGE,
+                sub=f"of {len(sc)} stores"), unsafe_allow_html=True)
+    c3.markdown(kpi_style.format(label="BELOW 50%", value=f"{below_50}", color=RED if below_50 > 0 else GREEN,
+                sub="stores at risk"), unsafe_allow_html=True)
+    # Most failed check
+    fail_counts = {}
+    for _, label, _, _ in checks:
+        col = f"chk_{label}"
+        if col in sc.columns:
+            fail_counts[label] = sc[col].apply(lambda v: v is False).sum()
+    worst_check = max(fail_counts, key=fail_counts.get) if fail_counts else "—"
+    worst_count = fail_counts.get(worst_check, 0)
+    c4.markdown(kpi_style.format(label="MOST FAILED CHECK", value=f"{worst_count}", color=RED if worst_count > 10 else ORANGE,
+                sub=worst_check), unsafe_allow_html=True)
 
-    def stoplight(val, good, warn_fn="lower"):
-        if pd.isna(val): return "—"
-        if warn_fn == "lower":
-            color = GREEN if val <= good else (ORANGE if val <= good * 1.3 else RED)
-        else:
-            color = GREEN if val >= good else (ORANGE if val >= good * 0.85 else RED)
-        return f'<span style="color:{color}; font-weight:600;">{val:.1f}</span>'
+    st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
 
-    sc_tbl = sc_df[["rank", "short_name", "district"]].copy()
-    sc_tbl["Composite"] = sc_df["composite"].apply(lambda x: f"{x:.0f}" if pd.notna(x) else "—")
-    sc_tbl["SOS"] = sc_df["sos_min"].apply(fmt_sos) if "sos_min" in sc_df.columns else "—"
-    sc_tbl["Pre-Bump"] = sc_df["pre_bump"].apply(lambda x: f"{x:.2f}%" if pd.notna(x) else "—") if "pre_bump" in sc_df.columns else "—"
-    sc_tbl["Adoption"] = sc_df["bone_in_adopt"].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "—") if "bone_in_adopt" in sc_df.columns else "—"
-    sc_tbl["Waste"] = sc_df["waste"].apply(lambda x: f"{x:.2f}%" if pd.notna(x) else "—") if "waste" in sc_df.columns else "—"
-    sc_tbl["Labor %"] = sc_df["labor_pct"].apply(lambda x: f"{x:.1%}" if pd.notna(x) else "—") if "labor_pct" in sc_df.columns else "—"
-    sc_tbl["Dissat %"] = sc_df["dissat_pct"].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "—") if "dissat_pct" in sc_df.columns else "—"
-    sc_tbl.columns = ["Rank", "Store", "District", "Score", "SOS (min)", "Pre-Bump %", "Adoption %", "Waste %", "Labor %", "Dissat %"]
-    st.dataframe(sc_tbl, use_container_width=True, hide_index=True)
+    # ── Adherence bar chart ──
+    chart_sc = sc.sort_values("Adherence %", ascending=True).copy()
+    chart_sc["label"] = chart_sc["Store No"] + " " + chart_sc["Store Name"]
+    chart_sc["bar_color"] = chart_sc["Adherence %"].apply(
+        lambda x: GREEN if x >= 80 else (ORANGE if x >= 60 else RED))
 
-    # District scorecard
-    if len(sc_df) > 5:
-        st.markdown('<div class="section-title">District Average Scores</div>', unsafe_allow_html=True)
-        dist_sc = sc_df.groupby("district")["composite"].mean().reset_index()
-        dist_sc = dist_sc.sort_values("composite", ascending=False)
-        dist_sc.columns = ["District", "Avg Score"]
-        dist_colors = [GREEN if v >= 75 else (ORANGE if v >= 50 else RED) for v in dist_sc["Avg Score"]]
-        fig_dsc = go.Figure(go.Bar(
-            x=dist_sc["District"], y=dist_sc["Avg Score"],
-            marker_color=dist_colors,
-            text=dist_sc["Avg Score"].apply(lambda x: f"{x:.0f}"),
-            textposition="outside", textfont=dict(size=11, color="#374151"),
-            hovertemplate="%{x}<br>Score: %{y:.1f}<extra></extra>",
-        ))
-        dsc_layout = {**CHART_LAYOUT, "yaxis": dict(range=[0, 110], gridcolor=GRID_COLOR, fixedrange=True)}
-        fig_dsc.update_layout(**dsc_layout, height=350, yaxis_title="Avg Composite Score")
-        st.plotly_chart(fig_dsc, use_container_width=True, key="sc_district", config=CHART_CONFIG)
+    import plotly.express as px
+    fig_sc = px.bar(chart_sc, x="Adherence %", y="label", orientation="h",
+                    color="bar_color", color_discrete_map="identity",
+                    text=chart_sc.apply(lambda r: f"{r['Adherence %']:.0f}% ({int(r['Checks Passed'])}/{int(r['Checks Total'])})", axis=1))
+    fig_sc.update_layout(
+        title=dict(text="Store Adherence", font=dict(size=16, color="#1A3C34")),
+        xaxis=dict(title="Adherence %", range=[0, 110], dtick=10),
+        yaxis=dict(title=""),
+        showlegend=False,
+        height=max(300, len(chart_sc) * 18),
+        margin=dict(l=10, r=30, t=40, b=30),
+        plot_bgcolor="#FAFAFA",
+    )
+    fig_sc.update_traces(textposition="outside", textfont_size=10)
+    st.plotly_chart(fig_sc, use_container_width=True)
+
+    # ── Detail table with pass/fail per check ──
+    st.markdown('<div style="font-weight:700; color:#1A3C34; font-size:1.1rem; margin:0.5rem 0 0.3rem 0;">Scorecard Detail</div>', unsafe_allow_html=True)
+    st.markdown(f'<p style="color:#6B7280; font-size:0.82rem;">✅ = on target &nbsp;&nbsp; ❌ = off guide &nbsp;&nbsp; — = no data &nbsp;&nbsp; KDS: {latest_kds_period}</p>', unsafe_allow_html=True)
+
+    tbl_data = []
+    for _, row in sc.iterrows():
+        r = {
+            "Store #": row["Store No"],
+            "Store Name": row["Store Name"],
+            "District": row["District"],
+        }
+        for cat, label, col, fn in checks:
+            chk = row.get(f"chk_{label}")
+            if chk is True:
+                r[label] = "✅"
+            elif chk is False:
+                r[label] = "❌"
+            else:
+                r[label] = "—"
+        r["Passed"] = f"{int(row['Checks Passed'])}/{int(row['Checks Total'])}"
+        r["Adherence %"] = row["Adherence %"]
+        tbl_data.append(r)
+
+    tbl = pd.DataFrame(tbl_data).reset_index(drop=True)
+
+    raw_adh = tbl["Adherence %"].copy().reset_index(drop=True)
+    raw_dist = tbl["District"].copy().reset_index(drop=True)
+
+    def style_sc_row(row):
+        idx = row.name
+        styles = [""] * len(row)
+        cols = list(row.index)
+        # District color
+        dist = raw_dist.get(idx, "")
+        d_color = DISTRICT_COLORS.get(dist, "#374151")
+        styles[cols.index("District")] = f"background-color: {d_color}; color: #FFFFFF; font-weight: 600"
+        # Adherence color
+        adh = raw_adh.get(idx)
+        if pd.notna(adh):
+            if adh < 50:
+                styles[cols.index("Adherence %")] = f"color: #DC2626; font-weight: 700"
+            elif adh >= 100:
+                styles[cols.index("Adherence %")] = f"color: #059669; font-weight: 700"
+        return styles
+
+    styled = tbl.style.apply(style_sc_row, axis=1).format({
+        "Adherence %": lambda x: f"{x:.0f}%" if pd.notna(x) else "—",
+    })
+    st.dataframe(styled, use_container_width=True, hide_index=True, height=500)
+
+    # ── Check failure summary ──
+    st.markdown('<div style="font-weight:700; color:#1A3C34; font-size:1.1rem; margin:1rem 0 0.3rem 0;">Check Failure Summary</div>', unsafe_allow_html=True)
+
+    summary_data = []
+    for cat, label, col, fn in checks:
+        chk_col = f"chk_{label}"
+        if chk_col in sc.columns:
+            total_with_data = sc[chk_col].apply(lambda v: v is not None).sum()
+            passed = sc[chk_col].apply(lambda v: v is True).sum()
+            failed = sc[chk_col].apply(lambda v: v is False).sum()
+            pct = (passed / total_with_data * 100) if total_with_data > 0 else 0
+            summary_data.append({
+                "Category": cat, "Check": label,
+                "Passed": int(passed), "Failed": int(failed),
+                "Stores w/ Data": int(total_with_data), "Pass Rate %": round(pct, 1),
+            })
+    summary_tbl = pd.DataFrame(summary_data).reset_index(drop=True)
+
+    raw_pass_rate = summary_tbl["Pass Rate %"].copy().reset_index(drop=True)
+
+    def style_summary(row):
+        idx = row.name
+        styles = [""] * len(row)
+        cols = list(row.index)
+        pr = raw_pass_rate.get(idx)
+        if pd.notna(pr) and pr < 50:
+            styles[cols.index("Pass Rate %")] = "color: #DC2626; font-weight: 700"
+        elif pd.notna(pr) and pr >= 90:
+            styles[cols.index("Pass Rate %")] = "color: #059669; font-weight: 700"
+        return styles
+
+    styled_summary = summary_tbl.style.apply(style_summary, axis=1).format({
+        "Pass Rate %": lambda x: f"{x:.1f}%" if pd.notna(x) else "—",
+    })
+    st.dataframe(styled_summary, use_container_width=True, hide_index=True)
+
+    # ── District summary ──
+    st.markdown('<div style="font-weight:700; color:#1A3C34; font-size:1.1rem; margin:1rem 0 0.3rem 0;">District Adherence</div>', unsafe_allow_html=True)
+    dist_adh = sc.groupby("District").agg(
+        Stores=("Store No", "count"),
+        **{"Avg Adherence %": ("Adherence %", "mean")},
+        **{"Avg Passed": ("Checks Passed", "mean")},
+    ).reset_index()
+    dist_adh["Avg Adherence %"] = dist_adh["Avg Adherence %"].round(0)
+    dist_adh["Avg Passed"] = dist_adh["Avg Passed"].apply(lambda x: f"{x:.1f}/{total_checks}")
+    dist_adh = dist_adh.sort_values("Avg Adherence %", ascending=False).reset_index(drop=True)
+
+    raw_da_pct = dist_adh["Avg Adherence %"].copy().reset_index(drop=True)
+    raw_da_name = dist_adh["District"].copy().reset_index(drop=True)
+
+    def style_dist_adh(row):
+        idx = row.name
+        styles = [""] * len(row)
+        cols = list(row.index)
+        dist = raw_da_name.get(idx, "")
+        d_color = DISTRICT_COLORS.get(dist, "#374151")
+        styles[cols.index("District")] = f"background-color: {d_color}; color: #FFFFFF; font-weight: 600"
+        pct = raw_da_pct.get(idx)
+        if pd.notna(pct) and pct < 60:
+            styles[cols.index("Avg Adherence %")] = "color: #DC2626; font-weight: 700"
+        elif pd.notna(pct) and pct >= 80:
+            styles[cols.index("Avg Adherence %")] = "color: #059669; font-weight: 700"
+        return styles
+
+    styled_da = dist_adh.style.apply(style_dist_adh, axis=1).format({
+        "Avg Adherence %": lambda x: f"{x:.0f}%" if pd.notna(x) else "—",
+    })
+    st.dataframe(styled_da, use_container_width=True, hide_index=True)
 
 # ════════════════════════════════
 # WATCH LIST
