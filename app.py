@@ -819,11 +819,12 @@ if selected_tab == "KDS Dashboard":
             raw_district = tbl["District"].copy()
 
             tbl["SOS"] = tbl["SOS"].apply(fmt_sos)
-            tbl["Adoption %"] = tbl["Adoption %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
-            tbl["Make Ahead %"] = tbl["Make Ahead %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
-            tbl["Waste %"] = tbl["Waste %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "-")
-            tbl["Pre-Bump %"] = tbl["Pre-Bump %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "-")
-            tbl["Adherence %"] = tbl["Adherence %"].apply(lambda x: f"{x:.0f}%" if pd.notna(x) else "-")
+            # Keep numeric values for correct click-to-sort; use Styler .format() for display
+            tbl["Adoption %"] = tbl["Adoption %"].round(1)
+            tbl["Make Ahead %"] = tbl["Make Ahead %"].round(1)
+            tbl["Waste %"] = tbl["Waste %"].round(2)
+            tbl["Pre-Bump %"] = tbl["Pre-Bump %"].round(2)
+            tbl["Adherence %"] = tbl["Adherence %"].round(0)
             tbl = tbl.rename(columns={"SOS Status": "Status", "Store No": "Store #"})
             tbl = tbl.reset_index(drop=True)
             raw_sos = raw_sos.reset_index(drop=True)
@@ -857,7 +858,13 @@ if selected_tab == "KDS Dashboard":
                     styles[cols.index("Adherence %")] += f"; {OFF_GUIDE}"
                 return styles
 
-            styled_tbl = tbl.style.apply(style_store_table, axis=1)
+            styled_tbl = tbl.style.apply(style_store_table, axis=1).format({
+                "Adoption %": lambda x: f"{x:.1f}" if pd.notna(x) else "-",
+                "Make Ahead %": lambda x: f"{x:.1f}" if pd.notna(x) else "-",
+                "Waste %": lambda x: f"{x:.2f}" if pd.notna(x) else "-",
+                "Pre-Bump %": lambda x: f"{x:.2f}" if pd.notna(x) else "-",
+                "Adherence %": lambda x: f"{x:.0f}%" if pd.notna(x) else "-",
+            })
             st.dataframe(styled_tbl, use_container_width=True, hide_index=True, height=500)
 
         # ════════════════════
@@ -903,11 +910,12 @@ if selected_tab == "KDS Dashboard":
                 d_raw_adh = d_tbl["Adherence %"].copy()
 
                 d_tbl["SOS"] = d_tbl["SOS"].apply(fmt_sos)
-                d_tbl["Adoption %"] = d_tbl["Adoption %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
-                d_tbl["Make Ahead %"] = d_tbl["Make Ahead %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
-                d_tbl["Waste %"] = d_tbl["Waste %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "-")
-                d_tbl["Pre-Bump %"] = d_tbl["Pre-Bump %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "-")
-                d_tbl["Adherence %"] = d_raw_adh.apply(lambda x: f"{x:.0f}%" if pd.notna(x) else "-")
+                # Keep numeric for correct click-to-sort
+                d_tbl["Adoption %"] = d_tbl["Adoption %"].round(1)
+                d_tbl["Make Ahead %"] = d_tbl["Make Ahead %"].round(1)
+                d_tbl["Waste %"] = d_tbl["Waste %"].round(2)
+                d_tbl["Pre-Bump %"] = d_tbl["Pre-Bump %"].round(2)
+                d_tbl["Adherence %"] = d_tbl["Adherence %"].round(0)
                 d_tbl = d_tbl.rename(columns={"SOS Status": "Status", "Store No": "Store #"}).reset_index(drop=True)
                 d_raw_sos = d_raw_sos.reset_index(drop=True)
                 d_raw_adopt = d_raw_adopt.reset_index(drop=True)
@@ -934,7 +942,13 @@ if selected_tab == "KDS Dashboard":
                         styles[cols.index("Adherence %")] += f"; {OFF_GUIDE}"
                     return styles
 
-                st.dataframe(d_tbl.style.apply(style_district_row, axis=1), use_container_width=True, hide_index=True)
+                st.dataframe(d_tbl.style.apply(style_district_row, axis=1).format({
+                    "Adoption %": lambda x: f"{x:.1f}" if pd.notna(x) else "-",
+                    "Make Ahead %": lambda x: f"{x:.1f}" if pd.notna(x) else "-",
+                    "Waste %": lambda x: f"{x:.2f}" if pd.notna(x) else "-",
+                    "Pre-Bump %": lambda x: f"{x:.2f}" if pd.notna(x) else "-",
+                    "Adherence %": lambda x: f"{x:.0f}%" if pd.notna(x) else "-",
+                }), use_container_width=True, hide_index=True)
 
         # ════════════════════
         # TAB: REPEAT OFFENDERS
