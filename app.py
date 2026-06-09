@@ -396,7 +396,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    nav_options = ["Sales Performance", "KDS Dashboard", "Schedule Guide", "Internal QSC Evals", "Labor Dashboard", "COGS Variance", "SMG (Guest Satisfaction)", "District Comparison", "Scorecard", "Watch List", "Wing Worm"]
+    nav_options = ["Sales Performance", "KDS Dashboard", "Schedule Guide", "Internal QSC Evals", "Labor Dashboard", "COGS Variance", "SMG (Guest Satisfaction)", "FlavorLab", "District Comparison", "Scorecard", "Watch List", "Wing Worm"]
     selected_tab = st.radio("Nav", nav_options, label_visibility="collapsed")
 
     st.markdown("---")
@@ -2429,6 +2429,161 @@ elif selected_tab == "SMG (Guest Satisfaction)":
                 return styles
 
             st.dataframe(dtbl.style.apply(style_smg_row, axis=1), use_container_width=True, hide_index=True)
+
+# ════════════════════════════════
+# FLAVORLAB
+# ════════════════════════════════
+elif selected_tab == "FlavorLab":
+    fl_path = DATA_DIR / "flavorlab.csv"
+    if not fl_path.exists():
+        st.warning("No FlavorLab data found. Place flavorlab.csv in the data/ folder.")
+    else:
+        fl_df = pd.read_csv(fl_path)
+        fl_df["Store No"] = fl_df["Store No"].astype(str)
+        fl_df["District"] = fl_df["Store No"].map(STORE_TO_DISTRICT).fillna("—")
+
+        # Apply sidebar filters
+        if selected_store != "All Stores":
+            sk_num = extract_store_number(selected_store)
+            fl_df = fl_df[fl_df["Store No"] == sk_num]
+        elif selected_district != "All Districts":
+            d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
+            fl_df = fl_df[fl_df["Store No"].isin(d_nums)]
+
+        overall_pct = fl_df["Completions"].sum() / fl_df["Total_Courses"].sum() * 100 if fl_df["Total_Courses"].sum() > 0 else 0
+        total_emp = fl_df["Employees"].sum()
+        total_incomplete = fl_df["Incomplete"].sum()
+        stores_100 = len(fl_df[fl_df["Completion_Pct"] >= 100])
+
+        # ── HEADER ──
+        st.markdown(f"""
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.8rem;">
+            <div>
+                <h2 style="color:#1A3C34; font-weight:800; margin:0; font-size:1.6rem;">🧪 FlavorLab</h2>
+                <p style="color:#6B7280; font-size:0.88rem; margin:0.2rem 0 0 0;">
+                    The Flavor Lab — Course completion by store &nbsp;·&nbsp; {len(fl_df)} stores, {total_emp} employees
+                </p>
+            </div>
+            <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1.2rem; border-radius:8px; font-weight:700; font-size:0.9rem; white-space:nowrap;">
+                TARGET · <span style="color:#FFD700;">100% Completion</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ── KPIs ──
+        ov_c = "#059669" if overall_pct >= 98 else ("#D97706" if overall_pct >= 95 else "#DC2626")
+        inc_c = "#059669" if total_incomplete == 0 else ("#D97706" if total_incomplete < 50 else "#DC2626")
+        s100_c = "#059669" if stores_100 == len(fl_df) else ("#D97706" if stores_100 >= len(fl_df) * 0.5 else "#DC2626")
+
+        kpi_style = """<div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; padding:1rem; text-align:left; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+            <div style="color:#6B7280; font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">{label}</div>
+            <div style="color:{color}; font-size:2rem; font-weight:800; margin:0.2rem 0;">{value}</div>
+            <div style="color:#9CA3AF; font-size:0.78rem;">{sub}</div>
+        </div>"""
+
+        c1, c2, c3, c4 = st.columns(4)
+        c1.markdown(kpi_style.format(label="OVERALL COMPLETION", value=f"{overall_pct:.1f}%", color=ov_c,
+                    sub=f"{fl_df['Completions'].sum():,} / {fl_df['Total_Courses'].sum():,} courses"), unsafe_allow_html=True)
+        c2.markdown(kpi_style.format(label="INCOMPLETE COURSES", value=f"{total_incomplete:,}", color=inc_c,
+                    sub="courses remaining"), unsafe_allow_html=True)
+        c3.markdown(kpi_style.format(label="100% STORES", value=f"{stores_100} / {len(fl_df)}", color=s100_c,
+                    sub="stores fully complete"), unsafe_allow_html=True)
+        c4.markdown(kpi_style.format(label="TOTAL EMPLOYEES", value=f"{total_emp}", color="#1A3C34",
+                    sub=f"across {len(fl_df)} stores"), unsafe_allow_html=True)
+
+        st.markdown("<div style='height:1rem;'></div>", unsafe_allow_html=True)
+
+        # ── BAR CHART: Completion % by Store ──
+        import plotly.express as px
+        chart_df = fl_df.sort_values("Completion_Pct", ascending=True).copy()
+        chart_df["label"] = chart_df["Store No"] + " " + chart_df["Store Name"]
+        chart_df["bar_color"] = chart_df["Completion_Pct"].apply(
+            lambda x: "#059669" if x >= 98 else ("#D97706" if x >= 95 else "#DC2626"))
+
+        fig = px.bar(chart_df, x="Completion_Pct", y="label", orientation="h",
+                     color="bar_color", color_discrete_map="identity",
+                     text=chart_df["Completion_Pct"].apply(lambda x: f"{x:.1f}%"))
+        fig.update_layout(
+            title=dict(text="Course Completion % by Store", font=dict(size=16, color="#1A3C34")),
+            xaxis=dict(title="Completion %", range=[0, 105], dtick=10),
+            yaxis=dict(title=""),
+            showlegend=False,
+            height=max(400, len(chart_df) * 28),
+            margin=dict(l=10, r=20, t=40, b=30),
+            plot_bgcolor="#FAFAFA",
+        )
+        fig.update_traces(textposition="outside", textfont_size=11)
+        fig.add_vline(x=100, line_dash="dash", line_color="#1A3C34", line_width=1.5,
+                      annotation_text="Target 100%", annotation_position="top")
+        st.plotly_chart(fig, use_container_width=True)
+
+        # ── TABLE ──
+        st.markdown('<div style="font-weight:700; color:#1A3C34; font-size:1.1rem; margin:0.5rem 0 0.3rem 0;">Store Breakdown</div>', unsafe_allow_html=True)
+
+        tbl = fl_df[["Store No", "Store Name", "District", "Employees", "Total_Courses", "Completions", "Incomplete", "Completion_Pct"]].copy()
+        tbl = tbl.rename(columns={"Total_Courses": "Courses", "Completion_Pct": "Completion %"})
+        tbl = tbl.sort_values("Store No", key=lambda x: x.astype(int))
+
+        raw_pct = tbl["Completion %"].copy().reset_index(drop=True)
+        raw_district = tbl["District"].copy().reset_index(drop=True)
+        tbl = tbl.reset_index(drop=True)
+
+        def style_fl_row(row):
+            idx = row.name
+            styles = [""] * len(row)
+            cols = list(row.index)
+            # District colored cell
+            dist = raw_district.get(idx, "")
+            d_color = DISTRICT_COLORS.get(dist, "#374151")
+            styles[cols.index("District")] = f"background-color: {d_color}; color: #FFFFFF; font-weight: 600"
+            # Completion % color
+            pct = raw_pct.get(idx)
+            if pd.notna(pct) and pct < 95:
+                styles[cols.index("Completion %")] = f"color: #DC2626; font-weight: 700"
+            # Incomplete highlight
+            inc_val = row.get("Incomplete")
+            if pd.notna(inc_val) and inc_val > 30:
+                styles[cols.index("Incomplete")] = f"color: #DC2626; font-weight: 700"
+            return styles
+
+        styled = tbl.style.apply(style_fl_row, axis=1).format({
+            "Completion %": lambda x: f"{x:.1f}%" if pd.notna(x) else "-",
+        })
+        st.dataframe(styled, use_container_width=True, hide_index=True, height=500)
+
+        # ── DISTRICT SUMMARY ──
+        st.markdown('<div style="font-weight:700; color:#1A3C34; font-size:1.1rem; margin:1rem 0 0.3rem 0;">District Summary</div>', unsafe_allow_html=True)
+
+        dist_summary = fl_df.groupby("District").agg(
+            Stores=("Store No", "count"),
+            Employees=("Employees", "sum"),
+            Courses=("Total_Courses", "sum"),
+            Completions=("Completions", "sum"),
+            Incomplete=("Incomplete", "sum"),
+        ).reset_index()
+        dist_summary["Completion %"] = (dist_summary["Completions"] / dist_summary["Courses"] * 100).round(1)
+        dist_summary = dist_summary.sort_values("District")
+
+        raw_d_pct = dist_summary["Completion %"].copy().reset_index(drop=True)
+        raw_d_name = dist_summary["District"].copy().reset_index(drop=True)
+        dist_summary = dist_summary.reset_index(drop=True)
+
+        def style_dist_fl(row):
+            idx = row.name
+            styles = [""] * len(row)
+            cols = list(row.index)
+            dist = raw_d_name.get(idx, "")
+            d_color = DISTRICT_COLORS.get(dist, "#374151")
+            styles[cols.index("District")] = f"background-color: {d_color}; color: #FFFFFF; font-weight: 600"
+            pct = raw_d_pct.get(idx)
+            if pd.notna(pct) and pct < 95:
+                styles[cols.index("Completion %")] = f"color: #DC2626; font-weight: 700"
+            return styles
+
+        styled_dist = dist_summary.style.apply(style_dist_fl, axis=1).format({
+            "Completion %": lambda x: f"{x:.1f}%" if pd.notna(x) else "-",
+        })
+        st.dataframe(styled_dist, use_container_width=True, hide_index=True)
 
 # ════════════════════════════════
 # DISTRICT COMPARISON
