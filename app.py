@@ -2841,14 +2841,12 @@ elif selected_tab == "Scorecard":
         sc["SMG Inaccurate"] = sc["Store No"].map(smg_map["Inaccurate Order %"])
 
     # --- QSC Evals (latest period) ---
-    qsc_path = DATA_DIR / "qsc_evals.csv"
-    if qsc_path.exists():
-        qsc = pd.read_csv(qsc_path)
-        qsc["Store No"] = qsc["Store No"].astype(str)
-        latest_qsc = sorted(qsc["Period"].unique(), key=lambda x: (int(x[1]), int(x[3])))[-1]
-        qsc_latest = qsc[(qsc["Period"] == latest_qsc) & (qsc["Stars"].notna()) & (qsc["Stars"] > 0)]
-        qsc_avg_stars = qsc_latest.groupby("Store No")["Stars"].mean()
-        sc["QSC Stars"] = sc["Store No"].map(qsc_avg_stars)
+    qsc_insp_path = DATA_DIR / "qsc_inspection.csv"
+    if qsc_insp_path.exists():
+        qsc_insp = pd.read_csv(qsc_insp_path)
+        qsc_insp["Store No"] = qsc_insp["Store No"].astype(str)
+        qsc_map = qsc_insp.set_index("Store No")["QSC Stars"]
+        sc["QSC Stars"] = sc["Store No"].map(qsc_map)
 
     # --- FlavorLab ---
     fl_path = DATA_DIR / "flavorlab.csv"
