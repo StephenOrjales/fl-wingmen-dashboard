@@ -2328,13 +2328,13 @@ elif selected_tab == "SMG (Guest Satisfaction)":
         greet_c = "#059669" if avg_greeted >= 95 else ("#D97706" if avg_greeted >= 90 else "#DC2626")
 
         k1, k2, k3, k4 = st.columns(4)
-        k1.markdown(kpi_style.format(label="SATISFACTION", value=f"{avg_sat:.1f}%", color=sat_c,
+        k1.markdown(kpi_style.format(label="SATISFACTION", value=f"{avg_sat:.2f}%", color=sat_c,
                     sub=f"{total_surveys:,} surveys"), unsafe_allow_html=True)
-        k2.markdown(kpi_style.format(label="DISSATISFACTION", value=f"{avg_dissat:.1f}%", color=dissat_c,
+        k2.markdown(kpi_style.format(label="DISSATISFACTION", value=f"{avg_dissat:.2f}%", color=dissat_c,
                     sub="target ≤ 3%"), unsafe_allow_html=True)
-        k3.markdown(kpi_style.format(label="ORDER ACCURACY", value=f"{avg_acc:.1f}%", color=acc_c,
+        k3.markdown(kpi_style.format(label="ORDER ACCURACY", value=f"{avg_acc:.2f}%", color=acc_c,
                     sub="target ≥ 97%"), unsafe_allow_html=True)
-        k4.markdown(kpi_style.format(label="GREETED WITH SMILE", value=f"{avg_greeted:.1f}%", color=greet_c,
+        k4.markdown(kpi_style.format(label="GREETED WITH SMILE", value=f"{avg_greeted:.2f}%", color=greet_c,
                     sub="target ≥ 95%"), unsafe_allow_html=True)
 
         st.markdown("<div style='height:0.5rem;'></div>", unsafe_allow_html=True)
