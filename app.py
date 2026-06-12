@@ -402,21 +402,39 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    nav_options = ["Sales Performance", "KDS Dashboard", "Schedule Guide", "Internal QSC Evals", "Labor Dashboard", "COGS Variance", "SMG (Guest Satisfaction)", "FlavorLab", "District Comparison", "Scorecard", "Watch List", "Wing Worm", "District Reports"]
-    selected_tab = st.radio("Nav", nav_options, label_visibility="collapsed")
+    nav_options = ["Sales Performance", "KDS Dashboard", "Schedule Guide", "Internal QSC Evals", "Labor Dashboard", "COGS Variance", "SMG (Guest Satisfaction)", "FlavorLab", "District Comparison", "Scorecard", "Watch List", "Wing Worm"]
 
-    # Highlight "District Reports" radio option with green outline
+    # Clear District Reports override when a radio option changes
+    def _on_nav_change():
+        st.session_state.pop("_nav_override", None)
+
+    selected_tab = st.radio("Nav", nav_options, label_visibility="collapsed",
+                            key="_main_nav", on_change=_on_nav_change)
+
+    st.markdown("---")
+    if st.button("📊  District Reports — PPT Export", use_container_width=True, type="primary"):
+        st.session_state["_nav_override"] = "District Reports"
+
+    # Brand the District Reports button
     st.markdown("""
     <style>
-    /* Target the last radio option (District Reports) */
-    div[data-testid="stSidebar"] div[role="radiogroup"] label:last-child {
-        border: 2px solid #059669;
+    div[data-testid="stSidebar"] button[kind="primary"] {
+        background-color: #1A3C34 !important;
+        border: 2px solid #059669 !important;
+        color: #FFFFFF !important;
+        font-weight: 700 !important;
+        font-size: 0.85rem !important;
         border-radius: 8px;
-        padding: 2px 6px;
-        margin-top: 4px;
+    }
+    div[data-testid="stSidebar"] button[kind="primary"]:hover {
+        background-color: #059669 !important;
     }
     </style>
     """, unsafe_allow_html=True)
+
+    # Override nav when District Reports button was clicked
+    if st.session_state.get("_nav_override") == "District Reports":
+        selected_tab = "District Reports"
 
     st.markdown("---")
     st.markdown(f"""
