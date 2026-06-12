@@ -186,8 +186,8 @@ def _kds_colors(df_raw, df_display):
         if "Make Ahead %" in col_names and pd.notna(row.get("Make Ahead %")) and row["Make Ahead %"] > 10:
             j = col_names.index("Make Ahead %")
             colors[(i, j)] = RED; bolds[(i, j)] = True
-        # Waste > 0 → red
-        if "Waste %" in col_names and pd.notna(row.get("Waste %")) and row["Waste %"] > 0:
+        # Waste > 5 → red
+        if "Waste %" in col_names and pd.notna(row.get("Waste %")) and row["Waste %"] > 5:
             j = col_names.index("Waste %")
             colors[(i, j)] = RED; bolds[(i, j)] = True
         # Pre-Bump > 0.5 → red
@@ -288,7 +288,7 @@ def _cogs_colors(df_raw, df_display):
         val = row.get("cogs_var")
         if pd.notna(val) and abs(val) > 1:
             colors[(i, j)] = RED; bolds[(i, j)] = True
-        elif pd.notna(val) and abs(val) <= 0.5:
+        elif pd.notna(val) and val < 1:
             colors[(i, j)] = GREEN; bolds[(i, j)] = True
     return colors, bolds
 
