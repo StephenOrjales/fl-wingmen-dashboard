@@ -4,6 +4,7 @@ Generates a branded PowerPoint deck per district for weekly DM meetings.
 Color-coded cells match dashboard thresholds. Scorecard is the concluding summary.
 """
 import io
+import re
 import pandas as pd
 from pathlib import Path
 from pptx import Presentation
@@ -571,8 +572,12 @@ def generate_district_ppt(district, store_to_district, districts_config):
             # QTD data
             qtd_data = r26_d[r26_d["period"].isin(qtr_ps)]
 
-            # Latest week period label
-            lw_label = f"P{latest_period}W{latest_week}" if latest_week is not None else f"P{latest_period}"
+            # Latest week period label — week_d format is "2026P06W2", extract "P6W2"
+            if latest_week is not None:
+                m = re.search(r'P0*(\d+)W(\d+)', str(latest_week))
+                lw_label = f"P{m.group(1)}W{m.group(2)}" if m else str(latest_week)
+            else:
+                lw_label = f"P{latest_period}"
 
             slide = prs.slides.add_slide(blank_layout)
             _add_title_bar(slide, f"Labor Dashboard — {lw_label} & Q{current_qtr} QTD",
@@ -909,11 +914,11 @@ def generate_district_ppt(district, store_to_district, districts_config):
             total = 0
             for cl in check_labels:
                 result = sc_data[snum].get(cl)
-                if result is True:
+                if result is not None and bool(result):
                     row_data[cl] = "✅"
                     passed += 1
                     total += 1
-                elif result is False:
+                elif result is not None and not bool(result):
                     row_data[cl] = "❌"
                     total += 1
                 else:
@@ -938,9 +943,9 @@ def generate_district_ppt(district, store_to_district, districts_config):
             for cl in check_labels:
                 j = col_names.index(cl)
                 result = sc_data[row["Store #"]].get(cl)
-                if result is True:
+                if result is not None and bool(result):
                     colors[(i, j)] = GREEN
-                elif result is False:
+                elif result is not None and not bool(result):
                     colors[(i, j)] = RED; bolds[(i, j)] = True
 
             # Adherence column color
