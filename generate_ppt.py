@@ -959,11 +959,18 @@ def generate_district_ppt(district, store_to_district, districts_config):
         # Column widths: Store # wider, checks narrow, Adherence wider
         cw = [1.5] + [1] * len(check_labels) + [1.3]
 
-        _add_table(slide, sc_display, Inches(0.3), Inches(1.4), SLIDE_WIDTH - Inches(0.6),
-                   Inches(0.28 * (len(sc_display) + 1)),
+        # Row heights: header is taller (wrapped text), data rows standard
+        n_data_rows = len(sc_display)
+        header_h = 0.55  # header text wraps to 2-3 lines
+        data_row_h = 0.32
+        table_h = header_h + data_row_h * n_data_rows
+        table_top = 1.4
+
+        _add_table(slide, sc_display, Inches(0.3), Inches(table_top), SLIDE_WIDTH - Inches(0.6),
+                   Inches(table_h),
                    cell_colors=colors, bold_cells=bolds, col_widths=cw)
 
-        # Summary callouts
+        # Summary callouts — position below table with padding
         callouts = []
         adherences = [r["_adh_raw"] for r in sc_rows]
         avg_adh = sum(adherences) / len(adherences) if adherences else 0
@@ -971,7 +978,9 @@ def generate_district_ppt(district, store_to_district, districts_config):
 
         # Count checks that most stores fail
         for cl in check_labels:
-            failed = sum(1 for r in sc_rows if sc_data[r["Store #"]].get(cl) is False)
+            failed = sum(1 for r in sc_rows
+                         if sc_data[r["Store #"]].get(cl) is not None
+                         and not bool(sc_data[r["Store #"]].get(cl)))
             total_with_data = sum(1 for r in sc_rows if sc_data[r["Store #"]].get(cl) is not None)
             if total_with_data > 0 and failed / total_with_data > 0.5:
                 callouts.append(f"{cl}: {failed}/{total_with_data} stores failing — needs district focus")
@@ -984,9 +993,9 @@ def generate_district_ppt(district, store_to_district, districts_config):
         highest = max(sc_rows, key=lambda r: r["_adh_raw"])
         callouts.append(f"Highest: Store {highest['Store #']} at {highest['_adh_raw']:.0f}% ({highest['_passed']}/{highest['_total']})")
 
-        top_h = Inches(1.4 + 0.28 * (len(sc_display) + 1) + 0.15)
-        if top_h < Inches(6.5):
-            _add_callouts(slide, callouts[:5], top_h)
+        callout_top = Inches(table_top + table_h + 0.2)
+        if callout_top < Inches(6.5):
+            _add_callouts(slide, callouts[:5], callout_top)
 
     # ── Save to bytes ──
     buf = io.BytesIO()
