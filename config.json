@@ -1,7 +1,4 @@
 {
-    "nbo_url": "https://anywhere.ncrbackoffice.com/NCRBackOffice/firehouse/",
-    "username": "stephen.orales",
-    "password": "Stephen29...",
     "stores": {
         "District 1": [
             "0346 - FL - Miami Old Cutler Road",
@@ -56,7 +53,5 @@
             "3317 - FL - Boca Raton"
         ]
     },
-    "reports": ["2.05", "2.04"],
-    "export_format": "csv",
     "data_dir": "data"
 }

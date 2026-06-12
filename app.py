@@ -402,7 +402,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    nav_options = ["Sales Performance", "KDS Dashboard", "Schedule Guide", "Internal QSC Evals", "Labor Dashboard", "COGS Variance", "SMG (Guest Satisfaction)", "FlavorLab", "District Comparison", "Scorecard", "Watch List", "Wing Worm"]
+    nav_options = ["Sales Performance", "KDS Dashboard", "Schedule Guide", "Labor Dashboard", "COGS Variance", "SMG (Guest Satisfaction)", "FlavorLab", "District Comparison", "Scorecard", "Watch List", "Wing Worm"]
 
     # Clear District Reports override when a radio option changes
     def _on_nav_change():

@@ -211,10 +211,10 @@ def _labor_colors(df_raw, df_display, var_col_name="Variance"):
     for i, (_, row) in enumerate(df_raw.iterrows()):
         var = row.get("variance")
         if pd.notna(var):
-            abs_var = abs(var)
-            if abs_var <= 1.5:
+            # Only positive variance (over budget) is bad; negative = under budget = fine
+            if var <= 1.5:
                 colors[(i, j_var)] = GREEN; bolds[(i, j_var)] = True
-            elif abs_var <= 3:
+            elif var <= 3:
                 colors[(i, j_var)] = ORANGE; bolds[(i, j_var)] = True
             else:
                 colors[(i, j_var)] = RED; bolds[(i, j_var)] = True
@@ -380,8 +380,17 @@ def generate_district_ppt(district, store_to_district, districts_config):
     if sales_path.exists():
         sales = pd.read_csv(sales_path)
         sales["Store No"] = sales["Store No"].astype(str)
-        latest_sales = sorted(sales["Period"].unique(), key=lambda x: (int(x[1]), int(x[3])))[-1]
+        all_sales_periods = sorted(sales["Period"].unique(), key=lambda x: (int(x[1]), int(x[3])))
+        latest_sales = all_sales_periods[-1]
+        prev_sales = all_sales_periods[-2] if len(all_sales_periods) >= 2 else None
         sales_d = sales[(sales["Period"] == latest_sales) & (sales["Store No"].isin(d_stores))].copy()
+
+        # Prior week for WoW delta
+        prev_gross_map = {}
+        if prev_sales:
+            sales_prev = sales[(sales["Period"] == prev_sales) & (sales["Store No"].isin(d_stores))]
+            prev_gross_map = dict(zip(sales_prev["Store No"], sales_prev["Gross Sales"]))
+
         if not sales_d.empty:
             slide = prs.slides.add_slide(blank_layout)
             _add_title_bar(slide, f"Sales Performance — {latest_sales}", f"{district} · {len(sales_d)} stores")
@@ -391,6 +400,11 @@ def generate_district_ppt(district, store_to_district, districts_config):
                                "Check Avg", "Cash Over/Short"]].copy()
             raw_tbl = raw_tbl.sort_values("Store No", key=lambda x: x.astype(int)).reset_index(drop=True)
 
+            # WoW gross sales delta
+            raw_tbl["Δ Sales"] = raw_tbl.apply(
+                lambda r: r["Gross Sales"] - prev_gross_map.get(r["Store No"], r["Gross Sales"])
+                if pd.notna(r["Gross Sales"]) else None, axis=1)
+
             tbl = raw_tbl.copy()
             tbl["Gross Sales"] = tbl["Gross Sales"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "—")
             tbl["Net Sales"] = tbl["Net Sales"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "—")
@@ -398,16 +412,32 @@ def generate_district_ppt(district, store_to_district, districts_config):
             tbl["Online %"] = tbl["Online %"].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "—")
             tbl["Check Avg"] = tbl["Check Avg"].apply(lambda x: f"${x:,.2f}" if pd.notna(x) else "—")
             tbl["Cash Over/Short"] = tbl["Cash Over/Short"].apply(lambda x: f"${x:+,.2f}" if pd.notna(x) else "—")
-            tbl.columns = ["Store #", "Gross Sales", "Net Sales", "Online $", "Online %", "Check Avg", "Cash O/S"]
+            tbl["Δ Sales"] = raw_tbl["Δ Sales"].apply(
+                lambda x: f"${x:+,.0f}" if pd.notna(x) and x != 0 else "—")
+            tbl.columns = ["Store #", "Gross Sales", "Net Sales", "Online $", "Online %",
+                           "Check Avg", "Cash O/S", "Δ Sales"]
 
             cc, bc = _sales_colors(raw_tbl, tbl)
+            # Color WoW sales delta: increase=green, decrease=red
+            col_names = list(tbl.columns)
+            j_ds = col_names.index("Δ Sales")
+            for i, (_, row) in enumerate(raw_tbl.iterrows()):
+                d = row.get("Δ Sales")
+                if pd.notna(d) and d != 0:
+                    cc[(i, j_ds)] = GREEN if d > 0 else RED
+                    bc[(i, j_ds)] = True
+
             _add_table(slide, tbl, Inches(0.5), Inches(1.4), SLIDE_WIDTH - Inches(1),
                        Inches(0.3 * (len(tbl) + 1)), cell_colors=cc, bold_cells=bc)
 
             # Callouts
             callouts = []
             total_gross = sales_d["Gross Sales"].sum()
+            prev_total = sum(prev_gross_map.get(s, 0) for s in raw_tbl["Store No"]) if prev_gross_map else 0
             callouts.append(f"Total gross sales: ${total_gross:,.0f}")
+            if prev_total > 0:
+                delta_total = total_gross - prev_total
+                callouts.append(f"WoW change: ${delta_total:+,.0f} vs {prev_sales}")
             cos_bad = sales_d[sales_d["Cash Over/Short"].abs() > 2]
             for _, r in cos_bad.iterrows():
                 callouts.append(f"Store {r['Store No']} cash O/S: ${r['Cash Over/Short']:+,.2f} (off guide ±$2)")
@@ -420,8 +450,18 @@ def generate_district_ppt(district, store_to_district, districts_config):
     if kds_path.exists():
         kds = pd.read_csv(kds_path)
         kds["Store No"] = kds["Store No"].astype(str)
-        latest_kds = sorted(kds["Period"].unique(), key=lambda x: (int(x[1]), int(x[3])))[-1]
+        all_periods = sorted(kds["Period"].unique(), key=lambda x: (int(x[1]), int(x[3])))
+        latest_kds = all_periods[-1]
+        prev_kds = all_periods[-2] if len(all_periods) >= 2 else None
         kds_d = kds[(kds["Period"] == latest_kds) & (kds["Store No"].isin(d_stores))].copy()
+
+        # Prior week for WoW deltas
+        prev_map_sos, prev_map_adh = {}, {}
+        if prev_kds:
+            kds_prev = kds[(kds["Period"] == prev_kds) & (kds["Store No"].isin(d_stores))]
+            prev_map_sos = dict(zip(kds_prev["Store No"], kds_prev["SOS"]))
+            prev_map_adh = dict(zip(kds_prev["Store No"], kds_prev["Adherence %"]))
+
         if not kds_d.empty:
             slide = prs.slides.add_slide(blank_layout)
             _add_title_bar(slide, f"KDS Dashboard — {latest_kds}", f"{district} · Fri & Sat Dinner Only")
@@ -430,6 +470,12 @@ def generate_district_ppt(district, store_to_district, districts_config):
                              "Waste %", "Pre-Bump %", "Adherence %"]].copy()
             raw_kds = raw_kds.sort_values("Store No", key=lambda x: x.astype(int)).reset_index(drop=True)
 
+            # Compute WoW deltas
+            raw_kds["Δ SOS"] = raw_kds.apply(
+                lambda r: r["SOS"] - prev_map_sos.get(r["Store No"], r["SOS"]) if pd.notna(r["SOS"]) else None, axis=1)
+            raw_kds["Δ Adh"] = raw_kds.apply(
+                lambda r: r["Adherence %"] - prev_map_adh.get(r["Store No"], r["Adherence %"]) if pd.notna(r["Adherence %"]) else None, axis=1)
+
             tbl = raw_kds.copy()
             tbl["SOS"] = tbl["SOS"].apply(_fmt_sos)
             tbl["Adoption %"] = tbl["Adoption %"].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "—")
@@ -437,10 +483,30 @@ def generate_district_ppt(district, store_to_district, districts_config):
             tbl["Waste %"] = tbl["Waste %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "—")
             tbl["Pre-Bump %"] = tbl["Pre-Bump %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "—")
             tbl["Adherence %"] = tbl["Adherence %"].apply(lambda x: f"{x:.0f}%" if pd.notna(x) else "—")
+            # Format deltas: SOS lower = better (↓ green), Adherence higher = better (↑ green)
+            tbl["Δ SOS"] = raw_kds["Δ SOS"].apply(
+                lambda x: f"{x:+.1f}" if pd.notna(x) and x != 0 else "—")
+            tbl["Δ Adh"] = raw_kds["Δ Adh"].apply(
+                lambda x: f"{x:+.0f}%" if pd.notna(x) and x != 0 else "—")
+
             tbl.columns = ["Store #", "Store Name", "SOS", "Adoption %", "Make Ahead %",
-                           "Waste %", "Pre-Bump %", "Adherence %"]
+                           "Waste %", "Pre-Bump %", "Adherence %", "Δ SOS", "Δ Adh"]
 
             cc, bc = _kds_colors(raw_kds, tbl)
+            # Color WoW delta columns: SOS decrease=green increase=red, Adherence increase=green decrease=red
+            col_names = list(tbl.columns)
+            j_dsos = col_names.index("Δ SOS")
+            j_dadh = col_names.index("Δ Adh")
+            for i, (_, row) in enumerate(raw_kds.iterrows()):
+                ds = row.get("Δ SOS")
+                if pd.notna(ds) and ds != 0:
+                    cc[(i, j_dsos)] = GREEN if ds < 0 else RED
+                    bc[(i, j_dsos)] = True
+                da = row.get("Δ Adh")
+                if pd.notna(da) and da != 0:
+                    cc[(i, j_dadh)] = GREEN if da > 0 else RED
+                    bc[(i, j_dadh)] = True
+
             _add_table(slide, tbl, Inches(0.5), Inches(1.4), SLIDE_WIDTH - Inches(1),
                        Inches(0.3 * (len(tbl) + 1)), cell_colors=cc, bold_cells=bc)
 
@@ -583,6 +649,22 @@ def generate_district_ppt(district, store_to_district, districts_config):
             _add_title_bar(slide, f"Labor Dashboard — {lw_label} & Q{current_qtr} QTD",
                            f"{district} · Variance drives bonus incentive")
 
+            # ── Prior week data for WoW delta ──
+            all_weeks = sorted(r26_d["week_d"].unique()) if "week_d" in r26_d.columns else []
+            prev_var_map = {}
+            if latest_week and len(all_weeks) >= 2:
+                lw_idx = list(all_weeks).index(latest_week) if latest_week in all_weeks else -1
+                if lw_idx >= 1:
+                    prev_week = all_weeks[lw_idx - 1]
+                    pw_data = r26_d[r26_d["week_d"] == prev_week]
+                    pw_agg = pw_data.groupby("store_num").agg(
+                        actual_sales=("actual_sales", "sum"), actual_labor=("actual_labor", "sum"),
+                        forecast_sales=("forecast_sales", "sum"), schedule_labor=("schedule_labor", "sum"),
+                    ).reset_index()
+                    pw_agg["variance"] = (pw_agg["actual_labor"] / pw_agg["actual_sales"] * 100) - \
+                                         (pw_agg["schedule_labor"] / pw_agg["forecast_sales"] * 100)
+                    prev_var_map = dict(zip(pw_agg["store_num"], pw_agg["variance"]))
+
             # ── Section 1: Latest Week ──
             _add_section_label(slide, f"Latest Week ({lw_label})", Inches(0.5), Inches(1.2), Inches(5))
 
@@ -597,20 +679,35 @@ def generate_district_ppt(district, store_to_district, districts_config):
             lw_agg["labor_pct"] = (lw_agg["actual_labor"] / lw_agg["actual_sales"] * 100)
             lw_agg["sched_pct"] = (lw_agg["schedule_labor"] / lw_agg["forecast_sales"] * 100)
             lw_agg["variance"] = lw_agg["labor_pct"] - lw_agg["sched_pct"]
+            # WoW variance delta
+            lw_agg["Δ Var"] = lw_agg.apply(
+                lambda r: r["variance"] - prev_var_map.get(r["store_num"], r["variance"]), axis=1)
             lw_agg = lw_agg.sort_values("store_num", key=lambda x: x.astype(int)).reset_index(drop=True)
 
             lw_tbl = lw_agg[["store_num", "actual_sales", "labor_pct", "sched_pct", "variance",
-                              "actual_hours", "ovt_hours"]].copy()
+                              "Δ Var", "actual_hours", "ovt_hours"]].copy()
             lw_display = lw_tbl.copy()
             lw_display["actual_sales"] = lw_display["actual_sales"].apply(lambda x: f"${x:,.0f}")
             lw_display["labor_pct"] = lw_display["labor_pct"].apply(lambda x: f"{x:.1f}%")
             lw_display["sched_pct"] = lw_display["sched_pct"].apply(lambda x: f"{x:.1f}%")
             lw_display["variance"] = lw_display["variance"].apply(lambda x: f"{x:+.1f}%")
+            lw_display["Δ Var"] = lw_agg["Δ Var"].apply(
+                lambda x: f"{x:+.1f}%" if pd.notna(x) and abs(x) > 0.05 else "—")
             lw_display["actual_hours"] = lw_display["actual_hours"].apply(lambda x: f"{x:,.0f}")
             lw_display["ovt_hours"] = lw_display["ovt_hours"].apply(lambda x: f"{x:,.1f}")
-            lw_display.columns = ["Store #", "Actual Sales", "Labor %", "Sched %", "Variance", "Hours", "OT Hours"]
+            lw_display.columns = ["Store #", "Actual Sales", "Labor %", "Sched %", "Variance",
+                                   "Δ Var", "Hours", "OT Hours"]
 
             cc_lw, bc_lw = _labor_colors(lw_agg, lw_display)
+            # Color WoW variance delta: decrease=green (improving), increase=red (worsening)
+            lw_col_names = list(lw_display.columns)
+            j_dvar = lw_col_names.index("Δ Var")
+            for i, (_, row) in enumerate(lw_agg.iterrows()):
+                dv = row.get("Δ Var")
+                if pd.notna(dv) and abs(dv) > 0.05:
+                    cc_lw[(i, j_dvar)] = GREEN if dv < 0 else RED
+                    bc_lw[(i, j_dvar)] = True
+
             lw_table_h = max(Inches(0.25 * (len(lw_display) + 1)), Inches(1.5))
             _add_table(slide, lw_display, Inches(0.5), Inches(1.55), Inches(10), lw_table_h,
                        cell_colors=cc_lw, bold_cells=bc_lw)
@@ -653,7 +750,7 @@ def generate_district_ppt(district, store_to_district, districts_config):
             callouts = []
             avg_var_qtd = qtd_agg["variance"].mean()
             callouts.append(f"District QTD avg variance: {avg_var_qtd:+.1f}% (bonus target ≤ 1.5%)")
-            high_var = qtd_agg[qtd_agg["variance"].abs() > 1.5]
+            high_var = qtd_agg[qtd_agg["variance"] > 1.5]
             for _, r in high_var.iterrows():
                 callouts.append(f"Store {r['store_num']} QTD variance: {r['variance']:+.1f}%")
             total_ot = qtd_agg["ovt_hours"].sum()
@@ -868,7 +965,7 @@ def generate_district_ppt(district, store_to_district, districts_config):
                 tot_fc = lab["forecast_sales"].sum()
                 if tot_sales > 0 and tot_fc > 0:
                     var = (tot_actual / tot_sales - tot_sched / tot_fc) * 100
-                    store_checks["Labor: Var ≤ 1.5%"] = abs(var) <= 1.5
+                    store_checks["Labor: Var ≤ 1.5%"] = var <= 1.5
 
         # SMG
         if _sc_smg is not None:
