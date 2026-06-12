@@ -413,7 +413,7 @@ def generate_district_ppt(district, store_to_district, districts_config):
             tbl["Check Avg"] = tbl["Check Avg"].apply(lambda x: f"${x:,.2f}" if pd.notna(x) else "—")
             tbl["Cash Over/Short"] = tbl["Cash Over/Short"].apply(lambda x: f"${x:+,.2f}" if pd.notna(x) else "—")
             tbl["Δ Sales"] = raw_tbl["Δ Sales"].apply(
-                lambda x: f"{'↑' if x > 0 else '↓'} ${abs(x):,.0f}" if pd.notna(x) and x != 0 else "—")
+                lambda x: f"{'↑' if x > 0 else '↓'} ${abs(x):,.0f}" if pd.notna(x) and x != 0 else ("→ $0" if pd.notna(x) else "—"))
             _sales_prev_label = f"vs {prev_sales}" if prev_sales else "vs Last Wk"
             tbl.columns = ["Store #", "Gross Sales", "Net Sales", "Online $", "Online %",
                            "Check Avg", "Cash O/S", f"Sales ({_sales_prev_label})"]
@@ -485,13 +485,16 @@ def generate_district_ppt(district, store_to_district, districts_config):
             tbl["Pre-Bump %"] = tbl["Pre-Bump %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "—")
             tbl["Adherence %"] = tbl["Adherence %"].apply(lambda x: f"{x:.0f}%" if pd.notna(x) else "—")
             # Format deltas with arrows: SOS lower = better (↓ green), Adherence higher = better (↑ green)
+            # "→ 0" for no change, "—" only for truly missing data
             def _fmt_delta_sos(x):
-                if pd.isna(x) or x == 0: return "—"
+                if pd.isna(x): return "—"
+                if x == 0: return "→ 0"
                 arrow = "↓" if x < 0 else "↑"
                 return f"{arrow} {abs(x):.1f}"
 
             def _fmt_delta_adh(x):
-                if pd.isna(x) or x == 0: return "—"
+                if pd.isna(x): return "—"
+                if x == 0: return "→ 0%"
                 arrow = "↑" if x > 0 else "↓"
                 return f"{arrow} {abs(x):.0f}%"
 
@@ -703,7 +706,7 @@ def generate_district_ppt(district, store_to_district, districts_config):
             lw_display["sched_pct"] = lw_display["sched_pct"].apply(lambda x: f"{x:.1f}%")
             lw_display["variance"] = lw_display["variance"].apply(lambda x: f"{x:+.1f}%")
             lw_display["Δ Var"] = lw_agg["Δ Var"].apply(
-                lambda x: f"{'↓' if x < 0 else '↑'} {abs(x):.1f}%" if pd.notna(x) and abs(x) > 0.05 else "—")
+                lambda x: f"{'↓' if x < 0 else '↑'} {abs(x):.1f}%" if pd.notna(x) and abs(x) > 0.05 else ("→ 0%" if pd.notna(x) else "—"))
             lw_display["actual_hours"] = lw_display["actual_hours"].apply(lambda x: f"{x:,.0f}")
             lw_display["ovt_hours"] = lw_display["ovt_hours"].apply(lambda x: f"{x:,.1f}")
             lw_display.columns = ["Store #", "Actual Sales", "Labor %", "Sched %", "Variance",
