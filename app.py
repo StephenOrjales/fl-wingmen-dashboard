@@ -402,7 +402,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    nav_options = ["Sales Performance", "KDS Dashboard", "Schedule Guide", "Internal QSC Evals", "Labor Dashboard", "COGS Variance", "SMG (Guest Satisfaction)", "FlavorLab", "District Comparison", "Scorecard", "Watch List", "Wing Worm"]
+    nav_options = ["Sales Performance", "KDS Dashboard", "Schedule Guide", "Internal QSC Evals", "Labor Dashboard", "COGS Variance", "SMG (Guest Satisfaction)", "FlavorLab", "District Reports", "District Comparison", "Scorecard", "Watch List", "Wing Worm"]
     selected_tab = st.radio("Nav", nav_options, label_visibility="collapsed")
 
     st.markdown("---")
@@ -2585,6 +2585,54 @@ elif selected_tab == "FlavorLab":
             "Completion %": lambda x: f"{x:.1f}%" if pd.notna(x) else "-",
         })
         st.dataframe(styled_dist, use_container_width=True, hide_index=True)
+
+# ════════════════════════════════
+# DISTRICT REPORTS (PPT)
+# ════════════════════════════════
+elif selected_tab == "District Reports":
+    from generate_ppt import generate_district_ppt
+
+    st.markdown(f"""
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.8rem;">
+        <div>
+            <h2 style="color:#1A3C34; font-weight:800; margin:0; font-size:1.6rem;">District Reports</h2>
+            <p style="color:#6B7280; font-size:0.88rem; margin:0.2rem 0 0 0;">
+                Generate a PowerPoint deck for weekly DM meetings &nbsp;·&nbsp; One click per district
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:0.8rem 1rem; margin-bottom:1rem;">
+        <span style="font-weight:600; color:#166534;">📊 What's included:</span>
+        <span style="color:#374151; font-size:0.9rem;">&nbsp; Sales Performance · KDS Dashboard · Schedule Guide · Internal QSC · Labor Dashboard · COGS Variance · SMG · FlavorLab · Scorecard</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    rpt_cols = st.columns(3)
+    for i, district in enumerate(sorted(DISTRICTS.keys())):
+        d_store_count = len(DISTRICTS[district])
+        col = rpt_cols[i % 3]
+        with col:
+            d_color = DISTRICT_COLORS.get(district, "#374151")
+            st.markdown(f"""
+            <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; padding:1rem; margin-bottom:0.8rem; border-left:4px solid {d_color};">
+                <div style="font-weight:700; color:#1A3C34; font-size:1rem;">{district}</div>
+                <div style="color:#6B7280; font-size:0.82rem;">{d_store_count} stores</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            if st.button(f"📥 Download {district} PPT", key=f"dl_{district}", use_container_width=True):
+                with st.spinner(f"Generating {district} report..."):
+                    ppt_bytes = generate_district_ppt(district, STORE_TO_DISTRICT, DISTRICTS)
+                    st.download_button(
+                        label=f"⬇ Save {district} Report",
+                        data=ppt_bytes,
+                        file_name=f"FL_Wingmen_{district.replace(' ', '_')}_Report.pptx",
+                        mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                        key=f"save_{district}",
+                    )
 
 # ════════════════════════════════
 # DISTRICT COMPARISON
