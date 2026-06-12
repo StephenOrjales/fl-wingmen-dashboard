@@ -402,8 +402,21 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    nav_options = ["Sales Performance", "KDS Dashboard", "Schedule Guide", "Internal QSC Evals", "Labor Dashboard", "COGS Variance", "SMG (Guest Satisfaction)", "FlavorLab", "District Reports", "District Comparison", "Scorecard", "Watch List", "Wing Worm"]
+    nav_options = ["Sales Performance", "KDS Dashboard", "Schedule Guide", "Internal QSC Evals", "Labor Dashboard", "COGS Variance", "SMG (Guest Satisfaction)", "FlavorLab", "District Comparison", "Scorecard", "Watch List", "Wing Worm", "District Reports"]
     selected_tab = st.radio("Nav", nav_options, label_visibility="collapsed")
+
+    # Highlight "District Reports" radio option with green outline
+    st.markdown("""
+    <style>
+    /* Target the last radio option (District Reports) */
+    div[data-testid="stSidebar"] div[role="radiogroup"] label:last-child {
+        border: 2px solid #059669;
+        border-radius: 8px;
+        padding: 2px 6px;
+        margin-top: 4px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
     st.markdown("---")
     st.markdown(f"""
