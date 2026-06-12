@@ -413,14 +413,15 @@ def generate_district_ppt(district, store_to_district, districts_config):
             tbl["Check Avg"] = tbl["Check Avg"].apply(lambda x: f"${x:,.2f}" if pd.notna(x) else "—")
             tbl["Cash Over/Short"] = tbl["Cash Over/Short"].apply(lambda x: f"${x:+,.2f}" if pd.notna(x) else "—")
             tbl["Δ Sales"] = raw_tbl["Δ Sales"].apply(
-                lambda x: f"${x:+,.0f}" if pd.notna(x) and x != 0 else "—")
+                lambda x: f"{'↑' if x > 0 else '↓'} ${abs(x):,.0f}" if pd.notna(x) and x != 0 else "—")
+            _sales_prev_label = f"vs {prev_sales}" if prev_sales else "vs Last Wk"
             tbl.columns = ["Store #", "Gross Sales", "Net Sales", "Online $", "Online %",
-                           "Check Avg", "Cash O/S", "Δ Sales"]
+                           "Check Avg", "Cash O/S", f"Sales ({_sales_prev_label})"]
 
             cc, bc = _sales_colors(raw_tbl, tbl)
             # Color WoW sales delta: increase=green, decrease=red
             col_names = list(tbl.columns)
-            j_ds = col_names.index("Δ Sales")
+            j_ds = len(col_names) - 1  # last column
             for i, (_, row) in enumerate(raw_tbl.iterrows()):
                 d = row.get("Δ Sales")
                 if pd.notna(d) and d != 0:
@@ -483,20 +484,30 @@ def generate_district_ppt(district, store_to_district, districts_config):
             tbl["Waste %"] = tbl["Waste %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "—")
             tbl["Pre-Bump %"] = tbl["Pre-Bump %"].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "—")
             tbl["Adherence %"] = tbl["Adherence %"].apply(lambda x: f"{x:.0f}%" if pd.notna(x) else "—")
-            # Format deltas: SOS lower = better (↓ green), Adherence higher = better (↑ green)
-            tbl["Δ SOS"] = raw_kds["Δ SOS"].apply(
-                lambda x: f"{x:+.1f}" if pd.notna(x) and x != 0 else "—")
-            tbl["Δ Adh"] = raw_kds["Δ Adh"].apply(
-                lambda x: f"{x:+.0f}%" if pd.notna(x) and x != 0 else "—")
+            # Format deltas with arrows: SOS lower = better (↓ green), Adherence higher = better (↑ green)
+            def _fmt_delta_sos(x):
+                if pd.isna(x) or x == 0: return "—"
+                arrow = "↓" if x < 0 else "↑"
+                return f"{arrow} {abs(x):.1f}"
 
+            def _fmt_delta_adh(x):
+                if pd.isna(x) or x == 0: return "—"
+                arrow = "↑" if x > 0 else "↓"
+                return f"{arrow} {abs(x):.0f}%"
+
+            tbl["Δ SOS"] = raw_kds["Δ SOS"].apply(_fmt_delta_sos)
+            tbl["Δ Adh"] = raw_kds["Δ Adh"].apply(_fmt_delta_adh)
+
+            _prev_label = f"vs {prev_kds}" if prev_kds else "vs Last Wk"
             tbl.columns = ["Store #", "Store Name", "SOS", "Adoption %", "Make Ahead %",
-                           "Waste %", "Pre-Bump %", "Adherence %", "Δ SOS", "Δ Adh"]
+                           "Waste %", "Pre-Bump %", "Adherence %",
+                           f"SOS ({_prev_label})", f"Adh ({_prev_label})"]
 
             cc, bc = _kds_colors(raw_kds, tbl)
             # Color WoW delta columns: SOS decrease=green increase=red, Adherence increase=green decrease=red
             col_names = list(tbl.columns)
-            j_dsos = col_names.index("Δ SOS")
-            j_dadh = col_names.index("Δ Adh")
+            j_dsos = len(col_names) - 2  # second-to-last column
+            j_dadh = len(col_names) - 1  # last column
             for i, (_, row) in enumerate(raw_kds.iterrows()):
                 ds = row.get("Δ SOS")
                 if pd.notna(ds) and ds != 0:
@@ -692,16 +703,16 @@ def generate_district_ppt(district, store_to_district, districts_config):
             lw_display["sched_pct"] = lw_display["sched_pct"].apply(lambda x: f"{x:.1f}%")
             lw_display["variance"] = lw_display["variance"].apply(lambda x: f"{x:+.1f}%")
             lw_display["Δ Var"] = lw_agg["Δ Var"].apply(
-                lambda x: f"{x:+.1f}%" if pd.notna(x) and abs(x) > 0.05 else "—")
+                lambda x: f"{'↓' if x < 0 else '↑'} {abs(x):.1f}%" if pd.notna(x) and abs(x) > 0.05 else "—")
             lw_display["actual_hours"] = lw_display["actual_hours"].apply(lambda x: f"{x:,.0f}")
             lw_display["ovt_hours"] = lw_display["ovt_hours"].apply(lambda x: f"{x:,.1f}")
             lw_display.columns = ["Store #", "Actual Sales", "Labor %", "Sched %", "Variance",
-                                   "Δ Var", "Hours", "OT Hours"]
+                                   "Var (vs Last Wk)", "Hours", "OT Hours"]
 
             cc_lw, bc_lw = _labor_colors(lw_agg, lw_display)
             # Color WoW variance delta: decrease=green (improving), increase=red (worsening)
             lw_col_names = list(lw_display.columns)
-            j_dvar = lw_col_names.index("Δ Var")
+            j_dvar = lw_col_names.index("Var (vs Last Wk)")
             for i, (_, row) in enumerate(lw_agg.iterrows()):
                 dv = row.get("Δ Var")
                 if pd.notna(dv) and abs(dv) > 0.05:
