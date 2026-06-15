@@ -525,17 +525,23 @@ if selected_tab == "KDS Dashboard":
         qtr_periods = [p for p in periods_sorted if _period_num(p) in _qtr_map[current_qtr]]
         QTD_LABEL = f"Q{current_qtr} QTD"
 
-        # ── Period selector + Export ──
-        pcol1, pcol2, pcol3 = st.columns([1, 1, 2])
+        # ── View toggle (Weekly vs QTD) + week selector + Export ──
+        # QTD is its own control, separate from the week dropdown.
+        pcol1, pcol2, pcol3, pcol4 = st.columns([1.1, 1, 1, 1.1])
         with pcol1:
-            period_options = [QTD_LABEL] + list(reversed(periods_sorted))
-            # Default to the latest single week (index 1) to preserve prior behavior
-            sel_period = st.selectbox("Week", period_options, index=1 if len(period_options) > 1 else 0,
-                                      key="kds_dash_period", label_visibility="collapsed")
+            view_mode = st.radio("View", ["Weekly", QTD_LABEL], horizontal=True,
+                                 key="kds_view_mode", label_visibility="collapsed")
+        is_qtd = (view_mode == QTD_LABEL)
+        with pcol2:
+            week_options = list(reversed(periods_sorted))
+            # Week dropdown only drives the Weekly view; disabled while QTD is active
+            sel_week = st.selectbox("Week", week_options, index=0, key="kds_dash_period",
+                                    label_visibility="collapsed", disabled=is_qtd)
+        sel_period = QTD_LABEL if is_qtd else sel_week
 
-        is_qtd = (sel_period == QTD_LABEL)
         if is_qtd:
-            # Quarter-to-date: average each metric across the quarter's weeks, per store
+            # Quarter-to-date: average each metric across the quarter's weeks, per store.
+            # qtr_periods is restricted to the current quarter (Q2 = P4-P6 only; P3 excluded).
             _qsub = kds_raw[kds_raw["Period"].isin(qtr_periods)].copy()
             kds_week = _qsub.groupby("Store No", as_index=False).agg(**{
                 "Store Name": ("Store Name", "first"),
@@ -549,7 +555,7 @@ if selected_tab == "KDS Dashboard":
             })
             kds_week["Period"] = QTD_LABEL
         else:
-            kds_week = kds_raw[kds_raw["Period"] == sel_period].copy()
+            kds_week = kds_raw[kds_raw["Period"] == sel_week].copy()
         kds_week["District"] = kds_week["Store No"].astype(str).map(STORE_TO_DISTRICT).fillna("Unassigned")
 
         # SOS classification
@@ -664,7 +670,7 @@ if selected_tab == "KDS Dashboard":
             # Freeze top row
             ws.freeze_panes = "A2"
 
-        with pcol2:
+        with pcol3:
             st.markdown("<div style='height:0.3rem;'></div>", unsafe_allow_html=True)
             export_buf = io.BytesIO()
             with pd.ExcelWriter(export_buf, engine="openpyxl") as writer:
