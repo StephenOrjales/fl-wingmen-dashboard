@@ -515,13 +515,41 @@ if selected_tab == "KDS Dashboard":
         </div>
         """, unsafe_allow_html=True)
 
+        # ── Current-quarter detection (for the QTD option) ──
+        def _period_num(p):
+            m = re.match(r"P(\d+)", str(p))
+            return int(m.group(1)) if m else 0
+        _qtr_map = {1: [1, 2, 3], 2: [4, 5, 6], 3: [7, 8, 9], 4: [10, 11, 12]}
+        _latest_num = _period_num(latest_period) if latest_period else 0
+        current_qtr = next((q for q, ps in _qtr_map.items() if _latest_num in ps), 2)
+        qtr_periods = [p for p in periods_sorted if _period_num(p) in _qtr_map[current_qtr]]
+        QTD_LABEL = f"Q{current_qtr} QTD"
+
         # ── Period selector + Export ──
         pcol1, pcol2, pcol3 = st.columns([1, 1, 2])
         with pcol1:
-            period_options = list(reversed(periods_sorted))
-            sel_period = st.selectbox("Week", period_options, index=0, key="kds_dash_period", label_visibility="collapsed")
+            period_options = [QTD_LABEL] + list(reversed(periods_sorted))
+            # Default to the latest single week (index 1) to preserve prior behavior
+            sel_period = st.selectbox("Week", period_options, index=1 if len(period_options) > 1 else 0,
+                                      key="kds_dash_period", label_visibility="collapsed")
 
-        kds_week = kds_raw[kds_raw["Period"] == sel_period].copy()
+        is_qtd = (sel_period == QTD_LABEL)
+        if is_qtd:
+            # Quarter-to-date: average each metric across the quarter's weeks, per store
+            _qsub = kds_raw[kds_raw["Period"].isin(qtr_periods)].copy()
+            kds_week = _qsub.groupby("Store No", as_index=False).agg(**{
+                "Store Name": ("Store Name", "first"),
+                "Store Full": ("Store Full", "first"),
+                "SOS": ("SOS", "mean"),
+                "Pre-Bump %": ("Pre-Bump %", "mean"),
+                "Adoption %": ("Adoption %", "mean"),
+                "Make Ahead %": ("Make Ahead %", "mean"),
+                "Waste %": ("Waste %", "mean"),
+                "Adherence %": ("Adherence %", "mean"),
+            })
+            kds_week["Period"] = QTD_LABEL
+        else:
+            kds_week = kds_raw[kds_raw["Period"] == sel_period].copy()
         kds_week["District"] = kds_week["Store No"].astype(str).map(STORE_TO_DISTRICT).fillna("Unassigned")
 
         # SOS classification
@@ -783,8 +811,11 @@ if selected_tab == "KDS Dashboard":
             # Auto-generate insights
             takeaway_style = '<div style="border-left:4px solid {color}; padding:0.5rem 1rem; margin:0.4rem 0; background:#FAFBFC; border-radius:0 6px 6px 0;">{text}</div>'
 
-            # 1. Overall adherence
-            prev_period = periods_sorted[periods_sorted.index(sel_period) - 1] if periods_sorted.index(sel_period) > 0 else None
+            # 1. Overall adherence (no week-over-week delta in QTD view)
+            prev_period = None
+            if not is_qtd and sel_period in periods_sorted:
+                _pi = periods_sorted.index(sel_period)
+                prev_period = periods_sorted[_pi - 1] if _pi > 0 else None
             delta_text = ""
             if prev_period:
                 prev_week = kds_raw[kds_raw["Period"] == prev_period]
