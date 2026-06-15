@@ -504,3 +504,43 @@ P6W2,420,Deerfield Beach,420-FL-Deerfield Beach,10.2,0.0,97.9591836734694,4.0188
 P6W2,79,Plantation,79-FL-Plantation,14.466666666666667,0.0,89.7058823529412,25.3490080822924,,2,4,50.0,False,True,False,,True
 P6W2,871,Florida City-Dixie Hwy,871-FL-Florida City-Dixie Hwy,10.866666666666667,0.0,92.3809523809524,0.0,,3,4,75.0,False,True,True,,True
 P6W2,883,Hallandale Beach-W Hallandale ,883-FL-Hallandale Beach-W Hallandale Beach Blvd,13.083333333333334,0.0,97.2972972972973,4.20411713540157,0.0,4,5,80.0,False,True,True,True,True
+P6W3,1096,Tamarac-N. University Drive,1096-FL-Tamarac-N. University Drive,19.816666666666666,0.630914826498423,100.0,0.0,1.17229129662522,4,5,80.0,False,True,True,True,True
+P6W3,1167,Pembroke Pines-Pines Blvd,1167-FL-Pembroke Pines-Pines Blvd,52.36666666666667,0.42735042735042694,84.375,7.954290835760699,0.0,3,5,60.0,False,False,True,True,True
+P6W3,1252,Fort Lauderdale-W. Broward Blv,1252-FL-Fort Lauderdale-W. Broward Blvd.,6.65,0.0,96.5116279069767,0.0,,4,4,100.0,True,True,True,,True
+P6W3,1677,Palmetto Bay- SW 160th St.,1677-FL-Palmetto Bay- SW 160th St.,7.6,0.0,100.0,0.0,,4,4,100.0,True,True,True,,True
+P6W3,1726,Fort Lauderdale-E. Commercial ,1726-FL-Fort Lauderdale-E. Commercial Blvd,9.183333333333334,0.0,100.0,0.0,,4,4,100.0,True,True,True,,True
+P6W3,1771,Miami-SW 152nd St,1771-FL-Miami-SW 152nd St,6.65,1.3953488372093001,100.0,0.0,,4,4,100.0,True,True,True,,True
+P6W3,183,Margate-Atlantic,183-FL-Margate-Atlantic,15.966666666666667,0.0,91.1764705882353,0.0,,3,4,75.0,False,True,True,,True
+P6W3,1841,Ft Lauderdale-S Federal Hwy,1841-FL-Ft Lauderdale-S Federal Hwy,6.65,0.0,98.3606557377049,2.10489993098689,,4,4,100.0,True,True,True,,True
+P6W3,1847,Pompano Beach-N. Federal Hwy,1847-FL-Pompano Beach-N. Federal Hwy,10.066666666666666,1.95121951219512,77.04918032786881,2.99674267100977,,1,4,25.0,False,False,True,,False
+P6W3,1848,Miami-SW 107th Ave,1848-FL-Miami-SW 107th Ave,9.283333333333333,0.0,100.0,0.0,0.0,5,5,100.0,True,True,True,True,True
+P6W3,1864,Hialeah Gardens-W 33rd Ave,1864-FL-Hialeah Gardens-W 33rd Ave,9.016666666666667,0.0,88.0952380952381,0.0,0.9535918626827721,5,5,100.0,True,True,True,True,True
+P6W3,1891,Miami-SW 137th Ave,1891-FL-Miami-SW 137th Ave,9.416666666666666,0.0,100.0,3.2555282555282603,,4,4,100.0,True,True,True,,True
+P6W3,1954,Miami-N Kendall Dr,1954-FL-Miami-N Kendall Dr,7.783333333333333,0.35460992907801403,100.0,0.308906813111378,0.692520775623269,5,5,100.0,True,True,True,True,True
+P6W3,1972,Miami-Bird Ludlam,1972-FL-Miami-Bird Ludlam,11.15,0.0,100.0,0.598324690865576,7.18592964824121,3,5,60.0,False,True,True,False,True
+P6W3,2013,Palm Springs-S Congress Ave,2013-FL-Palm Springs-S Congress Ave,11.583333333333334,0.75187969924812,100.0,0.0,,3,4,75.0,False,True,True,,True
+P6W3,2042,Miami-W Flagler St,2042-FL-Miami-W Flagler St,7.366666666666666,1.02040816326531,95.7446808510638,0.0,0.0,5,5,100.0,True,True,True,True,True
+P6W3,2048,Coral Springs-Wiles Rd,2048-FL-Coral Springs-Wiles Rd,12.133333333333333,0.0,100.0,0.0,,3,4,75.0,False,True,True,,True
+P6W3,205,Lauderhill-Oakland Park,205-FL-Lauderhill-Oakland Park,9.416666666666666,0.27027027027027,100.0,0.0,,4,4,100.0,True,True,True,,True
+P6W3,2118,Naranja-S. Dixie Hwy,2118-FL-Naranja-S. Dixie Hwy,7.35,0.0,,0.0,,3,3,100.0,True,,True,,True
+P6W3,2290,Pembroke Pines-N. Flamingo Rd,2290-FL-Pembroke Pines-N. Flamingo Rd,9.483333333333333,0.497512437810945,100.0,2.33077113811059,4.17710944026733,5,5,100.0,True,True,True,True,True
+P6W3,2497,Royal Palm Beach,2497-FL-Royal Palm Beach,13.083333333333334,0.746268656716418,100.0,0.0,0.68649885583524,4,5,80.0,False,True,True,True,True
+P6W3,2602,Doral-NW 58th St.,2602-FL-Doral-NW 58th St.,9.966666666666667,0.714285714285714,100.0,0.0,,4,4,100.0,True,True,True,,True
+P6W3,2627,Hialeah-Hialeah Dr.,2627-FL-Hialeah-Hialeah Dr.,8.216666666666667,0.0,100.0,0.0,,4,4,100.0,True,True,True,,True
+P6W3,2696,West Palm Beach-Okeechobee Blv,2696-FL-West Palm Beach-Okeechobee Blvd,6.933333333333334,0.757575757575758,100.0,0.0,7.699619771863119,4,5,80.0,True,True,True,False,True
+P6W3,2766,Miami-Bird Rd.,2766-FL-Miami-Bird Rd.,8.466666666666667,0.0,100.0,0.0,1.6129032258064497,5,5,100.0,True,True,True,True,True
+P6W3,2885,Lantana-W. Lantana Rd,2885-FL-Lantana-W. Lantana Rd,7.366666666666666,0.0,97.82608695652169,4.19338924518994,0.0,5,5,100.0,True,True,True,True,True
+P6W3,2890,Miami-NW 199th St.,2890-FL-Miami-NW 199th St.,10.466666666666667,0.0,100.0,0.739371534195933,,3,4,75.0,False,True,True,,True
+P6W3,2893,Miami-NE Miami Ct. - GK,2893-FL-Miami-NE Miami Ct. - GK,17.15,0.0,100.0,0.0,,3,4,75.0,False,True,True,,True
+P6W3,2974,Delray Beach-Linton Blvd,2974-FL-Delray Beach-Linton Blvd,10.316666666666666,0.6097560975609759,95.1219512195122,4.30857611817809,,3,4,75.0,False,True,True,,True
+P6W3,2976,Weston-Indian Trace,2976-FL-Weston-Indian Trace,17.216666666666665,0.546448087431694,87.2340425531915,0.0,6.69317428760769,3,5,60.0,False,True,True,False,True
+P6W3,3013,Miami-Quail Roost Dr,3013-FL-Miami-Quail Roost Dr,8.816666666666666,0.6802721088435371,100.0,0.0,2.54022015241321,5,5,100.0,True,True,True,True,True
+P6W3,3200,Jupiter-E Indiantown Rd,3200-FL-Jupiter-E Indiantown Rd,9.483333333333333,0.0,88.0,0.0,,4,4,100.0,True,True,True,,True
+P6W3,3210,Miami-SW 8th Street,3210-FL-Miami-SW 8th Street,9.3,1.38888888888889,100.0,3.99520575309628,,4,4,100.0,True,True,True,,True
+P6W3,3317,Boca Raton-Glades Road,3317-FL-Boca Raton-Glades Road,10.716666666666667,0.6802721088435371,91.9354838709677,4.93464052287582,2.4103139013452903,4,5,80.0,False,True,True,True,True
+P6W3,346,Miami-Old Cutler Rd,346-FL-Miami-Old Cutler Rd,10.066666666666666,0.0,100.0,3.2844871147044,,3,4,75.0,False,True,True,,True
+P6W3,4032,Miami-NW 7th St.,4032-FL-Miami-NW 7th St.,9.533333333333333,0.0,100.0,0.0,,4,4,100.0,True,True,True,,True
+P6W3,420,Deerfield Beach,420-FL-Deerfield Beach,9.716666666666667,0.0,97.3684210526316,2.26400613967767,,4,4,100.0,True,True,True,,True
+P6W3,79,Plantation,79-FL-Plantation,16.766666666666666,0.0,82.8947368421053,24.710687542546,0.0,2,5,40.0,False,False,False,True,True
+P6W3,871,Florida City-Dixie Hwy,871-FL-Florida City-Dixie Hwy,14.183333333333334,0.0,94.1860465116279,0.0,,3,4,75.0,False,True,True,,True
+P6W3,883,Hallandale Beach-W Hallandale ,883-FL-Hallandale Beach-W Hallandale Beach Blvd,11.75,0.0,98.6666666666667,0.0,0.425894378194208,4,5,80.0,False,True,True,True,True
