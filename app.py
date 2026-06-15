@@ -1854,6 +1854,13 @@ elif selected_tab == "Sales Performance":
         sel_sales_period = st.selectbox("Period", list(reversed(sj_periods)), index=0, key="sales_period")
         sj_week = sj[sj["Period"] == sel_sales_period].copy()
 
+        # Previous week (for week-over-week comparison)
+        _sel_idx = sj_periods.index(sel_sales_period)
+        prev_period = sj_periods[_sel_idx - 1] if _sel_idx > 0 else None
+        prev_week = sj[sj["Period"] == prev_period].copy() if prev_period else pd.DataFrame()
+        prev_net_map = dict(zip(prev_week["Store No"], prev_week["Net Sales"])) if not prev_week.empty else {}
+        prev_gross_map = dict(zip(prev_week["Store No"], prev_week["Gross Sales"])) if not prev_week.empty else {}
+
         # Store name lookup
         store_name_map = {}
         for dist, stores in DISTRICTS.items():
@@ -1896,11 +1903,29 @@ elif selected_tab == "Sales Performance":
             <div style="color:#9CA3AF; font-size:0.78rem;">{sub}</div>
         </div>"""
 
+        # WoW fleet deltas (matched stores only, so a missing store doesn't skew it)
+        net_wow = gross_wow = None
+        if prev_period and not prev_week.empty:
+            matched = sj_week[sj_week["Store No"].isin(prev_week["Store No"])]
+            pmatch = prev_week[prev_week["Store No"].isin(matched["Store No"])]
+            prev_net_m, prev_gross_m = pmatch["Net Sales"].sum(), pmatch["Gross Sales"].sum()
+            if prev_net_m:
+                net_wow = (matched["Net Sales"].sum() / prev_net_m - 1) * 100
+            if prev_gross_m:
+                gross_wow = (matched["Gross Sales"].sum() / prev_gross_m - 1) * 100
+
+        def _wow_sub(base, wow):
+            if wow is None:
+                return base
+            color = "#059669" if wow >= 0 else "#DC2626"
+            arrow = "▲" if wow >= 0 else "▼"
+            return f"<span style='color:{color}; font-weight:700;'>{arrow} {wow:+.1f}%</span> vs {prev_period}"
+
         c1, c2, c3, c4 = st.columns(4)
         c1.markdown(kpi_style.format(label="GROSS SALES", value=f"${total_gross:,.0f}", color="#1F2937",
-                    sub=f"incl. tax & comps"), unsafe_allow_html=True)
+                    sub=_wow_sub("incl. tax & comps", gross_wow)), unsafe_allow_html=True)
         c2.markdown(kpi_style.format(label="NET SALES", value=f"${total_net:,.0f}", color="#1F2937",
-                    sub=f"{len(sj_week)} stores"), unsafe_allow_html=True)
+                    sub=_wow_sub(f"{len(sj_week)} stores", net_wow)), unsafe_allow_html=True)
         c3.markdown(kpi_style.format(label="CHECK AVG", value=f"${avg_check:.2f}", color="#0D9488",
                     sub=f"{total_checks:,} total checks"), unsafe_allow_html=True)
         cos_color = "#DC2626" if (total_cos < -2 or total_cos > 2) else "#059669"
@@ -1964,14 +1989,26 @@ elif selected_tab == "Sales Performance":
         st.markdown("<div style='height:0.5rem;'></div>", unsafe_allow_html=True)
 
         # ── Charts ──
-        st.markdown('<div class="section-title">Net Sales by Store</div>', unsafe_allow_html=True)
+        ns_title = "Net Sales by Store" + (f" — {sel_sales_period} vs {prev_period}" if prev_period else "")
+        st.markdown(f'<div class="section-title">{ns_title}</div>', unsafe_allow_html=True)
         s_sorted = sj_week.sort_values("Net Sales", ascending=False)
-        fig_ns = go.Figure(go.Bar(
+        fig_ns = go.Figure()
+        if prev_period:
+            fig_ns.add_trace(go.Bar(
+                x=s_sorted["Store Name Short"], y=s_sorted["Store No"].map(prev_net_map),
+                name=prev_period, marker_color="#CBD5E1",
+                hovertemplate=f"{prev_period} %{{x}}<br>Net Sales: $%{{y:,.0f}}<extra></extra>",
+            ))
+        fig_ns.add_trace(go.Bar(
             x=s_sorted["Store Name Short"], y=s_sorted["Net Sales"],
-            marker_color=TEAL,
-            hovertemplate="Store %{x}<br>Net Sales: $%{y:,.0f}<extra></extra>",
+            name=sel_sales_period, marker_color=TEAL,
+            hovertemplate=f"{sel_sales_period} %{{x}}<br>Net Sales: $%{{y:,.0f}}<extra></extra>",
         ))
-        fig_ns.update_layout(**CHART_LAYOUT, height=380, yaxis_title="Net Sales ($)", xaxis_tickangle=-45)
+        fig_ns.update_layout(**CHART_LAYOUT, height=380, yaxis_title="Net Sales ($)",
+                             xaxis_tickangle=-45, barmode="group")
+        if prev_period:
+            fig_ns.update_layout(showlegend=True, legend=dict(
+                orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=10)))
         st.plotly_chart(fig_ns, use_container_width=True, key="sales_ns", config=CHART_CONFIG)
 
         # ── District-grouped tables ──
@@ -1997,14 +2034,29 @@ elif selected_tab == "Sales Performance":
                            "Void Count", "Void Sales", "Refund", "Cash Over/Short", "Online Sales"]].copy()
             dtbl = dtbl.sort_values("Store No", key=lambda x: x.astype(int))
 
+            # Week-over-week net sales delta (% vs previous week)
+            def _net_wow(r):
+                pv = prev_net_map.get(r["Store No"])
+                if pv is None or pd.isna(pv) or pv == 0 or pd.isna(r["Net Sales"]):
+                    return None
+                return (r["Net Sales"] - pv) / pv * 100
+            dtbl["WoW"] = dtbl.apply(_net_wow, axis=1)
+
             # Online % column
             dtbl["Online %"] = dtbl.apply(lambda r: (r["Online Sales"] / r["Net Sales"] * 100) if pd.notna(r["Online Sales"]) and pd.notna(r["Net Sales"]) and r["Net Sales"] > 0 else None, axis=1)
 
-            # Keep raw cash O/S for styling
-            raw_cos = dtbl["Cash Over/Short"].reset_index(drop=True)
+            # Put WoW right after Net Sales
+            dtbl = dtbl[["Store No", "Store Name Short", "Gross Sales", "Net Sales", "WoW", "Checks Total",
+                         "Check Avg", "Void Count", "Void Sales", "Refund", "Cash Over/Short", "Online Sales", "Online %"]]
 
-            dtbl.columns = ["Store #", "Store", "Gross Sales", "Net Sales", "Checks", "Check Avg",
+            # Keep raw values for styling
+            raw_cos = dtbl["Cash Over/Short"].reset_index(drop=True)
+            raw_wow = dtbl["WoW"].reset_index(drop=True)
+
+            dtbl.columns = ["Store #", "Store", "Gross Sales", "Net Sales", "Δ Net (LW)", "Checks", "Check Avg",
                             "Voids", "Void $", "Refund $", "Cash O/S", "Online $", "Online %"]
+            dtbl["Δ Net (LW)"] = dtbl["Δ Net (LW)"].apply(
+                lambda x: f"{'▲' if x > 0 else ('▼' if x < 0 else '→')} {x:+.1f}%" if pd.notna(x) else "—")
             dtbl["Net Sales"] = dtbl["Net Sales"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "-")
             dtbl["Gross Sales"] = dtbl["Gross Sales"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "-")
             dtbl["Check Avg"] = dtbl["Check Avg"].apply(lambda x: f"${x:.2f}" if pd.notna(x) else "-")
@@ -2024,6 +2076,11 @@ elif selected_tab == "Sales Performance":
                 cos_val = raw_cos.get(idx)
                 if pd.notna(cos_val) and (cos_val < -2 or cos_val > 2):
                     styles[cols.index("Cash O/S")] = "color: #DC2626; font-weight: 700"
+                w = raw_wow.get(idx)
+                if pd.notna(w) and w > 0:
+                    styles[cols.index("Δ Net (LW)")] = "color: #059669; font-weight: 700"
+                elif pd.notna(w) and w < 0:
+                    styles[cols.index("Δ Net (LW)")] = "color: #DC2626; font-weight: 700"
                 return styles
 
             st.dataframe(dtbl.style.apply(style_sales_row, axis=1), use_container_width=True, hide_index=True)
