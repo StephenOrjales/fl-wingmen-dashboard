@@ -86,7 +86,8 @@ for f in files:
         make_ahead = parse_pct(row.get('Make Ahead Rate(Bone-in)'))
         waste = parse_pct(row.get('Bone-in Waste'))
 
-        # Adherence checks (pass/fail for each metric)
+        # Adherence checks (pass/fail for each metric).
+        # Waste is intentionally NOT part of adherence — it's tracked/displayed only.
         checks = {}
         if sos is not None:
             checks['SOS < 10 min'] = sos < 10
@@ -94,8 +95,6 @@ for f in files:
             checks['Adoption >= 85%'] = adoption >= 85
         if make_ahead is not None:
             checks['Make Ahead <= 10%'] = make_ahead <= 10
-        if waste is not None:
-            checks['Waste <= 5%'] = waste <= 5
         if pre_bump is not None:
             checks['Pre-Bump <= 1.5%'] = pre_bump <= 1.5
 
