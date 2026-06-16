@@ -402,7 +402,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    nav_options = ["Sales Performance", "KDS Dashboard", "Schedule Guide", "Internal QSC Evals", "Labor Dashboard", "COGS Variance", "SMG (Guest Satisfaction)", "FlavorLab", "District Comparison", "Scorecard", "Watch List", "Wing Worm"]
+    nav_options = ["Sales Performance", "KDS Dashboard", "Schedule Guide", "Internal QSC Evals", "Labor Dashboard", "COGS Variance", "SMG (Guest Satisfaction)", "FlavorLab", "Zenput", "District Comparison", "Scorecard", "Watch List", "Wing Worm"]
 
     # Clear District Reports override when a radio option changes
     def _on_nav_change():
@@ -2758,6 +2758,165 @@ elif selected_tab == "District Reports":
                         mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
                         key=f"save_{district}",
                     )
+
+# ════════════════════════════════
+# ZENPUT (TIME/TEMP LOG COMPLIANCE)
+# ════════════════════════════════
+elif selected_tab == "Zenput":
+    zen_file = DATA_DIR / "zenput_daily.csv"
+    if not zen_file.exists():
+        st.warning("No Zenput data found. Run parse_zenput.py to generate data/zenput_daily.csv.")
+    else:
+        EXP_PER_DAY = 3
+        z = pd.read_csv(zen_file)
+        z["Store No"] = z["Store No"].astype(str)
+
+        # Sidebar filters
+        if selected_store != "All Stores":
+            sk_num = extract_store_number(selected_store).lstrip("0")
+            z = z[z["Store No"] == sk_num]
+        elif selected_district != "All Districts":
+            d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
+            z = z[z["Store No"].isin(d_nums)]
+
+        z["District"] = z["Store No"].map(STORE_TO_DISTRICT).fillna("Unassigned")
+        dates = sorted(z["Date"].unique())
+        n_days = len(dates)
+
+        if n_days == 0 or z.empty:
+            st.info("No Zenput submissions for this selection.")
+        else:
+            expected_total = n_days * EXP_PER_DAY
+
+            def _md(s):
+                y, m, d = s.split("-")
+                return f"{int(m)}/{int(d)}"
+
+            # Per-store rollup (capped at 3/day for completion; raw sum = appearances)
+            z["capped"] = z["Reports"].clip(upper=EXP_PER_DAY)
+            store_summary = z.groupby(["Store No", "District"]).agg(
+                Reports=("Reports", "sum"),
+                Capped=("capped", "sum"),
+                Missing_Days=("Reports", lambda s: int((s < EXP_PER_DAY).sum())),
+            ).reset_index()
+            store_summary["Completion %"] = (store_summary["Capped"] / expected_total * 100).round(1)
+
+            # ── Header ──
+            st.markdown(f"""
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.8rem;">
+                <div>
+                    <h2 style="color:#1A3C34; font-weight:800; margin:0; font-size:1.6rem;">Zenput — Time/Temp Log Compliance</h2>
+                    <p style="color:#6B7280; font-size:0.88rem; margin:0.2rem 0 0 0;">
+                        {n_days}-day window ({_md(dates[0])}–{_md(dates[-1])}) &nbsp;·&nbsp; standard: 3 logs/day ({expected_total} expected per store)
+                    </p>
+                </div>
+                <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1rem; border-radius:8px; font-weight:700; font-size:0.8rem; white-space:nowrap;">
+                    3 LOGS / DAY
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # ── KPIs ──
+            kpi_style = """<div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; padding:1rem; text-align:left; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                <div style="color:#6B7280; font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">{label}</div>
+                <div style="color:{color}; font-size:1.8rem; font-weight:800; margin:0.2rem 0;">{value}</div>
+                <div style="color:#9CA3AF; font-size:0.78rem;">{sub}</div>
+            </div>"""
+            fleet_completion = store_summary["Completion %"].mean() if len(store_summary) else 0
+            n_full = int((store_summary["Completion %"] >= 95).sum())
+            n_low = int((store_summary["Completion %"] < 85).sum())
+            total_missing = int(store_summary["Missing_Days"].sum())
+            total_reports = int(store_summary["Reports"].sum())
+            fc_color = "#059669" if fleet_completion >= 95 else ("#D97706" if fleet_completion >= 85 else "#DC2626")
+
+            c1, c2, c3, c4 = st.columns(4)
+            c1.markdown(kpi_style.format(label="FLEET COMPLETION", value=f"{fleet_completion:.1f}%", color=fc_color,
+                        sub=f"{total_reports:,} of {expected_total*len(store_summary):,} reports"), unsafe_allow_html=True)
+            c2.markdown(kpi_style.format(label="STORES &ge; 95%", value=n_full, color="#059669",
+                        sub=f"of {len(store_summary)} stores"), unsafe_allow_html=True)
+            c3.markdown(kpi_style.format(label="STORES &lt; 85%", value=n_low, color="#DC2626",
+                        sub="need attention"), unsafe_allow_html=True)
+            c4.markdown(kpi_style.format(label="DAYS UNDER 3 LOGS", value=f"{total_missing:,}", color="#D97706",
+                        sub="store-days in window"), unsafe_allow_html=True)
+
+            st.markdown("<div style='height:0.6rem;'></div>", unsafe_allow_html=True)
+
+            # ── Chart: Completion rate by store ──
+            st.markdown('<div class="section-title">Completion Rate by Store</div>', unsafe_allow_html=True)
+            cs = store_summary.sort_values("Completion %", ascending=True)
+            bar_colors = ["#DC2626" if v < 85 else ("#D97706" if v < 95 else "#059669") for v in cs["Completion %"]]
+            fig_z = go.Figure(go.Bar(
+                x=cs["Store No"], y=cs["Completion %"], marker_color=bar_colors,
+                text=[f"{v:.0f}%" for v in cs["Completion %"]], textposition="outside",
+                hovertemplate="Store %{x}<br>Completion: %{y:.1f}%<extra></extra>",
+            ))
+            z_layout = {**CHART_LAYOUT, "height": 400,
+                        "xaxis": dict(type="category", tickfont=dict(size=9), fixedrange=True, gridcolor=GRID_COLOR),
+                        "yaxis": dict(title="Completion %", range=[0, 108], gridcolor=GRID_COLOR, fixedrange=True)}
+            fig_z.update_layout(**z_layout)
+            st.plotly_chart(fig_z, use_container_width=True, key="zen_completion", config=CHART_CONFIG)
+
+            # ── Heatmap: daily logs per store, missing days marked ──
+            st.markdown('<div class="section-title">Daily Logs by Store — Missing Days Marked</div>', unsafe_allow_html=True)
+            st.markdown('<p style="color:#6B7280; font-size:0.8rem; margin:0 0 0.5rem 0;">Each cell = logs filed that day. <span style="color:#059669; font-weight:700;">Green = 3 (complete)</span>, yellow/orange = short, <span style="color:#DC2626; font-weight:700;">red = 0</span>. Stores ordered worst → best.</p>', unsafe_allow_html=True)
+            pivot = z.pivot_table(index="Store No", columns="Date", values="Reports", aggfunc="sum", fill_value=0)
+            order = store_summary.sort_values("Completion %", ascending=True)["Store No"].tolist()
+            pivot = pivot.reindex(order)
+            zmat = pivot.clip(upper=3).values
+            xlabels = [_md(d) for d in pivot.columns]
+            ylabels = pivot.index.tolist()
+            colorscale = [
+                [0.00, "#DC2626"], [0.2499, "#DC2626"],
+                [0.25, "#F59E0B"], [0.4999, "#F59E0B"],
+                [0.50, "#FCD34D"], [0.7499, "#FCD34D"],
+                [0.75, "#059669"], [1.00, "#059669"],
+            ]
+            fig_hm = go.Figure(go.Heatmap(
+                z=zmat, x=xlabels, y=ylabels, zmin=-0.5, zmax=3.5,
+                colorscale=colorscale, xgap=1, ygap=1,
+                hovertemplate="Store %{y}<br>%{x}: %{z} logs<extra></extra>",
+                colorbar=dict(title="Logs", tickvals=[0, 1, 2, 3], thickness=14, len=0.6),
+            ))
+            fig_hm.update_layout(
+                plot_bgcolor=CHART_BG, paper_bgcolor=CHART_BG, font=dict(color=FONT_COLOR, size=9),
+                margin=dict(l=50, r=20, t=10, b=40), height=max(420, 18 * len(ylabels)),
+                xaxis=dict(side="top", tickangle=-90, fixedrange=True, tickfont=dict(size=8)),
+                yaxis=dict(autorange="reversed", fixedrange=True, title="Store (worst → best)", tickfont=dict(size=9)),
+            )
+            st.plotly_chart(fig_hm, use_container_width=True, key="zen_heatmap", config=CHART_CONFIG)
+
+            # ── Store detail table ──
+            st.markdown('<div class="section-title">Store Detail — Reports, Completion & Missing Dates</div>', unsafe_allow_html=True)
+            miss = z[z["Reports"] < EXP_PER_DAY]
+            miss_dates = miss.groupby("Store No")["Date"].apply(lambda s: ", ".join(_md(d) for d in sorted(s)))
+            det = store_summary.copy()
+            det["Missing Dates"] = det["Store No"].map(miss_dates).fillna("—")
+            det = det.sort_values("Completion %", ascending=True).reset_index(drop=True)
+            det = det[["Store No", "District", "Reports", "Completion %", "Missing_Days", "Missing Dates"]]
+            det.columns = ["Store #", "District", "Total Reports", "Completion %", "Missing Days", "Missing Dates"]
+            raw_comp = det["Completion %"].copy()
+            raw_dist = det["District"].copy()
+
+            def style_zen(row):
+                idx = row.name
+                styles = [""] * len(row)
+                cols = list(row.index)
+                d = raw_dist.get(idx, "")
+                styles[cols.index("District")] = f"background-color: {DISTRICT_COLORS.get(d, '#374151')}; color:#FFFFFF; font-weight:600"
+                v = raw_comp.get(idx)
+                if pd.notna(v) and v < 85:
+                    styles[cols.index("Completion %")] = "color:#DC2626; font-weight:700"
+                elif pd.notna(v) and v >= 95:
+                    styles[cols.index("Completion %")] = "color:#059669; font-weight:700"
+                return styles
+
+            styled_zen = det.style.apply(style_zen, axis=1).format({"Completion %": lambda x: f"{x:.1f}%" if pd.notna(x) else "—"})
+            st.dataframe(styled_zen, use_container_width=True, hide_index=True, height=500)
+
+            worst = store_summary.sort_values("Completion %").head(3)
+            tk = " · ".join(f"{r['Store No']} ({r['Completion %']:.0f}%)" for _, r in worst.iterrows())
+            st.markdown(f'<div style="border-left:4px solid #DC2626; padding:0.5rem 1rem; margin:0.6rem 0; background:#FAFBFC; border-radius:0 6px 6px 0;"><b>Lowest completion:</b> {tk}. &nbsp; Fleet average <b>{fleet_completion:.1f}%</b> across {n_days} days.</div>', unsafe_allow_html=True)
+
 
 # ════════════════════════════════
 # DISTRICT COMPARISON
