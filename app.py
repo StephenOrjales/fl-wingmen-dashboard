@@ -212,6 +212,12 @@ DISTRICT_COLORS = {
 }
 OFF_GUIDE = "color: #DC2626; font-weight: 700"
 
+# Stores that opened mid-tracking — compliance windows start at their open date
+# so they aren't penalized for days before they existed.
+STORE_OPEN_DATES = {
+    "3210": "2026-05-30",  # Miami-SW 8th Street — new store
+}
+
 CHART_LAYOUT = dict(
     plot_bgcolor=CHART_BG,
     paper_bgcolor=CHART_BG,
@@ -2792,14 +2798,23 @@ elif selected_tab == "Zenput":
                 y, m, d = s.split("-")
                 return f"{int(m)}/{int(d)}"
 
-            # Per-store rollup (capped at 3/day for completion; raw sum = appearances)
-            z["capped"] = z["Reports"].clip(upper=EXP_PER_DAY)
-            store_summary = z.groupby(["Store No", "District"]).agg(
+            # New-store exception: a store's compliance window starts at its open date.
+            # Days before open are excluded from completion, missing-day counts, and shown grey.
+            z["open_date"] = z["Store No"].map(STORE_OPEN_DATES)
+            z["in_window"] = z["open_date"].isna() | (z["Date"] >= z["open_date"])
+            new_stores = sorted(set(STORE_OPEN_DATES) & set(z["Store No"]))
+
+            # Per-store rollup over each store's effective window
+            zc = z[z["in_window"]].copy()
+            zc["capped"] = zc["Reports"].clip(upper=EXP_PER_DAY)
+            store_summary = zc.groupby(["Store No", "District"]).agg(
                 Reports=("Reports", "sum"),
                 Capped=("capped", "sum"),
+                Eff_Days=("Date", "nunique"),
                 Missing_Days=("Reports", lambda s: int((s < EXP_PER_DAY).sum())),
             ).reset_index()
-            store_summary["Completion %"] = (store_summary["Capped"] / expected_total * 100).round(1)
+            store_summary["Expected"] = store_summary["Eff_Days"] * EXP_PER_DAY
+            store_summary["Completion %"] = (store_summary["Capped"] / store_summary["Expected"] * 100).round(1)
 
             # ── Header ──
             st.markdown(f"""
@@ -2827,11 +2842,12 @@ elif selected_tab == "Zenput":
             n_low = int((store_summary["Completion %"] < 85).sum())
             total_missing = int(store_summary["Missing_Days"].sum())
             total_reports = int(store_summary["Reports"].sum())
+            total_expected = int(store_summary["Expected"].sum())
             fc_color = "#059669" if fleet_completion >= 95 else ("#D97706" if fleet_completion >= 85 else "#DC2626")
 
             c1, c2, c3, c4 = st.columns(4)
             c1.markdown(kpi_style.format(label="FLEET COMPLETION", value=f"{fleet_completion:.1f}%", color=fc_color,
-                        sub=f"{total_reports:,} of {expected_total*len(store_summary):,} reports"), unsafe_allow_html=True)
+                        sub=f"{total_reports:,} of {total_expected:,} reports"), unsafe_allow_html=True)
             c2.markdown(kpi_style.format(label="STORES &ge; 95%", value=n_full, color="#059669",
                         sub=f"of {len(store_summary)} stores"), unsafe_allow_html=True)
             c3.markdown(kpi_style.format(label="STORES &lt; 85%", value=n_low, color="#DC2626",
@@ -2858,24 +2874,42 @@ elif selected_tab == "Zenput":
 
             # ── Heatmap: daily logs per store, missing days marked ──
             st.markdown('<div class="section-title">Daily Logs by Store — Missing Days Marked</div>', unsafe_allow_html=True)
-            st.markdown('<p style="color:#6B7280; font-size:0.8rem; margin:0 0 0.5rem 0;">Each cell = logs filed that day. <span style="color:#059669; font-weight:700;">Green = 3 (complete)</span>, yellow/orange = short, <span style="color:#DC2626; font-weight:700;">red = 0</span>. Stores ordered worst → best.</p>', unsafe_allow_html=True)
+            st.markdown('<p style="color:#6B7280; font-size:0.8rem; margin:0 0 0.5rem 0;">Each cell = logs filed that day. <span style="color:#059669; font-weight:700;">Green = 3 (complete)</span>, yellow/orange = short, <span style="color:#DC2626; font-weight:700;">red = 0</span>, <span style="color:#94A3B8; font-weight:700;">grey = not open yet</span>. Stores ordered worst → best.</p>', unsafe_allow_html=True)
             pivot = z.pivot_table(index="Store No", columns="Date", values="Reports", aggfunc="sum", fill_value=0)
             order = store_summary.sort_values("Completion %", ascending=True)["Store No"].tolist()
             pivot = pivot.reindex(order)
-            zmat = pivot.clip(upper=3).values
+            zmat = pivot.clip(upper=3).astype(float).values
             xlabels = [_md(d) for d in pivot.columns]
-            ylabels = pivot.index.tolist()
+            ylabels = [str(s) for s in pivot.index.tolist()]
+            cols_list = list(pivot.columns)
+
+            # Mask pre-open days to a sentinel (-1) and build hover text
+            customdata = []
+            for i, store in enumerate(pivot.index):
+                od = STORE_OPEN_DATES.get(str(store))
+                row_txt = []
+                for j, d in enumerate(cols_list):
+                    if od and d < od:
+                        zmat[i, j] = -1
+                        row_txt.append("Not open yet")
+                    else:
+                        row_txt.append(f"{int(pivot.values[i, j])} logs")
+                customdata.append(row_txt)
+
             colorscale = [
-                [0.00, "#DC2626"], [0.2499, "#DC2626"],
-                [0.25, "#F59E0B"], [0.4999, "#F59E0B"],
-                [0.50, "#FCD34D"], [0.7499, "#FCD34D"],
-                [0.75, "#059669"], [1.00, "#059669"],
+                [0.00, "#CBD5E1"], [0.20, "#CBD5E1"],   # -1 = not open (grey)
+                [0.20, "#DC2626"], [0.40, "#DC2626"],   # 0 = red
+                [0.40, "#F59E0B"], [0.60, "#F59E0B"],   # 1 = orange
+                [0.60, "#FCD34D"], [0.80, "#FCD34D"],   # 2 = yellow
+                [0.80, "#059669"], [1.00, "#059669"],   # 3 = green
             ]
             fig_hm = go.Figure(go.Heatmap(
-                z=zmat, x=xlabels, y=ylabels, zmin=-0.5, zmax=3.5,
+                z=zmat, x=xlabels, y=ylabels, zmin=-1.5, zmax=3.5,
                 colorscale=colorscale, xgap=1, ygap=1,
-                hovertemplate="Store %{y}<br>%{x}: %{z} logs<extra></extra>",
-                colorbar=dict(title="Logs", tickvals=[0, 1, 2, 3], thickness=14, len=0.6),
+                customdata=customdata,
+                hovertemplate="Store %{y}<br>%{x}: %{customdata}<extra></extra>",
+                colorbar=dict(title="Logs", tickvals=[-1, 0, 1, 2, 3],
+                              ticktext=["N/A", "0", "1", "2", "3"], thickness=14, len=0.7),
             ))
             fig_hm.update_layout(
                 plot_bgcolor=CHART_BG, paper_bgcolor=CHART_BG, font=dict(color=FONT_COLOR, size=9),
@@ -2889,7 +2923,7 @@ elif selected_tab == "Zenput":
 
             # ── Store detail table ──
             st.markdown('<div class="section-title">Store Detail — Reports, Completion & Missing Dates</div>', unsafe_allow_html=True)
-            miss = z[z["Reports"] < EXP_PER_DAY]
+            miss = zc[zc["Reports"] < EXP_PER_DAY]
             miss_dates = miss.groupby("Store No")["Date"].apply(lambda s: ", ".join(_md(d) for d in sorted(s)))
             det = store_summary.copy()
             det["Missing Dates"] = det["Store No"].map(miss_dates).fillna("—")
@@ -2918,6 +2952,10 @@ elif selected_tab == "Zenput":
             worst = store_summary.sort_values("Completion %").head(3)
             tk = " · ".join(f"{r['Store No']} ({r['Completion %']:.0f}%)" for _, r in worst.iterrows())
             st.markdown(f'<div style="border-left:4px solid #DC2626; padding:0.5rem 1rem; margin:0.6rem 0; background:#FAFBFC; border-radius:0 6px 6px 0;"><b>Lowest completion:</b> {tk}. &nbsp; Fleet average <b>{fleet_completion:.1f}%</b> across {n_days} days.</div>', unsafe_allow_html=True)
+
+            if new_stores:
+                notes = "; ".join(f"Store {s} measured from {_md(STORE_OPEN_DATES[s])} (new store)" for s in new_stores)
+                st.markdown(f'<p style="color:#9CA3AF; font-size:0.78rem; margin-top:0.4rem;">Note: {notes} — days before opening are excluded from completion and shown grey.</p>', unsafe_allow_html=True)
 
 
 # ════════════════════════════════
