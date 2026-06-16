@@ -687,19 +687,22 @@ def generate_district_ppt(district, store_to_district, districts_config):
                 actual_sales=("actual_sales", "sum"),
                 actual_labor=("actual_labor", "sum"),
                 schedule_labor=("schedule_labor", "sum"),
+                guide_hours=("guide_hours", "sum"),
                 actual_hours=("actual_crew_hours", "sum"),
                 ovt_hours=("ovt_hours", "sum"),
             ).reset_index()
             lw_agg["labor_pct"] = (lw_agg["actual_labor"] / lw_agg["actual_sales"] * 100)
             lw_agg["sched_pct"] = (lw_agg["schedule_labor"] / lw_agg["forecast_sales"] * 100)
             lw_agg["variance"] = lw_agg["labor_pct"] - lw_agg["sched_pct"]
+            # Column J: hours variance vs guide, as %
+            lw_agg["hours_var_pct"] = (lw_agg["actual_hours"] - lw_agg["guide_hours"]) / lw_agg["guide_hours"] * 100
             # WoW variance delta
             lw_agg["Δ Var"] = lw_agg.apply(
                 lambda r: r["variance"] - prev_var_map.get(r["store_num"], r["variance"]), axis=1)
             lw_agg = lw_agg.sort_values("store_num", key=lambda x: x.astype(int)).reset_index(drop=True)
 
             lw_tbl = lw_agg[["store_num", "actual_sales", "labor_pct", "sched_pct", "variance",
-                              "Δ Var", "actual_hours", "ovt_hours"]].copy()
+                              "Δ Var", "actual_hours", "hours_var_pct", "ovt_hours"]].copy()
             lw_display = lw_tbl.copy()
             lw_display["actual_sales"] = lw_display["actual_sales"].apply(lambda x: f"${x:,.0f}")
             lw_display["labor_pct"] = lw_display["labor_pct"].apply(lambda x: f"{x:.1f}%")
@@ -708,11 +711,12 @@ def generate_district_ppt(district, store_to_district, districts_config):
             lw_display["Δ Var"] = lw_agg["Δ Var"].apply(
                 lambda x: f"{'↓' if x < 0 else '↑'} {abs(x):.1f}%" if pd.notna(x) and abs(x) > 0.05 else ("→ 0%" if pd.notna(x) else "—"))
             lw_display["actual_hours"] = lw_display["actual_hours"].apply(lambda x: f"{x:,.0f}")
+            lw_display["hours_var_pct"] = lw_display["hours_var_pct"].apply(lambda x: f"{x:+.1f}%" if pd.notna(x) else "—")
             lw_display["ovt_hours"] = lw_display["ovt_hours"].apply(lambda x: f"{x:,.1f}")
-            lw_display.columns = ["Store #", "Actual Sales", "Labor %", "Sched %", "Variance",
-                                   "Var (vs Last Wk)", "Hours", "OT Hours"]
+            lw_display.columns = ["Store #", "Actual Sales", "Labor %", "Sched %", "Labor % Var",
+                                   "Var (vs Last Wk)", "Hours", "Hrs Var %", "OT Hours"]
 
-            cc_lw, bc_lw = _labor_colors(lw_agg, lw_display)
+            cc_lw, bc_lw = _labor_colors(lw_agg, lw_display, var_col_name="Labor % Var")
             # Color WoW variance delta: decrease=green (improving), increase=red (worsening)
             lw_col_names = list(lw_display.columns)
             j_dvar = lw_col_names.index("Var (vs Last Wk)")
@@ -735,26 +739,30 @@ def generate_district_ppt(district, store_to_district, districts_config):
                 actual_sales=("actual_sales", "sum"),
                 actual_labor=("actual_labor", "sum"),
                 schedule_labor=("schedule_labor", "sum"),
+                guide_hours=("guide_hours", "sum"),
                 actual_hours=("actual_crew_hours", "sum"),
                 ovt_hours=("ovt_hours", "sum"),
             ).reset_index()
             qtd_agg["labor_pct"] = (qtd_agg["actual_labor"] / qtd_agg["actual_sales"] * 100)
             qtd_agg["sched_pct"] = (qtd_agg["schedule_labor"] / qtd_agg["forecast_sales"] * 100)
             qtd_agg["variance"] = qtd_agg["labor_pct"] - qtd_agg["sched_pct"]
+            # Column J: hours variance vs guide, as %
+            qtd_agg["hours_var_pct"] = (qtd_agg["actual_hours"] - qtd_agg["guide_hours"]) / qtd_agg["guide_hours"] * 100
             qtd_agg = qtd_agg.sort_values("store_num", key=lambda x: x.astype(int)).reset_index(drop=True)
 
             qtd_tbl = qtd_agg[["store_num", "actual_sales", "labor_pct", "sched_pct", "variance",
-                                "actual_hours", "ovt_hours"]].copy()
+                                "actual_hours", "hours_var_pct", "ovt_hours"]].copy()
             qtd_display = qtd_tbl.copy()
             qtd_display["actual_sales"] = qtd_display["actual_sales"].apply(lambda x: f"${x:,.0f}")
             qtd_display["labor_pct"] = qtd_display["labor_pct"].apply(lambda x: f"{x:.1f}%")
             qtd_display["sched_pct"] = qtd_display["sched_pct"].apply(lambda x: f"{x:.1f}%")
             qtd_display["variance"] = qtd_display["variance"].apply(lambda x: f"{x:+.1f}%")
             qtd_display["actual_hours"] = qtd_display["actual_hours"].apply(lambda x: f"{x:,.0f}")
+            qtd_display["hours_var_pct"] = qtd_display["hours_var_pct"].apply(lambda x: f"{x:+.1f}%" if pd.notna(x) else "—")
             qtd_display["ovt_hours"] = qtd_display["ovt_hours"].apply(lambda x: f"{x:,.1f}")
-            qtd_display.columns = ["Store #", "Actual Sales", "Labor %", "Sched %", "Variance", "Hours", "OT Hours"]
+            qtd_display.columns = ["Store #", "Actual Sales", "Labor %", "Sched %", "Labor % Var", "Hours", "Hrs Var %", "OT Hours"]
 
-            cc_qtd, bc_qtd = _labor_colors(qtd_agg, qtd_display)
+            cc_qtd, bc_qtd = _labor_colors(qtd_agg, qtd_display, var_col_name="Labor % Var")
             qtd_table_h = max(Inches(0.25 * (len(qtd_display) + 1)), Inches(1.5))
             _add_table(slide, qtd_display, Inches(0.5), qtd_top + Inches(0.35), Inches(10), qtd_table_h,
                        cell_colors=cc_qtd, bold_cells=bc_qtd)

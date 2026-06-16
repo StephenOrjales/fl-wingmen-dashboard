@@ -2217,6 +2217,8 @@ elif selected_tab == "Labor Dashboard":
             labor_df["schedule_labor_pct"] = labor_df["schedule_labor"] / labor_df["forecast_sales"]
             labor_df["labor_variance"] = labor_df["actual_labor_pct"] - labor_df["schedule_labor_pct"]
             labor_df["hours_variance"] = labor_df["actual_hours"] - labor_df["guide_hours"]
+            # Column J in the source report: hours variance vs guide, as a %
+            labor_df["hours_var_pct"] = labor_df["hours_variance"] / labor_df["guide_hours"].replace(0, pd.NA)
 
             period_display = f"Period {selected_period}" if selected_period != "All Periods" else "All Periods"
             week_display = selected_labor_week if selected_labor_week != "All Weeks" else ""
@@ -2393,13 +2395,15 @@ elif selected_tab == "Labor Dashboard":
                 """, unsafe_allow_html=True)
 
                 dtbl = d_data[["store_num", "short_name", "actual_sales", "actual_labor_pct", "schedule_labor_pct",
-                               "labor_variance", "guide_hours", "actual_hours", "overtime_hours", "actual_labor_cost"]].copy()
+                               "labor_variance", "guide_hours", "actual_hours", "hours_var_pct",
+                               "overtime_hours", "actual_labor_cost"]].copy()
                 dtbl.columns = ["Store #", "Store", "Actual Sales", "Labor %", "Sched Labor %",
-                                "Variance", "Guide Hrs", "Actual Hrs", "OT Hrs", "Labor Cost"]
+                                "Labor % Var", "Guide Hrs", "Actual Hrs", "Hrs Var %", "OT Hrs", "Labor Cost"]
                 dtbl["Actual Sales"] = dtbl["Actual Sales"].apply(lambda x: f"${x:,.0f}")
                 dtbl["Labor %"] = dtbl["Labor %"].apply(lambda x: f"{x:.1%}")
                 dtbl["Sched Labor %"] = dtbl["Sched Labor %"].apply(lambda x: f"{x:.1%}")
-                dtbl["Variance"] = dtbl["Variance"].apply(lambda x: f"{x:+.2%}")
+                dtbl["Labor % Var"] = dtbl["Labor % Var"].apply(lambda x: f"{x:+.2%}" if pd.notna(x) else "—")
+                dtbl["Hrs Var %"] = dtbl["Hrs Var %"].apply(lambda x: f"{x:+.1%}" if pd.notna(x) else "—")
                 dtbl["Labor Cost"] = dtbl["Labor Cost"].apply(lambda x: f"${x:,.0f}")
                 dtbl["OT Hrs"] = dtbl["OT Hrs"].apply(lambda x: f"{x:.1f}")
                 dtbl = dtbl.sort_values("Store")
