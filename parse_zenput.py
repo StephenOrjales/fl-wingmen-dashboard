@@ -28,14 +28,29 @@ DOWNLOADS = Path(r'C:\Users\sorja\Downloads')
 WINDOW_DAYS = 30
 
 
+# Some stores submit under a manager/nickname instead of "Store XXXX".
+# Map those free-form "Submitted By" values to the store number.
+# (Confirmed via FlavorLab roster + GPS match against the Time/Temp export.)
+SUBMITTER_STORE_MAP = {
+    "Weston Weston": "2976",
+    "Jupiter Store": "3200",
+    "Dianelys Altuna": "4032",
+    "Derick Cervera": "2890",
+}
+
+
 def _store_from_location(df):
     # Time/Temp export: store number is the "Location" column (e.g. 1771)
     return df['Location'].astype(str).str.strip().str.lstrip('0')
 
 
 def _store_from_submitted_by(df):
-    # Morning checklist export: store is in "Submitted By" as "Store 1677"
-    return df['Submitted By'].astype(str).str.extract(r'(\d+)')[0].str.lstrip('0')
+    # Morning checklist export: store is in "Submitted By" — either "Store 1677"
+    # or a free-form manager/nickname mapped via SUBMITTER_STORE_MAP.
+    s = df['Submitted By'].astype(str).str.strip()
+    mapped = s.map(SUBMITTER_STORE_MAP)
+    digits = s.str.extract(r'(\d+)')[0].str.lstrip('0')
+    return mapped.fillna(digits)
 
 
 REPORTS = [
@@ -60,6 +75,13 @@ explicit = sys.argv[1] if len(sys.argv) > 1 else None
 def build(report, src):
     df = pd.read_excel(src, sheet_name='Submissions', usecols=report['cols'])
     df['Store No'] = report['store_fn'](df)
+    # Flag any submitters that didn't resolve to a known store (so they aren't silently dropped)
+    unresolved = df[~(df['Store No'].notna() & df['Store No'].isin(stores))]
+    if len(unresolved) and 'Submitted By' in df.columns:
+        bad = unresolved['Submitted By'].value_counts()
+        if len(bad):
+            print(f"  [warn] {report['name']}: {int(bad.sum())} submissions from unmapped submitters "
+                  f"(add to SUBMITTER_STORE_MAP): {dict(bad.head(8))}")
     df = df[df['Store No'].notna() & df['Store No'].isin(stores)]
     df['ts'] = pd.to_datetime(df['Date Submitted'], errors='coerce')
     df = df.dropna(subset=['ts'])
