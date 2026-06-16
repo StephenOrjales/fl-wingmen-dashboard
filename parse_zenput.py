@@ -1,82 +1,98 @@
 """
-Parse a Zenput Time/Temperature Log Submissions export into a compact
-per-store-per-day report-count grid for the dashboard "Zenput" tab.
+Parse Zenput submission exports into compact per-store-per-day report-count
+grids for the dashboard "Zenput" tab. Handles multiple Zenput tasks.
 
-Standard cadence: 3 reports per store per day.
+Each report -> data/<out>.csv with columns: Store No, Date, Reports
+(every config store x every day in the window; 0 where nothing filed).
+
 Window: the 30 full days ending the day BEFORE the export's last calendar
-date. The export day itself is a same-morning partial pull (only the opening
-report is in by export time), so it is excluded.
+date (the export day is a same-day partial pull and is excluded).
 
-Output: data/zenput_daily.csv  ->  Store No, Date, Reports
-        (every config store x every day in the window; 0 where nothing filed)
+Cadence (3 logs/day vs 1 check/day) is applied in the dashboard, not here —
+the grid is just raw daily counts.
 
 Usage:
-  python parse_zenput.py [path_to_export.xlsx]
-  (no arg -> newest TimeTemperature_Log_Submissions-*.xlsx in Downloads)
+  python parse_zenput.py            # regenerate every report from newest export in Downloads
+  python parse_zenput.py <file>     # use this file for whichever report its name matches
 """
 import sys
 import os
 import json
+import fnmatch
 import pandas as pd
 from pathlib import Path
 from datetime import timedelta
 
 HERE = Path(__file__).parent
-EXPECTED_PER_DAY = 3
+DOWNLOADS = Path(r'C:\Users\sorja\Downloads')
 WINDOW_DAYS = 30
 
-if len(sys.argv) > 1:
-    src = sys.argv[1]
-else:
-    cands = sorted(Path(r'C:\Users\sorja\Downloads').glob('TimeTemperature_Log_Submissions-*.xlsx'),
-                   key=os.path.getmtime)
-    if not cands:
-        raise SystemExit('No TimeTemperature_Log_Submissions-*.xlsx found in Downloads')
-    src = str(cands[-1])
-print(f'Source: {src}')
 
-# Franchise store list from config (so a store with ZERO submissions still shows 0%)
+def _store_from_location(df):
+    # Time/Temp export: store number is the "Location" column (e.g. 1771)
+    return df['Location'].astype(str).str.strip().str.lstrip('0')
+
+
+def _store_from_submitted_by(df):
+    # Morning checklist export: store is in "Submitted By" as "Store 1677"
+    return df['Submitted By'].astype(str).str.extract(r'(\d+)')[0].str.lstrip('0')
+
+
+REPORTS = [
+    {'name': 'Time/Temp Logs',
+     'glob': 'TimeTemperature_Log_Submissions-*.xlsx',
+     'cols': ['Location', 'Date Submitted'], 'store_fn': _store_from_location,
+     'out': 'zenput_daily.csv'},
+    {'name': 'Morning Manager Checklist',
+     'glob': 'Daily_Morning_Manager_Checklist_Submissions-*.xlsx',
+     'cols': ['Submitted By', 'Date Submitted'], 'store_fn': _store_from_submitted_by,
+     'out': 'zenput_morning_daily.csv'},
+]
+
+# Franchise store list (so a store with ZERO submissions still shows 0%)
 cfg = json.loads((HERE / 'config.json').read_text())
 stores = sorted({s.split(' - ')[0].strip().lstrip('0')
                  for sl in cfg['stores'].values() for s in sl}, key=int)
 
-df = pd.read_excel(src, sheet_name='Submissions', usecols=['Location', 'Date Submitted'])
-df['Store No'] = df['Location'].astype(str).str.strip().str.lstrip('0')
-df['ts'] = pd.to_datetime(df['Date Submitted'], errors='coerce')
-df = df.dropna(subset=['ts'])
-df['date'] = df['ts'].dt.normalize()
+explicit = sys.argv[1] if len(sys.argv) > 1 else None
 
-# Window: drop the last (partial) calendar day, then 30 days ending the day before
-max_date = df['date'].max()
-window_end = max_date - timedelta(days=1)
-window_start = window_end - timedelta(days=WINDOW_DAYS - 1)
-dates = pd.date_range(window_start, window_end, freq='D')
-win = df[(df['date'] >= window_start) & (df['date'] <= window_end)]
 
-# Per-store-per-day submission counts, expanded to the full store x date grid (0 where none)
-counts = win.groupby(['Store No', 'date']).size().rename('Reports').reset_index()
-grid = pd.MultiIndex.from_product([stores, dates], names=['Store No', 'date']).to_frame(index=False)
-grid = grid.merge(counts, on=['Store No', 'date'], how='left')
-grid['Reports'] = grid['Reports'].fillna(0).astype(int)
-grid['Date'] = grid['date'].dt.strftime('%Y-%m-%d')
-grid = grid[['Store No', 'Date', 'Reports']].sort_values(['Store No', 'Date'])
+def build(report, src):
+    df = pd.read_excel(src, sheet_name='Submissions', usecols=report['cols'])
+    df['Store No'] = report['store_fn'](df)
+    df = df[df['Store No'].notna() & df['Store No'].isin(stores)]
+    df['ts'] = pd.to_datetime(df['Date Submitted'], errors='coerce')
+    df = df.dropna(subset=['ts'])
+    df['date'] = df['ts'].dt.normalize()
 
-out = HERE / 'data' / 'zenput_daily.csv'
-grid.to_csv(out, index=False)
+    max_date = df['date'].max()
+    window_end = max_date - timedelta(days=1)
+    window_start = window_end - timedelta(days=WINDOW_DAYS - 1)
+    dates = pd.date_range(window_start, window_end, freq='D')
+    win = df[(df['date'] >= window_start) & (df['date'] <= window_end)]
 
-# Summary (completion = reports done, capped at 3/day, / expected)
-expected_total = WINDOW_DAYS * EXPECTED_PER_DAY
-capped = grid.copy()
-capped['capped'] = capped['Reports'].clip(upper=EXPECTED_PER_DAY)
-per_store_capped = capped.groupby('Store No')['capped'].sum()
-completion = (per_store_capped / expected_total * 100).round(1)
-missing_days = grid[grid['Reports'] < EXPECTED_PER_DAY].groupby('Store No').size()
+    counts = win.groupby(['Store No', 'date']).size().rename('Reports').reset_index()
+    grid = pd.MultiIndex.from_product([stores, dates], names=['Store No', 'date']).to_frame(index=False)
+    grid = grid.merge(counts, on=['Store No', 'date'], how='left')
+    grid['Reports'] = grid['Reports'].fillna(0).astype(int)
+    grid['Date'] = grid['date'].dt.strftime('%Y-%m-%d')
+    grid = grid[['Store No', 'Date', 'Reports']].sort_values(['Store No', 'Date'])
+    grid.to_csv(HERE / 'data' / report['out'], index=False)
+    return grid, dates, len(win)
 
-print(f'Window: {window_start.date()} .. {window_end.date()} ({len(dates)} days) | '
-      f'expected {expected_total} reports/store')
-print(f'Stores: {len(stores)} | grid rows: {len(grid)} | total reports in window: {int(win.shape[0])}')
-print(f'Fleet completion: {completion.mean():.1f}%')
-print('Lowest 5 stores (completion %):')
-print(completion.sort_values().head(5).to_string())
-print('Most missing days (store: # days under 3):')
-print(missing_days.sort_values(ascending=False).head(5).to_string())
+
+for report in REPORTS:
+    if explicit and fnmatch.fnmatch(Path(explicit).name, report['glob']):
+        src = explicit
+    else:
+        cands = sorted(DOWNLOADS.glob(report['glob']), key=os.path.getmtime)
+        if not cands:
+            print(f"[skip] {report['name']}: no matching export in Downloads")
+            continue
+        src = str(cands[-1])
+
+    grid, dates, n_win = build(report, src)
+    zero_stores = sorted(grid.groupby('Store No')['Reports'].sum().loc[lambda s: s == 0].index, key=int)
+    print(f"{report['name']}  <-  {Path(src).name}")
+    print(f"  window {dates[0].date()}..{dates[-1].date()} ({len(dates)}d) | "
+          f"{n_win} submissions | stores with ZERO: {zero_stores or 'none'}")

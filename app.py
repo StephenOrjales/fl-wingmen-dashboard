@@ -218,6 +218,12 @@ STORE_OPEN_DATES = {
     "3210": "2026-05-30",  # Miami-SW 8th Street — new store
 }
 
+# Zenput tasks shown on the Zenput tab. per_day = expected submissions/store/day.
+ZENPUT_REPORTS = {
+    "Time / Temp Logs": {"file": "zenput_daily.csv", "per_day": 3, "unit": "logs"},
+    "Morning Manager Checklist": {"file": "zenput_morning_daily.csv", "per_day": 1, "unit": "check"},
+}
+
 CHART_LAYOUT = dict(
     plot_bgcolor=CHART_BG,
     paper_bgcolor=CHART_BG,
@@ -2769,11 +2775,18 @@ elif selected_tab == "District Reports":
 # ZENPUT (TIME/TEMP LOG COMPLIANCE)
 # ════════════════════════════════
 elif selected_tab == "Zenput":
-    zen_file = DATA_DIR / "zenput_daily.csv"
-    if not zen_file.exists():
-        st.warning("No Zenput data found. Run parse_zenput.py to generate data/zenput_daily.csv.")
+    # Report selector — choose which Zenput task to view
+    available_reports = [r for r, cfg_ in ZENPUT_REPORTS.items() if (DATA_DIR / cfg_["file"]).exists()]
+    if not available_reports:
+        st.warning("No Zenput data found. Run parse_zenput.py to generate the report CSVs.")
     else:
-        EXP_PER_DAY = 3
+        rcol, _ = st.columns([1.3, 3])
+        with rcol:
+            report_name = st.selectbox("Report", available_reports, key="zen_report")
+        rep = ZENPUT_REPORTS[report_name]
+        EXP_PER_DAY = rep["per_day"]
+        unit = rep["unit"]
+        zen_file = DATA_DIR / rep["file"]
         z = pd.read_csv(zen_file)
         z["Store No"] = z["Store No"].astype(str)
 
@@ -2817,16 +2830,19 @@ elif selected_tab == "Zenput":
             store_summary["Completion %"] = (store_summary["Capped"] / store_summary["Expected"] * 100).round(1)
 
             # ── Header ──
+            std_word = unit if EXP_PER_DAY == 1 else f"{unit}"
+            std_label = f"{EXP_PER_DAY} {std_word}/day"
+            badge_label = f"{EXP_PER_DAY} {std_word} / DAY".upper()
             st.markdown(f"""
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.8rem;">
                 <div>
-                    <h2 style="color:#1A3C34; font-weight:800; margin:0; font-size:1.6rem;">Zenput — Time/Temp Log Compliance</h2>
+                    <h2 style="color:#1A3C34; font-weight:800; margin:0; font-size:1.6rem;">Zenput — {report_name}</h2>
                     <p style="color:#6B7280; font-size:0.88rem; margin:0.2rem 0 0 0;">
-                        {n_days}-day window ({_md(dates[0])}–{_md(dates[-1])}) &nbsp;·&nbsp; standard: 3 logs/day ({expected_total} expected per store)
+                        {n_days}-day window ({_md(dates[0])}–{_md(dates[-1])}) &nbsp;·&nbsp; standard: {std_label} ({expected_total} expected per store)
                     </p>
                 </div>
                 <div style="background:#1A3C34; color:#FFFFFF; padding:0.5rem 1rem; border-radius:8px; font-weight:700; font-size:0.8rem; white-space:nowrap;">
-                    3 LOGS / DAY
+                    {badge_label}
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -2852,7 +2868,8 @@ elif selected_tab == "Zenput":
                         sub=f"of {len(store_summary)} stores"), unsafe_allow_html=True)
             c3.markdown(kpi_style.format(label="STORES &lt; 85%", value=n_low, color="#DC2626",
                         sub="need attention"), unsafe_allow_html=True)
-            c4.markdown(kpi_style.format(label="DAYS UNDER 3 LOGS", value=f"{total_missing:,}", color="#D97706",
+            miss_label = "DAYS MISSED" if EXP_PER_DAY == 1 else f"DAYS UNDER {EXP_PER_DAY} {unit.upper()}"
+            c4.markdown(kpi_style.format(label=miss_label, value=f"{total_missing:,}", color="#D97706",
                         sub="store-days in window"), unsafe_allow_html=True)
 
             st.markdown("<div style='height:0.6rem;'></div>", unsafe_allow_html=True)
@@ -2872,13 +2889,21 @@ elif selected_tab == "Zenput":
             fig_z.update_layout(**z_layout)
             st.plotly_chart(fig_z, use_container_width=True, key="zen_completion", config=CHART_CONFIG)
 
-            # ── Heatmap: daily logs per store, missing days marked ──
-            st.markdown('<div class="section-title">Daily Logs by Store — Missing Days Marked</div>', unsafe_allow_html=True)
-            st.markdown('<p style="color:#6B7280; font-size:0.8rem; margin:0 0 0.5rem 0;">Each cell = logs filed that day. <span style="color:#059669; font-weight:700;">Green = 3 (complete)</span>, yellow/orange = short, <span style="color:#DC2626; font-weight:700;">red = 0</span>, <span style="color:#94A3B8; font-weight:700;">grey = not open yet</span>. Stores ordered worst → best.</p>', unsafe_allow_html=True)
+            # ── Heatmap: daily submissions per store, missing days marked ──
+            st.markdown('<div class="section-title">Daily Completion by Store — Missing Days Marked</div>', unsafe_allow_html=True)
+            if EXP_PER_DAY == 1:
+                cap_txt = ('Each cell = that day. <span style="color:#059669; font-weight:700;">Green = done</span>, '
+                           '<span style="color:#DC2626; font-weight:700;">red = missed</span>, '
+                           '<span style="color:#94A3B8; font-weight:700;">grey = not open yet</span>.')
+            else:
+                cap_txt = (f'Each cell = logs filed that day. <span style="color:#059669; font-weight:700;">Green = {EXP_PER_DAY} (complete)</span>, '
+                           'yellow/orange = short, <span style="color:#DC2626; font-weight:700;">red = 0</span>, '
+                           '<span style="color:#94A3B8; font-weight:700;">grey = not open yet</span>.')
+            st.markdown(f'<p style="color:#6B7280; font-size:0.8rem; margin:0 0 0.5rem 0;">{cap_txt} Stores ordered worst → best.</p>', unsafe_allow_html=True)
             pivot = z.pivot_table(index="Store No", columns="Date", values="Reports", aggfunc="sum", fill_value=0)
             order = store_summary.sort_values("Completion %", ascending=True)["Store No"].tolist()
             pivot = pivot.reindex(order)
-            zmat = pivot.clip(upper=3).astype(float).to_numpy(copy=True)
+            zmat = pivot.clip(upper=EXP_PER_DAY).astype(float).to_numpy(copy=True)
             xlabels = [_md(d) for d in pivot.columns]
             ylabels = [str(s) for s in pivot.index.tolist()]
             cols_list = list(pivot.columns)
@@ -2893,23 +2918,31 @@ elif selected_tab == "Zenput":
                         zmat[i, j] = -1
                         row_txt.append("Not open yet")
                     else:
-                        row_txt.append(f"{int(pivot.values[i, j])} logs")
+                        row_txt.append(f"{int(pivot.values[i, j])} of {EXP_PER_DAY}")
                 customdata.append(row_txt)
 
-            colorscale = [
-                [0.00, "#CBD5E1"], [0.20, "#CBD5E1"],   # -1 = not open (grey)
-                [0.20, "#DC2626"], [0.40, "#DC2626"],   # 0 = red
-                [0.40, "#F59E0B"], [0.60, "#F59E0B"],   # 1 = orange
-                [0.60, "#FCD34D"], [0.80, "#FCD34D"],   # 2 = yellow
-                [0.80, "#059669"], [1.00, "#059669"],   # 3 = green
-            ]
+            # Discrete colorscale: grey (-1, not open), red (0) → green (complete)
+            def _band_color(v):
+                if v < 0:
+                    return "#CBD5E1"
+                if v <= 0:
+                    return "#DC2626"
+                if v >= EXP_PER_DAY:
+                    return "#059669"
+                return "#F59E0B" if (v / EXP_PER_DAY) < 0.5 else "#FCD34D"
+            levels = [-1] + list(range(EXP_PER_DAY + 1))
+            n_lv = len(levels)
+            colorscale = []
+            for k, v in enumerate(levels):
+                colorscale.append([k / n_lv, _band_color(v)])
+                colorscale.append([(k + 1) / n_lv, _band_color(v)])
             fig_hm = go.Figure(go.Heatmap(
-                z=zmat, x=xlabels, y=ylabels, zmin=-1.5, zmax=3.5,
+                z=zmat, x=xlabels, y=ylabels, zmin=-1.5, zmax=EXP_PER_DAY + 0.5,
                 colorscale=colorscale, xgap=1, ygap=1,
                 customdata=customdata,
                 hovertemplate="Store %{y}<br>%{x}: %{customdata}<extra></extra>",
-                colorbar=dict(title="Logs", tickvals=[-1, 0, 1, 2, 3],
-                              ticktext=["N/A", "0", "1", "2", "3"], thickness=14, len=0.7),
+                colorbar=dict(title=unit.title(), tickvals=levels,
+                              ticktext=["N/A"] + [str(x) for x in range(EXP_PER_DAY + 1)], thickness=14, len=0.7),
             ))
             fig_hm.update_layout(
                 plot_bgcolor=CHART_BG, paper_bgcolor=CHART_BG, font=dict(color=FONT_COLOR, size=9),
