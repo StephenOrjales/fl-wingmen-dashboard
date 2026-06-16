@@ -2879,9 +2879,11 @@ elif selected_tab == "Zenput":
             ))
             fig_hm.update_layout(
                 plot_bgcolor=CHART_BG, paper_bgcolor=CHART_BG, font=dict(color=FONT_COLOR, size=9),
-                margin=dict(l=50, r=20, t=10, b=40), height=max(420, 18 * len(ylabels)),
-                xaxis=dict(side="top", tickangle=-90, fixedrange=True, tickfont=dict(size=8)),
-                yaxis=dict(autorange="reversed", fixedrange=True, title="Store (worst → best)", tickfont=dict(size=9)),
+                margin=dict(l=70, r=20, t=10, b=40), height=max(420, 20 * len(ylabels)),
+                xaxis=dict(type="category", side="top", tickangle=-90, fixedrange=True,
+                           dtick=1, tickfont=dict(size=8)),
+                yaxis=dict(type="category", autorange="reversed", fixedrange=True,
+                           dtick=1, title="Store (worst → best)", tickfont=dict(size=9)),
             )
             st.plotly_chart(fig_hm, use_container_width=True, key="zen_heatmap", config=CHART_CONFIG)
 
