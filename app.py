@@ -2878,7 +2878,7 @@ elif selected_tab == "Zenput":
             pivot = z.pivot_table(index="Store No", columns="Date", values="Reports", aggfunc="sum", fill_value=0)
             order = store_summary.sort_values("Completion %", ascending=True)["Store No"].tolist()
             pivot = pivot.reindex(order)
-            zmat = pivot.clip(upper=3).astype(float).values
+            zmat = pivot.clip(upper=3).astype(float).to_numpy(copy=True)
             xlabels = [_md(d) for d in pivot.columns]
             ylabels = [str(s) for s in pivot.index.tolist()]
             cols_list = list(pivot.columns)
