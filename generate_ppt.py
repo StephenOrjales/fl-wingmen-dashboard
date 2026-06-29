@@ -201,23 +201,23 @@ def _kds_colors(df_raw, df_display):
     return colors, bolds
 
 
-def _labor_colors(df_raw, df_display, var_col_name="Variance"):
-    """Return cell_colors + bold_cells for labor table based on variance thresholds."""
+def _labor_colors(df_raw, df_display, var_col_name="Labor Var %", var_field="hours_var_pct"):
+    """Color the labor-variance column by the bonus threshold (pass <= 1.5%)."""
     colors, bolds = {}, {}
     col_names = list(df_display.columns)
-    if var_col_name not in col_names:
-        return colors, bolds
-    j_var = col_names.index(var_col_name)
+    if var_col_name in col_names:
+        j_var = col_names.index(var_col_name)
+        for i, (_, row) in enumerate(df_raw.iterrows()):
+            var = row.get(var_field)
+            if pd.notna(var):
+                # Over guide is bad; <= 1.5% passes (bonus target), <= 3% tolerance, else red
+                if var <= 1.5:
+                    colors[(i, j_var)] = GREEN; bolds[(i, j_var)] = True
+                elif var <= 3:
+                    colors[(i, j_var)] = ORANGE; bolds[(i, j_var)] = True
+                else:
+                    colors[(i, j_var)] = RED; bolds[(i, j_var)] = True
     for i, (_, row) in enumerate(df_raw.iterrows()):
-        var = row.get("variance")
-        if pd.notna(var):
-            # Only positive variance (over budget) is bad; negative = under budget = fine
-            if var <= 1.5:
-                colors[(i, j_var)] = GREEN; bolds[(i, j_var)] = True
-            elif var <= 3:
-                colors[(i, j_var)] = ORANGE; bolds[(i, j_var)] = True
-            else:
-                colors[(i, j_var)] = RED; bolds[(i, j_var)] = True
         # Labor % > 20% critical red, > 18% orange
         labor_pct = row.get("labor_pct")
         if pd.notna(labor_pct) and "Labor %" in col_names:
@@ -672,11 +672,10 @@ def generate_district_ppt(district, store_to_district, districts_config):
                     prev_week = all_weeks[lw_idx - 1]
                     pw_data = r26_d[r26_d["week_d"] == prev_week]
                     pw_agg = pw_data.groupby("store_num").agg(
-                        actual_sales=("actual_sales", "sum"), actual_labor=("actual_labor", "sum"),
-                        forecast_sales=("forecast_sales", "sum"), schedule_labor=("schedule_labor", "sum"),
+                        guide_hours=("guide_hours", "sum"), actual_hours=("actual_crew_hours", "sum"),
                     ).reset_index()
-                    pw_agg["variance"] = (pw_agg["actual_labor"] / pw_agg["actual_sales"] * 100) - \
-                                         (pw_agg["schedule_labor"] / pw_agg["forecast_sales"] * 100)
+                    # Labor Variance % = column J: actual crew hours vs guide hours
+                    pw_agg["variance"] = (pw_agg["actual_hours"] - pw_agg["guide_hours"]) / pw_agg["guide_hours"] * 100
                     prev_var_map = dict(zip(pw_agg["store_num"], pw_agg["variance"]))
 
             # ── Section 1: Latest Week ──
@@ -696,27 +695,27 @@ def generate_district_ppt(district, store_to_district, districts_config):
             lw_agg["variance"] = lw_agg["labor_pct"] - lw_agg["sched_pct"]
             # Column J: hours variance vs guide, as %
             lw_agg["hours_var_pct"] = (lw_agg["actual_hours"] - lw_agg["guide_hours"]) / lw_agg["guide_hours"] * 100
-            # WoW variance delta
+            # WoW delta on Labor Variance % (col J: hours vs guide)
             lw_agg["Δ Var"] = lw_agg.apply(
-                lambda r: r["variance"] - prev_var_map.get(r["store_num"], r["variance"]), axis=1)
+                lambda r: r["hours_var_pct"] - prev_var_map.get(r["store_num"], r["hours_var_pct"]), axis=1)
             lw_agg = lw_agg.sort_values("store_num", key=lambda x: x.astype(int)).reset_index(drop=True)
 
-            lw_tbl = lw_agg[["store_num", "actual_sales", "labor_pct", "sched_pct", "variance",
-                              "Δ Var", "actual_hours", "hours_var_pct", "ovt_hours"]].copy()
+            lw_tbl = lw_agg[["store_num", "actual_sales", "labor_pct", "sched_pct", "hours_var_pct",
+                              "Δ Var", "actual_hours", "variance", "ovt_hours"]].copy()
             lw_display = lw_tbl.copy()
             lw_display["actual_sales"] = lw_display["actual_sales"].apply(lambda x: f"${x:,.0f}")
             lw_display["labor_pct"] = lw_display["labor_pct"].apply(lambda x: f"{x:.1f}%")
             lw_display["sched_pct"] = lw_display["sched_pct"].apply(lambda x: f"{x:.1f}%")
-            lw_display["variance"] = lw_display["variance"].apply(lambda x: f"{x:+.1f}%")
+            lw_display["hours_var_pct"] = lw_display["hours_var_pct"].apply(lambda x: f"{x:+.1f}%" if pd.notna(x) else "—")
             lw_display["Δ Var"] = lw_agg["Δ Var"].apply(
                 lambda x: f"{'↓' if x < 0 else '↑'} {abs(x):.1f}%" if pd.notna(x) and abs(x) > 0.05 else ("→ 0%" if pd.notna(x) else "—"))
             lw_display["actual_hours"] = lw_display["actual_hours"].apply(lambda x: f"{x:,.0f}")
-            lw_display["hours_var_pct"] = lw_display["hours_var_pct"].apply(lambda x: f"{x:+.1f}%" if pd.notna(x) else "—")
+            lw_display["variance"] = lw_display["variance"].apply(lambda x: f"{x:+.1f}%")
             lw_display["ovt_hours"] = lw_display["ovt_hours"].apply(lambda x: f"{x:,.1f}")
-            lw_display.columns = ["Store #", "Actual Sales", "Labor %", "Sched %", "Labor % Var",
-                                   "Var (vs Last Wk)", "Hours", "Hrs Var %", "OT Hours"]
+            lw_display.columns = ["Store #", "Actual Sales", "Labor %", "Sched %", "Labor Var %",
+                                   "Var (vs Last Wk)", "Hours", "Act vs Sched %", "OT Hours"]
 
-            cc_lw, bc_lw = _labor_colors(lw_agg, lw_display, var_col_name="Labor % Var")
+            cc_lw, bc_lw = _labor_colors(lw_agg, lw_display)
             # Color WoW variance delta: decrease=green (improving), increase=red (worsening)
             lw_col_names = list(lw_display.columns)
             j_dvar = lw_col_names.index("Var (vs Last Wk)")
@@ -750,19 +749,19 @@ def generate_district_ppt(district, store_to_district, districts_config):
             qtd_agg["hours_var_pct"] = (qtd_agg["actual_hours"] - qtd_agg["guide_hours"]) / qtd_agg["guide_hours"] * 100
             qtd_agg = qtd_agg.sort_values("store_num", key=lambda x: x.astype(int)).reset_index(drop=True)
 
-            qtd_tbl = qtd_agg[["store_num", "actual_sales", "labor_pct", "sched_pct", "variance",
-                                "actual_hours", "hours_var_pct", "ovt_hours"]].copy()
+            qtd_tbl = qtd_agg[["store_num", "actual_sales", "labor_pct", "sched_pct", "hours_var_pct",
+                                "actual_hours", "variance", "ovt_hours"]].copy()
             qtd_display = qtd_tbl.copy()
             qtd_display["actual_sales"] = qtd_display["actual_sales"].apply(lambda x: f"${x:,.0f}")
             qtd_display["labor_pct"] = qtd_display["labor_pct"].apply(lambda x: f"{x:.1f}%")
             qtd_display["sched_pct"] = qtd_display["sched_pct"].apply(lambda x: f"{x:.1f}%")
-            qtd_display["variance"] = qtd_display["variance"].apply(lambda x: f"{x:+.1f}%")
-            qtd_display["actual_hours"] = qtd_display["actual_hours"].apply(lambda x: f"{x:,.0f}")
             qtd_display["hours_var_pct"] = qtd_display["hours_var_pct"].apply(lambda x: f"{x:+.1f}%" if pd.notna(x) else "—")
+            qtd_display["actual_hours"] = qtd_display["actual_hours"].apply(lambda x: f"{x:,.0f}")
+            qtd_display["variance"] = qtd_display["variance"].apply(lambda x: f"{x:+.1f}%")
             qtd_display["ovt_hours"] = qtd_display["ovt_hours"].apply(lambda x: f"{x:,.1f}")
-            qtd_display.columns = ["Store #", "Actual Sales", "Labor %", "Sched %", "Labor % Var", "Hours", "Hrs Var %", "OT Hours"]
+            qtd_display.columns = ["Store #", "Actual Sales", "Labor %", "Sched %", "Labor Var %", "Hours", "Act vs Sched %", "OT Hours"]
 
-            cc_qtd, bc_qtd = _labor_colors(qtd_agg, qtd_display, var_col_name="Labor % Var")
+            cc_qtd, bc_qtd = _labor_colors(qtd_agg, qtd_display)
             qtd_table_h = max(Inches(0.25 * (len(qtd_display) + 1)), Inches(1.5))
             _add_table(slide, qtd_display, Inches(0.5), qtd_top + Inches(0.35), Inches(10), qtd_table_h,
                        cell_colors=cc_qtd, bold_cells=bc_qtd)
@@ -770,11 +769,11 @@ def generate_district_ppt(district, store_to_district, districts_config):
             # Callouts at bottom
             callout_top = qtd_top + Inches(0.35) + qtd_table_h + Inches(0.1)
             callouts = []
-            avg_var_qtd = qtd_agg["variance"].mean()
-            callouts.append(f"District QTD avg variance: {avg_var_qtd:+.1f}% (bonus target ≤ 1.5%)")
-            high_var = qtd_agg[qtd_agg["variance"] > 1.5]
+            avg_var_qtd = qtd_agg["hours_var_pct"].mean()
+            callouts.append(f"District QTD avg Labor Variance: {avg_var_qtd:+.1f}% (bonus target ≤ 1.5%, hrs vs guide)")
+            high_var = qtd_agg[qtd_agg["hours_var_pct"] > 1.5]
             for _, r in high_var.iterrows():
-                callouts.append(f"Store {r['store_num']} QTD variance: {r['variance']:+.1f}%")
+                callouts.append(f"Store {r['store_num']} QTD Labor Variance: {r['hours_var_pct']:+.1f}%")
             total_ot = qtd_agg["ovt_hours"].sum()
             if total_ot > 0:
                 callouts.append(f"Total QTD overtime: {total_ot:,.1f} hours")
@@ -977,16 +976,14 @@ def generate_district_ppt(district, store_to_district, districts_config):
                 store_checks["KDS: MakeAhd ≤ 10%"] = avg_ma <= 10 if pd.notna(avg_ma) else None
                 store_checks["KDS: PreBump ≤ 0.5%"] = avg_pb <= 0.5 if pd.notna(avg_pb) else None
 
-        # Labor check (QTD)
+        # Labor check (QTD) — Labor Variance % = column J: actual crew hours vs guide hours
         if _sc_labor is not None:
             lab = _sc_labor[(_sc_labor["period"].isin(qtr_ps)) & (_sc_labor["store_num"] == snum)]
             if not lab.empty:
-                tot_actual = lab["actual_labor"].sum()
-                tot_sales = lab["actual_sales"].sum()
-                tot_sched = lab["schedule_labor"].sum()
-                tot_fc = lab["forecast_sales"].sum()
-                if tot_sales > 0 and tot_fc > 0:
-                    var = (tot_actual / tot_sales - tot_sched / tot_fc) * 100
+                tot_guide = lab["guide_hours"].sum()
+                tot_hours = lab["actual_crew_hours"].sum()
+                if tot_guide > 0:
+                    var = (tot_hours - tot_guide) / tot_guide * 100
                     store_checks["Labor: Var ≤ 1.5%"] = var <= 1.5
 
         # SMG

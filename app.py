@@ -2241,7 +2241,7 @@ elif selected_tab == "Labor Dashboard":
 
             # ── KPIs ──
             avg_labor = labor_df["actual_labor_pct"].mean()
-            avg_var = labor_df["labor_variance"].mean()
+            avg_var = labor_df["hours_var_pct"].mean()  # Labor Variance % = hours vs guide (col J)
             total_ot = labor_df["overtime_hours"].sum()
             total_hours = labor_df["actual_hours"].sum()
             total_cost = labor_df["actual_labor_cost"].sum()
@@ -2317,12 +2317,12 @@ elif selected_tab == "Labor Dashboard":
             ll, lr = st.columns(2)
             with ll:
                 st.markdown('<div class="section-title">Labor Variance % by Store</div>', unsafe_allow_html=True)
-                lv_sorted = labor_df.sort_values("labor_variance", ascending=False)
-                lv_colors = [RED if v > 0.02 else (ORANGE if v > 0 else GREEN) for v in lv_sorted["labor_variance"]]
+                lv_sorted = labor_df.sort_values("hours_var_pct", ascending=False)
+                lv_colors = [RED if v > 0.015 else (ORANGE if v > 0 else GREEN) for v in lv_sorted["hours_var_pct"]]
                 fig_lv = go.Figure(go.Bar(
-                    x=lv_sorted["short_name"], y=lv_sorted["labor_variance"] * 100,
+                    x=lv_sorted["short_name"], y=lv_sorted["hours_var_pct"] * 100,
                     marker_color=lv_colors,
-                    hovertemplate="%{x}<br>Variance: %{y:+.2f}%<extra></extra>",
+                    hovertemplate="%{x}<br>Labor Variance: %{y:+.2f}%<extra></extra>",
                 ))
                 fig_lv.add_hline(y=0, line_color="#BDBDBD", line_width=1)
                 fig_lv.update_layout(**CHART_LAYOUT, height=370, yaxis_title="Labor Variance %", xaxis_tickangle=-45)
@@ -2398,12 +2398,12 @@ elif selected_tab == "Labor Dashboard":
                                "labor_variance", "guide_hours", "actual_hours", "hours_var_pct",
                                "overtime_hours", "actual_labor_cost"]].copy()
                 dtbl.columns = ["Store #", "Store", "Actual Sales", "Labor %", "Sched Labor %",
-                                "Labor % Var", "Guide Hrs", "Actual Hrs", "Hrs Var %", "OT Hrs", "Labor Cost"]
+                                "Act vs Sched %", "Guide Hrs", "Actual Hrs", "Labor Var %", "OT Hrs", "Labor Cost"]
                 dtbl["Actual Sales"] = dtbl["Actual Sales"].apply(lambda x: f"${x:,.0f}")
                 dtbl["Labor %"] = dtbl["Labor %"].apply(lambda x: f"{x:.1%}")
                 dtbl["Sched Labor %"] = dtbl["Sched Labor %"].apply(lambda x: f"{x:.1%}")
-                dtbl["Labor % Var"] = dtbl["Labor % Var"].apply(lambda x: f"{x:+.2%}" if pd.notna(x) else "—")
-                dtbl["Hrs Var %"] = dtbl["Hrs Var %"].apply(lambda x: f"{x:+.1%}" if pd.notna(x) else "—")
+                dtbl["Act vs Sched %"] = dtbl["Act vs Sched %"].apply(lambda x: f"{x:+.2%}" if pd.notna(x) else "—")
+                dtbl["Labor Var %"] = dtbl["Labor Var %"].apply(lambda x: f"{x:+.1%}" if pd.notna(x) else "—")
                 dtbl["Labor Cost"] = dtbl["Labor Cost"].apply(lambda x: f"${x:,.0f}")
                 dtbl["OT Hrs"] = dtbl["OT Hrs"].apply(lambda x: f"{x:.1f}")
                 dtbl = dtbl.sort_values("Store")
@@ -3065,11 +3065,13 @@ elif selected_tab == "District Comparison":
                 forecast_sales=("forecast_sales", "sum"),
                 actual_labor=("actual_labor", "sum"),
                 schedule_labor=("schedule_labor", "sum"),
+                guide_hours=("guide_hours", "sum"),
+                actual_hours=("actual_crew_hours", "sum"),
                 ovt_hours=("ovt_hours", "sum"),
             ).reset_index()
             labor_agg["labor_pct"] = labor_agg["actual_labor"] / labor_agg["actual_sales"]
-            labor_agg["sched_labor_pct"] = labor_agg["schedule_labor"] / labor_agg["forecast_sales"]
-            labor_agg["labor_variance"] = labor_agg["labor_pct"] - labor_agg["sched_labor_pct"]
+            # Labor Variance % = column J: actual crew hours vs guide hours (as a fraction)
+            labor_agg["labor_variance"] = (labor_agg["actual_hours"] - labor_agg["guide_hours"]) / labor_agg["guide_hours"]
             labor_map = dict(zip(labor_agg["store_num"].astype(str), labor_agg["labor_pct"]))
             lv_map = dict(zip(labor_agg["store_num"].astype(str), labor_agg["labor_variance"]))
             ot_map = dict(zip(labor_agg["store_num"].astype(str), labor_agg["ovt_hours"]))
@@ -3256,10 +3258,11 @@ elif selected_tab == "Scorecard":
                 actual_labor=("actual_labor", "sum"),
                 forecast_sales=("forecast_sales", "sum"),
                 schedule_labor=("schedule_labor", "sum"),
+                guide_hours=("guide_hours", "sum"),
+                actual_hours=("actual_crew_hours", "sum"),
             ).reset_index()
-            la["labor_pct"] = la["actual_labor"] / la["actual_sales"]
-            la["sched_labor_pct"] = la["schedule_labor"] / la["forecast_sales"]
-            la["labor_var"] = (la["labor_pct"] - la["sched_labor_pct"]) * 100  # as percentage points
+            # Labor Variance % = column J: actual crew hours vs guide hours
+            la["labor_var"] = (la["actual_hours"] - la["guide_hours"]) / la["guide_hours"] * 100
             labor_var_map = dict(zip(la["store_num"].astype(str), la["labor_var"]))
             sc["Labor Var %"] = sc["Store No"].map(labor_var_map)
 
@@ -3605,10 +3608,12 @@ elif selected_tab == "Watch List":
             la = wl_labor.groupby(["store_num", "short_name"]).agg(
                 actual_sales=("actual_sales", "sum"), forecast_sales=("forecast_sales", "sum"),
                 actual_labor=("actual_labor", "sum"), schedule_labor=("schedule_labor", "sum"),
+                guide_hours=("guide_hours", "sum"), actual_hours=("actual_crew_hours", "sum"),
                 ovt_hours=("ovt_hours", "sum"),
             ).reset_index()
             la["labor_pct"] = la["actual_labor"] / la["actual_sales"]
-            la["labor_var"] = la["labor_pct"] - (la["schedule_labor"] / la["forecast_sales"])
+            # Labor Variance % = column J: actual crew hours vs guide hours
+            la["labor_var"] = (la["actual_hours"] - la["guide_hours"]) / la["guide_hours"]
             la["district"] = la["store_num"].map(STORE_TO_DISTRICT).fillna("Unassigned")
 
             for _, r in la[la["labor_pct"] > 0.18].iterrows():
@@ -3616,9 +3621,9 @@ elif selected_tab == "Watch List":
                 alerts.append({"store_num": r["store_num"], "Store": r["short_name"], "District": r["district"],
                                "Metric": "Labor %", "Value": f"{r['labor_pct']:.1%}", "Threshold": "≤ 18%", "Severity": sev, "Source": "Labor YTD"})
 
-            for _, r in la[la["labor_var"] > 0.02].iterrows():
+            for _, r in la[la["labor_var"] > 0.015].iterrows():
                 alerts.append({"store_num": r["store_num"], "Store": r["short_name"], "District": r["district"],
-                               "Metric": "Labor Variance", "Value": f"{r['labor_var']:+.2%}", "Threshold": "≤ +2%", "Severity": "Critical", "Source": "Labor YTD"})
+                               "Metric": "Labor Variance", "Value": f"{r['labor_var']:+.1%}", "Threshold": "≤ +1.5%", "Severity": "Warning", "Source": "Labor YTD"})
 
             for _, r in la[la["ovt_hours"] > 25].iterrows():
                 alerts.append({"store_num": r["store_num"], "Store": r["short_name"], "District": r["district"],
@@ -3816,7 +3821,7 @@ elif selected_tab == "Watch List":
             ("Pre-Bump %", "> 1.5%", "Critical", "KDS Dinner"),
             ("Waste %", "> 5%", "Critical", "KDS Dinner"),
             ("Labor %", "> 18% (>20% critical)", "Warning / Critical", "Labor Forecast"),
-            ("Labor Variance", "> +2%", "Critical", "Labor Forecast"),
+            ("Labor Variance", "> +1.5% (hrs vs guide)", "Warning", "Labor Forecast"),
             ("Overtime", "> 25 hrs", "Warning", "Labor Forecast"),
             ("COGS Variance", "> 2% (>4% critical)", "Warning / Critical", "COGS Data"),
             ("QSC Eval", "Missed evaluation", "Critical", "QSC Evals"),
