@@ -199,6 +199,12 @@ for sp in stores_pages:
     all_rows.append(row)
 
 new_df = pd.DataFrame(all_rows)
+# Drop incomplete store records (e.g., a partial/placeholder page with no Net Sales).
+_before = len(new_df)
+new_df = new_df[new_df["Net Sales"].notna()].reset_index(drop=True)
+if len(new_df) < _before:
+    dropped = _before - len(new_df)
+    print(f'Dropped {dropped} incomplete store row(s) (no Net Sales)')
 new_period = new_df["Period"].iloc[0] if len(new_df) > 0 else "?"
 print(f'\nParsed {len(new_df)} stores for {new_period}')
 
