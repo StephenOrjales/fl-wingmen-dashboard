@@ -9,6 +9,8 @@ files = {
     'P6W2': r'C:\Users\sorja\Downloads\P6W2_2026.pdf',
     'P6W4': _sched_dir + r'\P6W4_2026.pdf',
     'P6W5': _sched_dir + r'\P6W5_2026.pdf',
+    'P7W1': _sched_dir + r'\P7W1_2026.pdf',
+    'P7W2': _sched_dir + r'\P7W2_2026.pdf',
 }
 
 all_rows = []
