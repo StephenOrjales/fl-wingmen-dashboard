@@ -1,42 +1,42 @@
 Store No,Store Name,Employees,Total_Courses,Completions,Avg_Completion_Rate,Incomplete
-79,Plantation,20,1502,1498,99.8,4
-183,Margate-Atlantic,18,1029,919,83.7,110
-205,Lauderhill-Oakland Park,20,1410,1405,99.6,5
-346,Miami-Old Cutler Rd,12,929,927,99.8,2
-420,Deerfield Beach,8,782,778,99.5,4
-871,Florida City-Dixie Hwy,12,883,879,98.8,4
-883,Hallandale Beach-W Hallandale ,6,472,363,78.2,109
+79,Plantation,20,1502,1502,100.0,0
+183,Margate-Atlantic,16,959,959,100.0,0
+205,Lauderhill-Oakland Park,20,1410,1406,99.6,4
+346,Miami-Old Cutler Rd,12,929,929,100.0,0
+420,Deerfield Beach,8,782,782,100.0,0
+871,Florida City-Dixie Hwy,12,883,883,100.0,0
+883,Hallandale Beach-W Hallandale ,15,508,368,31.7,140
 1096,Tamarac-N. University Drive,17,1081,1053,96.5,28
-1167,Pembroke Pines-Pines Blvd,14,881,859,97.6,22
-1252,Fort Lauderdale-W. Broward Blv,22,1051,1051,100.0,0
+1167,Pembroke Pines-Pines Blvd,14,881,866,98.6,15
+1252,Fort Lauderdale-W. Broward Blv,25,1124,1123,99.8,1
 1677,Palmetto Bay- SW 160th St.,13,1105,1105,100.0,0
-1726,Fort Lauderdale-E. Commercial ,12,812,811,99.2,1
-1771,Miami-SW 152nd St,18,971,965,99.7,6
+1726,Fort Lauderdale-E. Commercial ,13,841,841,100.0,0
+1771,Miami-SW 152nd St,18,971,971,100.0,0
 1841,Ft Lauderdale-S Federal Hwy,17,986,979,99.4,7
-1847,Pompano Beach-N. Federal Hwy,21,1133,1133,100.0,0
+1847,Pompano Beach-N. Federal Hwy,21,1175,1155,98.9,20
 1848,Miami-SW 107th Ave,13,874,874,100.0,0
-1864,Hialeah Gardens-W 33rd Ave,15,955,949,97.8,6
-1891,Miami-SW 137th Ave,13,697,693,98.1,4
-1954,Miami-N Kendall Dr,16,811,811,100.0,0
-1972,Miami-Bird Ludlam,17,1048,1032,97.2,16
-2013,Palm Springs-S Congress Ave,14,1079,1078,99.9,1
+1864,Hialeah Gardens-W 33rd Ave,15,951,944,95.9,7
+1891,Miami-SW 137th Ave,13,706,705,99.7,1
+1954,Miami-N Kendall Dr,17,815,811,94.1,4
+1972,Miami-Bird Ludlam,17,1048,1037,97.9,11
+2013,Palm Springs-S Congress Ave,14,1079,1079,100.0,0
 2042,Miami-W Flagler St,12,823,823,100.0,0
 2048,Coral Springs-Wiles Rd,19,1349,1349,100.0,0
-2118,Naranja-S. Dixie Hwy,19,1208,1205,98.8,3
-2290,Pembroke Pines-N. Flamingo Rd,12,687,687,100.0,0
-2497,Royal Palm Beach,14,823,819,99.7,4
+2118,Naranja-S. Dixie Hwy,19,1213,1211,99.3,2
+2290,Pembroke Pines-N. Flamingo Rd,14,732,724,97.7,8
+2497,Royal Palm Beach,14,823,823,100.0,0
 2602,Doral-NW 58th St.,12,746,746,100.0,0
-2627,Hialeah-Hialeah Dr.,12,662,647,93.5,15
-2696,West Palm Beach-Okeechobee Blv,15,763,751,98.2,12
+2627,Hialeah-Hialeah Dr.,12,671,653,92.0,18
+2696,West Palm Beach-Okeechobee Blv,16,771,758,97.5,13
 2699,Miami-NW 20th St.,21,996,996,100.0,0
 2766,Miami-Bird Rd.,12,722,722,100.0,0
 2885,Lantana-W. Lantana Rd,11,663,663,100.0,0
-2890,Miami-NW 199th St.,11,678,531,79.5,147
-2893,Miami-NE Miami Ct. - GK,12,695,353,63.8,342
-2974,Delray Beach-Linton Blvd,15,829,821,99.1,8
+2890,Miami-NW 199th St.,11,687,677,98.8,10
+2893,Miami-NE Miami Ct. - GK,12,791,775,98.0,16
+2974,Delray Beach-Linton Blvd,15,829,827,99.7,2
 2976,Weston-Indian Trace,8,321,283,69.9,38
-3013,Miami-Quail Roost Dr,12,612,597,95.5,15
+3013,Miami-Quail Roost Dr,11,598,598,100.0,0
 3200,Jupiter-E Indiantown Rd,8,436,432,99.5,4
-3210,Miami-SW 8th Street,14,515,514,99.6,1
-3317,Boca Raton-Glades Road,13,486,456,96.7,30
-4032,Miami-NW 7th St.,13,733,725,97.5,8
+3210,Miami-SW 8th Street,14,515,515,100.0,0
+3317,Boca Raton-Glades Road,13,486,473,98.1,13
+4032,Miami-NW 7th St.,12,706,706,100.0,0
