@@ -409,6 +409,77 @@ def _cogs_colors(df_raw, df_display):
     return colors, bolds
 
 
+# Stores that opened mid-tracking — Zenput completion windows start at their open date
+STORE_OPEN_DATES = {"3210": "2026-05-30"}
+# Zenput reports: file + expected logs per day
+ZENPUT_REPORTS = [
+    ("Time/Temp Logs", "zenput_daily.csv", 3),
+    ("Morning Checklist", "zenput_morning_daily.csv", 1),
+]
+
+
+def _zenput_completion(path, per_day):
+    """Return {store_no: completion %} for a Zenput report (capped at per_day, new-store windows honored)."""
+    if not path.exists():
+        return {}
+    z = pd.read_csv(path)
+    z["Store No"] = z["Store No"].astype(str)
+    z["_open"] = z["Store No"].map(STORE_OPEN_DATES)
+    z = z[z["_open"].isna() | (z["Date"] >= z["_open"])].copy()
+    z["_capped"] = z["Reports"].clip(upper=per_day)
+    g = z.groupby("Store No").agg(capped=("_capped", "sum"), days=("Date", "nunique"))
+    return {s: round(row.capped / (row.days * per_day) * 100) for s, row in g.iterrows() if row.days}
+
+
+def _add_zenput_slide(prs, blank_layout, district, d_stores, name_map):
+    """Build the Zenput log-completion slide (Time/Temp + Morning Checklist per store)."""
+    comps = [(label, _zenput_completion(DATA_DIR / fn, per)) for label, fn, per in ZENPUT_REPORTS]
+    if not any(c for _, c in comps):
+        return None
+    slide = prs.slides.add_slide(blank_layout)
+    _add_title_bar(slide, "Zenput — Daily Log Completion",
+                   f"{district} · Time/Temp (3/day) & Morning Manager Checklist (1/day), last 30 days")
+
+    rows, raw = [], []
+    for snum in sorted(d_stores, key=int):
+        vals = {label: comp.get(snum) for label, comp in comps}
+        raw.append(vals)
+        row = {"Store #": snum, "Store Name": name_map.get(snum, snum)}
+        for label, _ in comps:
+            row[label + " %"] = f"{vals[label]:.0f}%" if vals[label] is not None else "—"
+        rows.append(row)
+    tbl = pd.DataFrame(rows)
+
+    colors, bolds = {}, {}
+    col_names = list(tbl.columns)
+    for i, vals in enumerate(raw):
+        for label, _ in comps:
+            v = vals[label]
+            if v is None:
+                continue
+            j = col_names.index(label + " %")
+            if v < 85:
+                colors[(i, j)] = RED; bolds[(i, j)] = True
+            elif v < 95:
+                colors[(i, j)] = ORANGE; bolds[(i, j)] = True
+            else:
+                colors[(i, j)] = GREEN
+    _add_table(slide, tbl, Inches(0.5), Inches(1.4), Inches(9),
+               Inches(0.3 * (len(tbl) + 1)), cell_colors=colors, bold_cells=bolds)
+
+    callouts = []
+    for label, comp in comps:
+        d_vals = [comp[s] for s in d_stores if s in comp]
+        if d_vals:
+            callouts.append(f"{label} district avg: {sum(d_vals) / len(d_vals):.0f}%")
+        low = sorted([(s, comp[s]) for s in d_stores if s in comp and comp[s] < 85], key=lambda x: x[1])
+        for s, v in low[:2]:
+            callouts.append(f"{label} — Store {s}: {v:.0f}% (below 85%)")
+    top_h = Inches(1.4 + 0.3 * (len(tbl) + 1) + 0.2)
+    _add_callouts(slide, callouts[:5], top_h)
+    return slide
+
+
 def generate_district_ppt(district, store_to_district, districts_config):
     """Generate a complete PPT for the given district. Returns bytes."""
     prs = Presentation()
@@ -1055,6 +1126,16 @@ def generate_district_ppt(district, store_to_district, districts_config):
                 callouts.append("All stores above 95% completion ✓")
             top_h = Inches(1.4 + 0.3 * (len(tbl) + 1) + 0.2)
             _add_callouts(slide, callouts[:5], top_h)
+
+    # ════════════════════════════════════════
+    # SLIDE: ZENPUT — Daily Log Completion
+    # ════════════════════════════════════════
+    _zen_names = {}
+    for _d, _sl in districts_config.items():
+        for _s in _sl:
+            _p = _s.split(" - ", 2)
+            _zen_names[_p[0].strip().lstrip("0")] = _p[2].strip() if len(_p) >= 3 else _s
+    _add_zenput_slide(prs, blank_layout, district, d_stores, _zen_names)
 
     # ════════════════════════════════════════
     # SLIDE 10: SCORECARD — QTD Adherence Summary (Concluding Slide)
