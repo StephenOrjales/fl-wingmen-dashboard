@@ -2423,7 +2423,21 @@ elif selected_tab == "SMG (Guest Satisfaction)":
         # Default to the most recent quarter available
         smg_sel = st.selectbox("Quarter", smg_options, index=len(smg_options) - 1, key="smg_quarter")
         smg_raw = pd.read_csv(DATA_DIR / available_smg[smg_sel])
-        smg_raw["District"] = smg_raw["Store No"].astype(str).map(STORE_TO_DISTRICT).fillna("Unassigned")
+        smg_raw["Store No"] = smg_raw["Store No"].astype(str)
+        # Show every store: un-surveyed stores default to 0 surveys / 0% dissat (0% inaccurate)
+        _smg_roster = sorted(set(STORE_TO_DISTRICT) | set(smg_raw["Store No"]), key=lambda x: int(x) if x.isdigit() else 0)
+        _smg_names = {}
+        for _d, _sl in DISTRICTS.items():
+            for _s in _sl:
+                _p = _s.split(" - ", 2)
+                _smg_names[_p[0].strip().lstrip("0")] = _p[2].strip() if len(_p) >= 3 else _s
+        smg_raw = pd.DataFrame({"Store No": _smg_roster}).merge(smg_raw, on="Store No", how="left")
+        smg_raw["Store Name"] = smg_raw["Store Name"].fillna(smg_raw["Store No"].map(_smg_names)).fillna(smg_raw["Store No"])
+        smg_raw["Survey Count"] = smg_raw["Survey Count"].fillna(0).astype(int)
+        smg_raw["Dissatisfaction %"] = smg_raw["Dissatisfaction %"].fillna(0.0)
+        smg_raw["Inaccurate Order %"] = smg_raw["Inaccurate Order %"].fillna(0.0)
+        # Greeted left as NaN where there were no surveys (shown as "—", excluded from coloring)
+        smg_raw["District"] = smg_raw["Store No"].map(STORE_TO_DISTRICT).fillna("Unassigned")
         smg_raw["Satisfaction %"] = 100 - smg_raw["Dissatisfaction %"]
         smg_raw["Order Accuracy %"] = 100 - smg_raw["Inaccurate Order %"]
 
@@ -2553,7 +2567,7 @@ elif selected_tab == "SMG (Guest Satisfaction)":
             dtbl["Dissat %"] = dtbl["Dissat %"].apply(lambda x: f"{x:.2f}%")
             dtbl["Inaccurate %"] = dtbl["Inaccurate %"].apply(lambda x: f"{x:.2f}%")
             dtbl["Accuracy %"] = dtbl["Accuracy %"].apply(lambda x: f"{x:.1f}%")
-            dtbl["Greeted %"] = dtbl["Greeted %"].apply(lambda x: f"{x:.1f}%")
+            dtbl["Greeted %"] = dtbl["Greeted %"].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "—")
             dtbl["Surveys"] = dtbl["Surveys"].apply(lambda x: f"{int(x):,}")
             dtbl = dtbl.reset_index(drop=True)
 

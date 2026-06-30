@@ -964,24 +964,42 @@ def generate_district_ppt(district, store_to_district, districts_config):
     # ════════════════════════════════════════
     # SLIDE 8: SMG (QTD)
     # ════════════════════════════════════════
-    if smg_path.exists():
+    if smg_path.exists() and d_stores:
         smg = pd.read_csv(smg_path)
         smg["Store No"] = smg["Store No"].astype(str)
-        smg_d = smg[smg["Store No"].isin(d_stores)].copy()
-        smg_d = smg_d.sort_values("Store No", key=lambda x: x.astype(int)).reset_index(drop=True)
-        if not smg_d.empty:
+        smg_map = smg.set_index("Store No")
+        # Store-name fallback (from config) for stores not surveyed this quarter
+        _smg_names = {}
+        for _d, _slist in districts_config.items():
+            for _s in _slist:
+                _p = _s.split(" - ", 2)
+                _smg_names[_p[0].strip().lstrip("0")] = _p[2].strip() if len(_p) >= 3 else _s
+
+        # Every district store appears; un-surveyed stores default to 0 surveys / 0% dissat
+        rows = []
+        for snum in sorted(d_stores, key=int):
+            if snum in smg_map.index:
+                r = smg_map.loc[snum]
+                rows.append({"Store No": snum, "Store Name": r["Store Name"],
+                             "Survey Count": int(r["Survey Count"]),
+                             "Dissatisfaction %": float(r["Dissatisfaction %"]),
+                             "Inaccurate Order %": float(r["Inaccurate Order %"]) if pd.notna(r["Inaccurate Order %"]) else 0.0,
+                             "Greeted with Smile %": float(r["Greeted with Smile %"]) if pd.notna(r["Greeted with Smile %"]) else None})
+            else:
+                rows.append({"Store No": snum, "Store Name": _smg_names.get(snum, snum),
+                             "Survey Count": 0, "Dissatisfaction %": 0.0,
+                             "Inaccurate Order %": 0.0, "Greeted with Smile %": None})
+        raw_smg = pd.DataFrame(rows)
+
+        if not raw_smg.empty:
             slide = prs.slides.add_slide(blank_layout)
             _add_title_bar(slide, f"SMG — Guest Satisfaction ({smg_qlabel} QTD)",
-                           f"{district} · {smg_d['Survey Count'].sum():,} surveys")
-
-            raw_smg = smg_d[["Store No", "Store Name", "Survey Count", "Dissatisfaction %",
-                             "Inaccurate Order %", "Greeted with Smile %"]].copy()
-            raw_smg = raw_smg.reset_index(drop=True)
+                           f"{district} · {int(raw_smg['Survey Count'].sum()):,} surveys")
 
             tbl = raw_smg.copy()
-            tbl["Dissatisfaction %"] = tbl["Dissatisfaction %"].apply(lambda x: f"{x:.2f}%")
-            tbl["Inaccurate Order %"] = tbl["Inaccurate Order %"].apply(lambda x: f"{x:.2f}%")
-            tbl["Greeted with Smile %"] = tbl["Greeted with Smile %"].apply(lambda x: f"{x:.1f}%")
+            tbl["Dissatisfaction %"] = tbl["Dissatisfaction %"].apply(lambda x: f"{x:.2f}%" if pd.notna(x) else "—")
+            tbl["Inaccurate Order %"] = tbl["Inaccurate Order %"].apply(lambda x: f"{x:.2f}%" if pd.notna(x) else "—")
+            tbl["Greeted with Smile %"] = tbl["Greeted with Smile %"].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "—")
             tbl.columns = ["Store #", "Store Name", "Surveys", "Dissat %", "Inaccurate %", "Greeted %"]
 
             cc, bc = _smg_colors(raw_smg, tbl)
@@ -989,11 +1007,13 @@ def generate_district_ppt(district, store_to_district, districts_config):
                        Inches(0.3 * (len(tbl) + 1)), cell_colors=cc, bold_cells=bc)
 
             callouts = []
-            w_dissat = (smg_d["Dissatisfaction %"].astype(float) * smg_d["Survey Count"]).sum() / smg_d["Survey Count"].sum()
-            callouts.append(f"District weighted dissatisfaction: {w_dissat:.2f}% (target ≤ 3%)")
-            high_dissat = smg_d[smg_d["Dissatisfaction %"].astype(float) > 5]
+            _tot = raw_smg["Survey Count"].sum()
+            if _tot > 0:
+                w_dissat = (raw_smg["Dissatisfaction %"].fillna(0) * raw_smg["Survey Count"]).sum() / _tot
+                callouts.append(f"District weighted dissatisfaction: {w_dissat:.2f}% (target ≤ 3%)")
+            high_dissat = raw_smg[raw_smg["Dissatisfaction %"].fillna(0) > 5]
             for _, r in high_dissat.iterrows():
-                callouts.append(f"Store {r['Store No']}: {r['Dissatisfaction %']}% dissatisfaction")
+                callouts.append(f"Store {r['Store No']}: {r['Dissatisfaction %']:.2f}% dissatisfaction")
             if high_dissat.empty:
                 callouts.append("All stores below 5% dissatisfaction ✓")
             top_h = Inches(1.4 + 0.3 * (len(tbl) + 1) + 0.2)
