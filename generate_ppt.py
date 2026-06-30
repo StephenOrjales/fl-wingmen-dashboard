@@ -468,15 +468,17 @@ def generate_district_ppt(district, store_to_district, districts_config):
             fl_avg = fl_d["Avg_Completion_Rate"].mean()
             summary_items.append(f"FlavorLab Completion: {fl_avg:.0f}%")
 
-    # SMG
-    smg_path = DATA_DIR / "smg_q2.csv"
+    # SMG (most recent quarter available)
+    _smg_q = max([q for q in (1, 2, 3, 4) if (DATA_DIR / f"smg_q{q}.csv").exists()], default=2)
+    smg_path = DATA_DIR / f"smg_q{_smg_q}.csv"
+    smg_qlabel = f"Q{_smg_q}"
     if smg_path.exists():
         smg = pd.read_csv(smg_path)
         smg["Store No"] = smg["Store No"].astype(str)
         smg_d = smg[smg["Store No"].isin(d_stores)]
-        if not smg_d.empty:
+        if not smg_d.empty and smg_d["Survey Count"].sum() > 0:
             w_dissat = (smg_d["Dissatisfaction %"] * smg_d["Survey Count"]).sum() / smg_d["Survey Count"].sum()
-            summary_items.append(f"SMG Dissatisfaction (Q2): {w_dissat:.2f}%")
+            summary_items.append(f"SMG Dissatisfaction ({smg_qlabel}): {w_dissat:.2f}%")
 
     summary_items.append(f"Stores: {len(d_stores)}")
 
@@ -662,19 +664,34 @@ def generate_district_ppt(district, store_to_district, districts_config):
     if sched_path.exists():
         sched = pd.read_csv(sched_path)
         sched["Store No"] = sched["Store No"].astype(str)
-        latest_sched = sorted(sched["Period"].unique(), key=lambda x: (int(x[1]), int(x[3])))[-1]
+        sched_periods = sorted(sched["Period"].unique(), key=lambda x: (int(x[1]), int(x[3])))
+        latest_sched = sched_periods[-1]
+        prev_sched = sched_periods[-2] if len(sched_periods) >= 2 else None
         sched_d = sched[(sched["Period"] == latest_sched) & (sched["Store No"].isin(d_stores))].copy()
         if not sched_d.empty:
             slide = prs.slides.add_slide(blank_layout)
-            _add_title_bar(slide, f"Schedule Guide — {latest_sched}", f"{district} · Weekly forecast & staffing")
+            sub = f"{district} · Weekly forecast & staffing" + (f" · Δ Hrs vs {prev_sched}" if prev_sched else "")
+            _add_title_bar(slide, f"Schedule Guide — {latest_sched}", sub)
 
-            tbl = sched_d[["Store No", "Store Name", "Sales Forecast", "Hours Guide"]].copy()
-            tbl = tbl.sort_values("Store No", key=lambda x: x.astype(int))
+            # Previous week's hours guide per store, for the +/- delta
+            prev_hrs = {}
+            if prev_sched:
+                ph = sched[(sched["Period"] == prev_sched) & (sched["Store No"].isin(d_stores))]
+                prev_hrs = dict(zip(ph["Store No"], ph["Hours Guide"]))
+
+            raw_sched = sched_d[["Store No", "Store Name", "Sales Forecast", "Hours Guide"]].copy()
+            raw_sched = raw_sched.sort_values("Store No", key=lambda x: x.astype(int)).reset_index(drop=True)
+            raw_sched["dHrs"] = raw_sched.apply(
+                lambda r: (r["Hours Guide"] - prev_hrs[r["Store No"]]) if r["Store No"] in prev_hrs and pd.notna(prev_hrs[r["Store No"]]) else None, axis=1)
+
+            tbl = raw_sched.copy()
             tbl["Sales Forecast"] = tbl["Sales Forecast"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "—")
             tbl["Hours Guide"] = tbl["Hours Guide"].apply(lambda x: f"{x:,.0f}" if pd.notna(x) else "—")
-            tbl.columns = ["Store #", "Store Name", "Sales Forecast", "Hours Guide"]
+            tbl["dHrs"] = tbl["dHrs"].apply(lambda x: f"{x:+,.0f}" if pd.notna(x) else "—")
+            tbl = tbl[["Store No", "Store Name", "Sales Forecast", "Hours Guide", "dHrs"]]
+            tbl.columns = ["Store #", "Store Name", "Sales Forecast", "Hours Guide", "Δ Hrs (vs LW)"]
 
-            _add_table(slide, tbl, Inches(0.5), Inches(1.4), Inches(8), Inches(0.3 * (len(tbl) + 1)))
+            _add_table(slide, tbl, Inches(0.5), Inches(1.4), Inches(9), Inches(0.3 * (len(tbl) + 1)))
 
             callouts = []
             total_fc = sched_d["Sales Forecast"].sum()
@@ -951,7 +968,7 @@ def generate_district_ppt(district, store_to_district, districts_config):
         smg_d = smg_d.sort_values("Store No", key=lambda x: x.astype(int)).reset_index(drop=True)
         if not smg_d.empty:
             slide = prs.slides.add_slide(blank_layout)
-            _add_title_bar(slide, "SMG — Guest Satisfaction (Q2 QTD)",
+            _add_title_bar(slide, f"SMG — Guest Satisfaction ({smg_qlabel} QTD)",
                            f"{district} · {smg_d['Survey Count'].sum():,} surveys")
 
             raw_smg = smg_d[["Store No", "Store Name", "Survey Count", "Dissatisfaction %",
