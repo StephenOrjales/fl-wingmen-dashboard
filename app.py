@@ -1110,8 +1110,8 @@ if selected_tab == "KDS Dashboard":
         # ════════════════════
         with tab_historical:
             # Quarter filter
-            qcol1, qcol2 = st.columns([3, 1])
-            with qcol2:
+            qcol1, qcol2 = st.columns([1, 3])
+            with qcol1:
                 quarter_opts = ["All Quarters"]
                 # Detect which quarters exist in the data
                 all_period_nums = sorted(set(int(p[1]) for p in periods_sorted))
@@ -1241,8 +1241,8 @@ elif selected_tab == "Schedule Guide":
         """, unsafe_allow_html=True)
 
         # ── Period selector ──
-        pcol1, pcol2 = st.columns([3, 1])
-        with pcol2:
+        pcol1, pcol2 = st.columns([1, 3])
+        with pcol1:
             sel_period = st.selectbox("Week", list(reversed(periods_avail)), index=0, key="sched_period", label_visibility="collapsed")
 
         week_data = sched_df[sched_df["Period"] == sel_period].copy()
@@ -1418,8 +1418,8 @@ elif selected_tab == "Internal QSC Evals":
         """, unsafe_allow_html=True)
 
         # ── Period selector ──
-        pcol1, pcol2 = st.columns([3, 1])
-        with pcol2:
+        pcol1, pcol2 = st.columns([1, 3])
+        with pcol1:
             sel_eval_period = st.selectbox("Week", list(reversed(periods_avail)), index=0, key="eval_period", label_visibility="collapsed")
 
         week_evals = evals[evals["Period"] == sel_eval_period].copy()
@@ -2420,10 +2420,8 @@ elif selected_tab == "SMG (Guest Satisfaction)":
         st.warning("No SMG data found. Place smg_q1.csv or smg_q2.csv in the data/ folder.")
     else:
         smg_options = list(available_smg.keys())
-        # Default to Q2 (last complete quarter); Q3 is selectable but starts sparse
-        _smg_default = next((i for i, k in enumerate(smg_options) if available_smg[k] == "smg_q2.csv"),
-                            len(smg_options) - 1)
-        smg_sel = st.selectbox("Quarter", smg_options, index=_smg_default, key="smg_quarter")
+        # Default to the most recent quarter available
+        smg_sel = st.selectbox("Quarter", smg_options, index=len(smg_options) - 1, key="smg_quarter")
         smg_raw = pd.read_csv(DATA_DIR / available_smg[smg_sel])
         smg_raw["District"] = smg_raw["Store No"].astype(str).map(STORE_TO_DISTRICT).fillna("Unassigned")
         smg_raw["Satisfaction %"] = 100 - smg_raw["Dissatisfaction %"]
