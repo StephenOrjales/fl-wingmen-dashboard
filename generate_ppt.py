@@ -167,6 +167,122 @@ def _get_district_stores(district, store_to_district):
     return [snum for snum, d in store_to_district.items() if d == district]
 
 
+def _add_scorecard_slide(prs, blank_layout, district, d_stores, sc_qtr, sc_qtr_ps,
+                         check_labels, kds, labor, smg, qi, fl, cogs):
+    """Build one Scorecard slide for the given quarter. Returns the slide (or None if no stores)."""
+    sc_data = {}
+    for snum in d_stores:
+        chk = {}
+        if kds is not None:
+            kq = kds[(kds["_p"].isin(sc_qtr_ps)) & (kds["Store No"] == snum)]
+            if not kq.empty:
+                a_sos, a_ad = kq["SOS"].mean(), kq["Adoption %"].mean()
+                a_ma, a_pb = kq["Make Ahead %"].mean(), kq["Pre-Bump %"].mean()
+                chk["KDS: SOS < 10"] = a_sos < 10 if pd.notna(a_sos) else None
+                chk["KDS: Adopt ≥ 85%"] = a_ad >= 85 if pd.notna(a_ad) else None
+                chk["KDS: MakeAhd ≤ 10%"] = a_ma <= 10 if pd.notna(a_ma) else None
+                chk["KDS: PreBump ≤ 0.5%"] = a_pb <= 0.5 if pd.notna(a_pb) else None
+        if labor is not None:
+            lab = labor[(labor["period"].isin(sc_qtr_ps)) & (labor["store_num"] == snum)]
+            if not lab.empty:
+                tg, th = lab["guide_hours"].sum(), lab["actual_crew_hours"].sum()
+                if tg > 0:
+                    chk["Labor: Var ≤ 1.5%"] = ((th - tg) / tg * 100) <= 1.5
+        if smg is not None:
+            sk = smg[smg["Store No"] == snum]
+            if not sk.empty:
+                r = sk.iloc[0]
+                chk["SMG: Dissat ≤ 3%"] = r["Dissatisfaction %"] <= 3 if pd.notna(r.get("Dissatisfaction %")) else None
+                chk["SMG: Inacc ≤ 3%"] = r["Inaccurate Order %"] <= 3 if pd.notna(r.get("Inaccurate Order %")) else None
+        if qi is not None:
+            sk = qi[qi["Store No"] == snum]
+            if not sk.empty:
+                val = sk.iloc[0].get("QSC Stars")
+                chk["QSC: 5 Stars"] = val >= 5 if pd.notna(val) else None
+        if fl is not None:
+            sk = fl[fl["Store No"] == snum]
+            if not sk.empty:
+                val = sk.iloc[0].get("Avg_Completion_Rate")
+                chk["FlavorLab: ≥ 95%"] = val >= 95 if pd.notna(val) else None
+        if cogs is not None:
+            cq = cogs[(cogs["_p"].isin(sc_qtr_ps)) & (cogs["Store No"] == snum)]
+            if not cq.empty:
+                acv = cq["COGS Variance %"].mean()
+                chk["COGS: Var ≤ 1%"] = abs(acv) <= 1 if pd.notna(acv) else None
+        sc_data[snum] = chk
+
+    if not sc_data:
+        return None
+    slide = prs.slides.add_slide(blank_layout)
+    _add_title_bar(slide, f"Scorecard — Q{sc_qtr} QTD Adherence Summary",
+                   f"{district} · Concluding Performance Overview")
+
+    sc_rows = []
+    for snum in sorted(sc_data.keys(), key=int):
+        row_data = {"Store #": snum}
+        passed = total = 0
+        for cl in check_labels:
+            result = sc_data[snum].get(cl)
+            if result is not None and bool(result):
+                row_data[cl] = "✅"; passed += 1; total += 1
+            elif result is not None and not bool(result):
+                row_data[cl] = "❌"; total += 1
+            else:
+                row_data[cl] = "—"
+        adh = (passed / total * 100) if total > 0 else 0
+        row_data["Adherence"] = f"{adh:.0f}%"
+        row_data["_adh_raw"] = adh
+        row_data["_passed"] = passed
+        row_data["_total"] = total
+        sc_rows.append(row_data)
+
+    sc_df = pd.DataFrame(sc_rows)
+    display_cols = ["Store #"] + check_labels + ["Adherence"]
+    sc_display = sc_df[display_cols].copy()
+
+    colors, bolds = {}, {}
+    col_names = list(sc_display.columns)
+    for i, (_, row) in enumerate(sc_df.iterrows()):
+        for cl in check_labels:
+            j = col_names.index(cl)
+            result = sc_data[row["Store #"]].get(cl)
+            if result is not None and bool(result):
+                colors[(i, j)] = GREEN
+            elif result is not None and not bool(result):
+                colors[(i, j)] = RED; bolds[(i, j)] = True
+        adh = row["_adh_raw"]
+        j_adh = col_names.index("Adherence")
+        if adh >= 90:
+            colors[(i, j_adh)] = GREEN; bolds[(i, j_adh)] = True
+        elif adh < 50:
+            colors[(i, j_adh)] = RED; bolds[(i, j_adh)] = True
+
+    cw = [1.5] + [1] * len(check_labels) + [1.3]
+    table_h = 0.55 + 0.32 * len(sc_display)
+    table_top = 1.4
+    _add_table(slide, sc_display, Inches(0.3), Inches(table_top), SLIDE_WIDTH - Inches(0.6),
+               Inches(table_h), cell_colors=colors, bold_cells=bolds, col_widths=cw)
+
+    callouts = []
+    adherences = [r["_adh_raw"] for r in sc_rows]
+    avg_adh = sum(adherences) / len(adherences) if adherences else 0
+    callouts.append(f"District avg adherence: {avg_adh:.0f}%")
+    for cl in check_labels:
+        failed = sum(1 for r in sc_rows if sc_data[r["Store #"]].get(cl) is not None
+                     and not bool(sc_data[r["Store #"]].get(cl)))
+        twd = sum(1 for r in sc_rows if sc_data[r["Store #"]].get(cl) is not None)
+        if twd > 0 and failed / twd > 0.5:
+            callouts.append(f"{cl}: {failed}/{twd} stores failing — needs district focus")
+    lowest = min(sc_rows, key=lambda r: r["_adh_raw"])
+    callouts.append(f"Lowest: Store {lowest['Store #']} at {lowest['_adh_raw']:.0f}% ({lowest['_passed']}/{lowest['_total']})")
+    highest = max(sc_rows, key=lambda r: r["_adh_raw"])
+    callouts.append(f"Highest: Store {highest['Store #']} at {highest['_adh_raw']:.0f}% ({highest['_passed']}/{highest['_total']})")
+    callout_top = Inches(table_top + table_h + 0.2)
+    if callout_top < Inches(6.5):
+        _add_callouts(slide, callouts[:5], callout_top)
+    return slide
+
+
 # ── Color rule helpers (match dashboard thresholds) ──
 
 def _kds_colors(df_raw, df_display):
@@ -903,12 +1019,11 @@ def generate_district_ppt(district, store_to_district, districts_config):
     # ════════════════════════════════════════
     # SLIDE 10: SCORECARD — QTD Adherence Summary (Concluding Slide)
     # ════════════════════════════════════════
-    # The scorecard reflects the most recent quarter (newest QSC inspection file).
+    # Scorecard — one concluding slide per quarter that has a QSC inspection file (Q2 + Q3).
     _sc_qmap = {1: [1, 2, 3], 2: [4, 5, 6], 3: [7, 8, 9], 4: [10, 11, 12]}
-    sc_qtr = max([q for q in (1, 2, 3, 4) if (DATA_DIR / f"qsc_inspection_q{q}.csv").exists()], default=current_qtr)
-    sc_qtr_ps = _sc_qmap[sc_qtr]
-    qsc_insp_path = DATA_DIR / f"qsc_inspection_q{sc_qtr}.csv"
-    sc_smg_path = DATA_DIR / f"smg_q{sc_qtr}.csv"
+    sc_quarters = sorted([q for q in (1, 2, 3, 4) if (DATA_DIR / f"qsc_inspection_q{q}.csv").exists()])
+    if not sc_quarters:
+        sc_quarters = [current_qtr]
 
     # Define all checks (same as dashboard scorecard)
     check_defs = [
@@ -925,7 +1040,7 @@ def generate_district_ppt(district, store_to_district, districts_config):
     ]
     check_labels = [f"{cat}: {lbl}" for cat, lbl in check_defs]
 
-    # ── Pre-load all data files ONCE (outside per-store loop) ──
+    # Quarter-independent data, loaded once
     _sc_kds = None
     if kds_path.exists():
         _sc_kds = pd.read_csv(kds_path)
@@ -942,16 +1057,6 @@ def generate_district_ppt(district, store_to_district, districts_config):
         except Exception:
             pass
 
-    _sc_smg = None
-    if sc_smg_path.exists():
-        _sc_smg = pd.read_csv(sc_smg_path)
-        _sc_smg["Store No"] = _sc_smg["Store No"].astype(str)
-
-    _sc_qi = None
-    if qsc_insp_path.exists():
-        _sc_qi = pd.read_csv(qsc_insp_path)
-        _sc_qi["Store No"] = _sc_qi["Store No"].astype(str)
-
     _sc_fl = None
     if fl_path.exists():
         _sc_fl = pd.read_csv(fl_path)
@@ -963,160 +1068,20 @@ def generate_district_ppt(district, store_to_district, districts_config):
         _sc_cogs["Store No"] = _sc_cogs["Store No"].astype(str)
         _sc_cogs["_p"] = _sc_cogs["Period"].str.extract(r"P(\d+)").astype(int)
 
-    # Gather check results per store
-    sc_data = {}
-    for snum in d_stores:
-        store_checks = {}
-
-        # KDS checks (QTD)
-        if _sc_kds is not None:
-            kds_qtr = _sc_kds[(_sc_kds["_p"].isin(sc_qtr_ps)) & (_sc_kds["Store No"] == snum)]
-            if not kds_qtr.empty:
-                avg_sos = kds_qtr["SOS"].mean()
-                avg_adopt = kds_qtr["Adoption %"].mean()
-                avg_ma = kds_qtr["Make Ahead %"].mean()
-                avg_pb = kds_qtr["Pre-Bump %"].mean()
-                store_checks["KDS: SOS < 10"] = avg_sos < 10 if pd.notna(avg_sos) else None
-                store_checks["KDS: Adopt ≥ 85%"] = avg_adopt >= 85 if pd.notna(avg_adopt) else None
-                store_checks["KDS: MakeAhd ≤ 10%"] = avg_ma <= 10 if pd.notna(avg_ma) else None
-                store_checks["KDS: PreBump ≤ 0.5%"] = avg_pb <= 0.5 if pd.notna(avg_pb) else None
-
-        # Labor check (QTD) — Labor Variance % = column J: actual crew hours vs guide hours
-        if _sc_labor is not None:
-            lab = _sc_labor[(_sc_labor["period"].isin(sc_qtr_ps)) & (_sc_labor["store_num"] == snum)]
-            if not lab.empty:
-                tot_guide = lab["guide_hours"].sum()
-                tot_hours = lab["actual_crew_hours"].sum()
-                if tot_guide > 0:
-                    var = (tot_hours - tot_guide) / tot_guide * 100
-                    store_checks["Labor: Var ≤ 1.5%"] = var <= 1.5
-
-        # SMG
-        if _sc_smg is not None:
-            sk = _sc_smg[_sc_smg["Store No"] == snum]
-            if not sk.empty:
-                r = sk.iloc[0]
-                store_checks["SMG: Dissat ≤ 3%"] = r["Dissatisfaction %"] <= 3 if pd.notna(r.get("Dissatisfaction %")) else None
-                store_checks["SMG: Inacc ≤ 3%"] = r["Inaccurate Order %"] <= 3 if pd.notna(r.get("Inaccurate Order %")) else None
-
-        # QSC Inspection
-        if _sc_qi is not None:
-            sk = _sc_qi[_sc_qi["Store No"] == snum]
-            if not sk.empty:
-                val = sk.iloc[0].get("QSC Stars")
-                store_checks["QSC: 5 Stars"] = val >= 5 if pd.notna(val) else None
-
-        # FlavorLab
-        if _sc_fl is not None:
-            sk = _sc_fl[_sc_fl["Store No"] == snum]
-            if not sk.empty:
-                val = sk.iloc[0].get("Avg_Completion_Rate")
-                store_checks["FlavorLab: ≥ 95%"] = val >= 95 if pd.notna(val) else None
-
-        # COGS
-        if _sc_cogs is not None:
-            cogs_q = _sc_cogs[(_sc_cogs["_p"].isin(sc_qtr_ps)) & (_sc_cogs["Store No"] == snum)]
-            if not cogs_q.empty:
-                avg_cogs_var = cogs_q["COGS Variance %"].mean()
-                store_checks["COGS: Var ≤ 1%"] = abs(avg_cogs_var) <= 1 if pd.notna(avg_cogs_var) else None
-
-        sc_data[snum] = store_checks
-
-    if sc_data:
-        slide = prs.slides.add_slide(blank_layout)
-        _add_title_bar(slide, f"Scorecard — Q{sc_qtr} QTD Adherence Summary",
-                       f"{district} · Concluding Performance Overview")
-
-        # Build the detailed grid: Store # | check1 | check2 | ... | Adherence %
-        sc_rows = []
-        for snum in sorted(sc_data.keys(), key=int):
-            row_data = {"Store #": snum}
-            passed = 0
-            total = 0
-            for cl in check_labels:
-                result = sc_data[snum].get(cl)
-                if result is not None and bool(result):
-                    row_data[cl] = "✅"
-                    passed += 1
-                    total += 1
-                elif result is not None and not bool(result):
-                    row_data[cl] = "❌"
-                    total += 1
-                else:
-                    row_data[cl] = "—"
-            adh = (passed / total * 100) if total > 0 else 0
-            row_data["Adherence"] = f"{adh:.0f}%"
-            row_data["_adh_raw"] = adh
-            row_data["_passed"] = passed
-            row_data["_total"] = total
-            sc_rows.append(row_data)
-
-        sc_df = pd.DataFrame(sc_rows)
-
-        # Build cell colors for the grid
-        display_cols = ["Store #"] + check_labels + ["Adherence"]
-        sc_display = sc_df[display_cols].copy()
-
-        colors, bolds = {}, {}
-        col_names = list(sc_display.columns)
-        for i, (_, row) in enumerate(sc_df.iterrows()):
-            # Color each check column
-            for cl in check_labels:
-                j = col_names.index(cl)
-                result = sc_data[row["Store #"]].get(cl)
-                if result is not None and bool(result):
-                    colors[(i, j)] = GREEN
-                elif result is not None and not bool(result):
-                    colors[(i, j)] = RED; bolds[(i, j)] = True
-
-            # Adherence column color
-            adh = row["_adh_raw"]
-            j_adh = col_names.index("Adherence")
-            if adh >= 90:
-                colors[(i, j_adh)] = GREEN; bolds[(i, j_adh)] = True
-            elif adh < 50:
-                colors[(i, j_adh)] = RED; bolds[(i, j_adh)] = True
-
-        # Column widths: Store # wider, checks narrow, Adherence wider
-        cw = [1.5] + [1] * len(check_labels) + [1.3]
-
-        # Row heights: header is taller (wrapped text), data rows standard
-        n_data_rows = len(sc_display)
-        header_h = 0.55  # header text wraps to 2-3 lines
-        data_row_h = 0.32
-        table_h = header_h + data_row_h * n_data_rows
-        table_top = 1.4
-
-        _add_table(slide, sc_display, Inches(0.3), Inches(table_top), SLIDE_WIDTH - Inches(0.6),
-                   Inches(table_h),
-                   cell_colors=colors, bold_cells=bolds, col_widths=cw)
-
-        # Summary callouts — position below table with padding
-        callouts = []
-        adherences = [r["_adh_raw"] for r in sc_rows]
-        avg_adh = sum(adherences) / len(adherences) if adherences else 0
-        callouts.append(f"District avg adherence: {avg_adh:.0f}%")
-
-        # Count checks that most stores fail
-        for cl in check_labels:
-            failed = sum(1 for r in sc_rows
-                         if sc_data[r["Store #"]].get(cl) is not None
-                         and not bool(sc_data[r["Store #"]].get(cl)))
-            total_with_data = sum(1 for r in sc_rows if sc_data[r["Store #"]].get(cl) is not None)
-            if total_with_data > 0 and failed / total_with_data > 0.5:
-                callouts.append(f"{cl}: {failed}/{total_with_data} stores failing — needs district focus")
-
-        # Lowest adherence store
-        lowest = min(sc_rows, key=lambda r: r["_adh_raw"])
-        callouts.append(f"Lowest: Store {lowest['Store #']} at {lowest['_adh_raw']:.0f}% ({lowest['_passed']}/{lowest['_total']})")
-
-        # Highest adherence store
-        highest = max(sc_rows, key=lambda r: r["_adh_raw"])
-        callouts.append(f"Highest: Store {highest['Store #']} at {highest['_adh_raw']:.0f}% ({highest['_passed']}/{highest['_total']})")
-
-        callout_top = Inches(table_top + table_h + 0.2)
-        if callout_top < Inches(6.5):
-            _add_callouts(slide, callouts[:5], callout_top)
+    # One concluding scorecard slide per quarter (chronological: Q2 then Q3)
+    for _scq in sc_quarters:
+        _sc_smg = None
+        _smg_p = DATA_DIR / f"smg_q{_scq}.csv"
+        if _smg_p.exists():
+            _sc_smg = pd.read_csv(_smg_p)
+            _sc_smg["Store No"] = _sc_smg["Store No"].astype(str)
+        _sc_qi = None
+        _qi_p = DATA_DIR / f"qsc_inspection_q{_scq}.csv"
+        if _qi_p.exists():
+            _sc_qi = pd.read_csv(_qi_p)
+            _sc_qi["Store No"] = _sc_qi["Store No"].astype(str)
+        _add_scorecard_slide(prs, blank_layout, district, d_stores, _scq, _sc_qmap[_scq],
+                             check_labels, _sc_kds, _sc_labor, _sc_smg, _sc_qi, _sc_fl, _sc_cogs)
 
     # ── Save to bytes ──
     buf = io.BytesIO()
