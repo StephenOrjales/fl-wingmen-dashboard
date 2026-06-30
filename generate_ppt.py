@@ -639,8 +639,11 @@ def generate_district_ppt(district, store_to_district, districts_config):
                     cc[(i, j_dadh)] = GREEN if da > 0 else RED
                     bc[(i, j_dadh)] = True
 
+            # Rows wrap to ~2 lines (long store names + 10 columns), so allocate taller rows
+            kds_h = 0.55 + 0.42 * len(tbl)
             _add_table(slide, tbl, Inches(0.5), Inches(1.4), SLIDE_WIDTH - Inches(1),
-                       Inches(0.3 * (len(tbl) + 1)), cell_colors=cc, bold_cells=bc)
+                       Inches(kds_h), cell_colors=cc, bold_cells=bc,
+                       col_widths=[0.8, 2.2, 1.0, 1.1, 1.2, 0.9, 1.1, 1.1, 1.2, 1.2])
 
             callouts = []
             slow = raw_kds[raw_kds["SOS"] > 10]
@@ -654,7 +657,7 @@ def generate_district_ppt(district, store_to_district, districts_config):
                 callouts.append(f"Store {r['Store No']} adherence: {r['Adherence %']:.0f}%")
             if not callouts:
                 callouts.append("All stores within KDS targets ✓")
-            top_h = Inches(1.4 + 0.3 * (len(tbl) + 1) + 0.2)
+            top_h = Inches(1.4 + kds_h + 0.2)
             _add_callouts(slide, callouts[:5], top_h)
 
     # ════════════════════════════════════════
