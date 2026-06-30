@@ -3210,25 +3210,25 @@ elif selected_tab == "Scorecard":
     # Each check is: (category, label, column, pass_fn)
     # pass_fn returns True/False/None(missing)
 
-    # --- Determine current quarter (Q1=P1-P3, Q2=P4-P6, etc.) ---
-    # Find the latest period across data to determine which quarter we're in
-    _qtr_periods = {1: [1,2,3], 2: [4,5,6], 3: [7,8,9], 4: [10,11,12]}
-    _current_qtr = 2  # default to Q2
+    # --- Quarter selector (defaults to the most recent quarter with a QSC inspection file) ---
+    _qtr_periods = {1: [1, 2, 3], 2: [4, 5, 6], 3: [7, 8, 9], 4: [10, 11, 12]}
+    _avail_qtrs = sorted([q for q in (1, 2, 3, 4) if (DATA_DIR / f"qsc_inspection_q{q}.csv").exists()], reverse=True)
+    if not _avail_qtrs:
+        _avail_qtrs = [2]
+    _qtr_lbls = {q: f"Q{q} (P{_qtr_periods[q][0]}-P{_qtr_periods[q][-1]})" for q in _avail_qtrs}
+    _scq_col, _scq_spacer = st.columns([1, 4])
+    with _scq_col:
+        _sel_q_label = st.selectbox("Quarter", [_qtr_lbls[q] for q in _avail_qtrs], index=0, key="sc_quarter")
+    _current_qtr = next(q for q in _avail_qtrs if _qtr_lbls[q] == _sel_q_label)
+    _qtr_period_nums = _qtr_periods[_current_qtr]
+    _qtr_label = _qtr_lbls[_current_qtr]
+
     kds_path = DATA_DIR / "kds_dinner.csv"
     if kds_path.exists():
         kds_all = pd.read_csv(kds_path)
         kds_all["Store No"] = kds_all["Store No"].astype(str)
-        latest_kds_period = sorted(kds_all["Period"].unique(), key=lambda x: (int(x[1]), int(x[3])))[-1]
-        _latest_p = int(latest_kds_period[1])
-        for q, ps in _qtr_periods.items():
-            if _latest_p in ps:
-                _current_qtr = q
-                break
     else:
         kds_all = pd.DataFrame()
-        latest_kds_period = "—"
-    _qtr_period_nums = _qtr_periods[_current_qtr]
-    _qtr_label = f"Q{_current_qtr} (P{_qtr_period_nums[0]}-P{_qtr_period_nums[-1]})"
 
     # --- KDS (QTD — all weeks in current quarter) ---
     if not kds_all.empty:
@@ -3250,10 +3250,10 @@ elif selected_tab == "Scorecard":
     forecast_path = DATA_DIR / "forecast.xlsm"
     if forecast_path.exists():
         @st.cache_data(ttl=300)
-        def load_sc_labor2():
+        def load_sc_labor2(period_nums):
             raw = pd.read_excel(forecast_path, sheet_name="Forecast_Data")
-            return raw[(raw["year"] == 2026) & (raw["period"].isin(_qtr_period_nums))].copy()
-        sc_labor = load_sc_labor2()
+            return raw[(raw["year"] == 2026) & (raw["period"].isin(period_nums))].copy()
+        sc_labor = load_sc_labor2(tuple(_qtr_period_nums))
         if not sc_labor.empty:
             sc_labor["store_num"] = sc_labor["store"].apply(forecast_store_num)
             la = sc_labor.groupby("store_num").agg(
@@ -3269,17 +3269,17 @@ elif selected_tab == "Scorecard":
             labor_var_map = dict(zip(la["store_num"].astype(str), la["labor_var"]))
             sc["Labor Var %"] = sc["Store No"].map(labor_var_map)
 
-    # --- SMG (latest quarter) ---
-    smg_q2 = DATA_DIR / "smg_q2.csv"
-    if smg_q2.exists():
-        smg = pd.read_csv(smg_q2)
+    # --- SMG (selected quarter) ---
+    smg_qfile = DATA_DIR / f"smg_q{_current_qtr}.csv"
+    if smg_qfile.exists():
+        smg = pd.read_csv(smg_qfile)
         smg["Store No"] = smg["Store No"].astype(str)
         smg_map = smg.set_index("Store No")
         sc["SMG Dissat"] = sc["Store No"].map(smg_map["Dissatisfaction %"])
         sc["SMG Inaccurate"] = sc["Store No"].map(smg_map["Inaccurate Order %"])
 
-    # --- QSC Evals (latest period) ---
-    qsc_insp_path = DATA_DIR / "qsc_inspection.csv"
+    # --- QSC inspection (selected quarter — external Steritech) ---
+    qsc_insp_path = DATA_DIR / f"qsc_inspection_q{_current_qtr}.csv"
     if qsc_insp_path.exists():
         qsc_insp = pd.read_csv(qsc_insp_path)
         qsc_insp["Store No"] = qsc_insp["Store No"].astype(str)
@@ -3342,12 +3342,6 @@ elif selected_tab == "Scorecard":
     elif selected_district != "All Districts":
         d_nums = {s.split(" - ")[0].strip().lstrip("0") for s in DISTRICTS.get(selected_district, [])}
         sc = sc[sc["Store No"].isin(d_nums)]
-
-    # ── Quarter filter ──
-    _sc_qtr_col1, _sc_qtr_spacer = st.columns([1, 4])
-    with _sc_qtr_col1:
-        _qtr_options = ["Q2 (P4-P6)"]  # only Q2 data available currently
-        _selected_sc_qtr = st.selectbox("Quarter", _qtr_options, key="sc_quarter")
 
     # ── HEADER ──
     avg_adh = sc["Adherence %"].mean()
