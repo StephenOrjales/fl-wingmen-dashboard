@@ -903,7 +903,12 @@ def generate_district_ppt(district, store_to_district, districts_config):
     # ════════════════════════════════════════
     # SLIDE 10: SCORECARD — QTD Adherence Summary (Concluding Slide)
     # ════════════════════════════════════════
-    qsc_insp_path = DATA_DIR / "qsc_inspection.csv"
+    # The scorecard reflects the most recent quarter (newest QSC inspection file).
+    _sc_qmap = {1: [1, 2, 3], 2: [4, 5, 6], 3: [7, 8, 9], 4: [10, 11, 12]}
+    sc_qtr = max([q for q in (1, 2, 3, 4) if (DATA_DIR / f"qsc_inspection_q{q}.csv").exists()], default=current_qtr)
+    sc_qtr_ps = _sc_qmap[sc_qtr]
+    qsc_insp_path = DATA_DIR / f"qsc_inspection_q{sc_qtr}.csv"
+    sc_smg_path = DATA_DIR / f"smg_q{sc_qtr}.csv"
 
     # Define all checks (same as dashboard scorecard)
     check_defs = [
@@ -938,8 +943,8 @@ def generate_district_ppt(district, store_to_district, districts_config):
             pass
 
     _sc_smg = None
-    if smg_path.exists():
-        _sc_smg = pd.read_csv(smg_path)
+    if sc_smg_path.exists():
+        _sc_smg = pd.read_csv(sc_smg_path)
         _sc_smg["Store No"] = _sc_smg["Store No"].astype(str)
 
     _sc_qi = None
@@ -965,7 +970,7 @@ def generate_district_ppt(district, store_to_district, districts_config):
 
         # KDS checks (QTD)
         if _sc_kds is not None:
-            kds_qtr = _sc_kds[(_sc_kds["_p"].isin(qtr_ps)) & (_sc_kds["Store No"] == snum)]
+            kds_qtr = _sc_kds[(_sc_kds["_p"].isin(sc_qtr_ps)) & (_sc_kds["Store No"] == snum)]
             if not kds_qtr.empty:
                 avg_sos = kds_qtr["SOS"].mean()
                 avg_adopt = kds_qtr["Adoption %"].mean()
@@ -978,7 +983,7 @@ def generate_district_ppt(district, store_to_district, districts_config):
 
         # Labor check (QTD) — Labor Variance % = column J: actual crew hours vs guide hours
         if _sc_labor is not None:
-            lab = _sc_labor[(_sc_labor["period"].isin(qtr_ps)) & (_sc_labor["store_num"] == snum)]
+            lab = _sc_labor[(_sc_labor["period"].isin(sc_qtr_ps)) & (_sc_labor["store_num"] == snum)]
             if not lab.empty:
                 tot_guide = lab["guide_hours"].sum()
                 tot_hours = lab["actual_crew_hours"].sum()
@@ -1010,7 +1015,7 @@ def generate_district_ppt(district, store_to_district, districts_config):
 
         # COGS
         if _sc_cogs is not None:
-            cogs_q = _sc_cogs[(_sc_cogs["_p"].isin(qtr_ps)) & (_sc_cogs["Store No"] == snum)]
+            cogs_q = _sc_cogs[(_sc_cogs["_p"].isin(sc_qtr_ps)) & (_sc_cogs["Store No"] == snum)]
             if not cogs_q.empty:
                 avg_cogs_var = cogs_q["COGS Variance %"].mean()
                 store_checks["COGS: Var ≤ 1%"] = abs(avg_cogs_var) <= 1 if pd.notna(avg_cogs_var) else None
@@ -1019,7 +1024,7 @@ def generate_district_ppt(district, store_to_district, districts_config):
 
     if sc_data:
         slide = prs.slides.add_slide(blank_layout)
-        _add_title_bar(slide, f"Scorecard — Q{current_qtr} QTD Adherence Summary",
+        _add_title_bar(slide, f"Scorecard — Q{sc_qtr} QTD Adherence Summary",
                        f"{district} · Concluding Performance Overview")
 
         # Build the detailed grid: Store # | check1 | check2 | ... | Adherence %
