@@ -1,546 +1,501 @@
 Period,Start Date,End Date,District,Store No,City,Date,MOD,Findings,Score,Rating,Stars,Duration,Duration Min,No Eval,Red Flag
-P4W1,3/29/26,4/4/26,,346,Cutler Bay,2026-04-02,norman fonseca,2.0,4.0,Operational Excellence - 5 Stars,5,1h 35m,95.0,False,False
-P4W1,3/29/26,4/4/26,,871,Homestead,2026-04-04,Jernay,7.0,19.0,Exceeds Expectations - 4 Stars,4,1h 58m,118.0,False,False
-P4W1,3/29/26,4/4/26,,871,Homestead,2026-04-03,Rosemary,1.0,5.0,Exceeds Expectations - 4 Stars,4,25h 39m,1539.0,False,False
-P4W1,3/29/26,4/4/26,,1677,Palmetto Bay,2026-04-03,Linda Fountain,5.0,11.0,Operational Excellence - 5 Stars,5,2h 20m,140.0,False,False
-P4W1,3/29/26,4/4/26,,1677,Palmetto Bay,2026-04-02,Linda (RSM SO),10.0,18.0,Exceeds Expectations - 4 Stars,4,2h 14m,134.0,False,False
-P4W1,3/29/26,4/4/26,,1771,Miami,2026-04-03,Andrea V,4.0,8.0,Operational Excellence - 5 Stars,5,2h 42m,162.0,False,False
-P4W1,3/29/26,4/4/26,,1771,Miami,2026-04-01,Geronimo (RSM SO),9.0,17.0,Exceeds Expectations - 4 Stars,4,22h 48m,1368.0,False,False
-P4W1,3/29/26,4/4/26,,2118,Homestead,2026-04-02,Dayami,1.0,3.0,Operational Excellence - 5 Stars,5,1h 39m,99.0,False,False
-P4W1,3/29/26,4/4/26,,3013,Miami,2026-04-01,Liquita EDWARDS,3.0,7.0,Operational Excellence - 5 Stars,5,2h 10m,130.0,False,False
-P4W1,3/29/26,4/4/26,,1848,Miami,2026-03-29,Paulina,1.0,5.0,Exceeds Expectations - 4 Stars,4,1h 14m,74.0,False,False
-P4W1,3/29/26,4/4/26,,1891,Miami,2026-04-01,Jairon Vino,0.0,0.0,Operational Excellence - 5 Stars,5,1h 59m,119.0,False,True
-P4W1,3/29/26,4/4/26,,1972,Miami,2026-04-03,Tasha Prudhomme,4.0,10.0,Exceeds Expectations - 4 Stars,4,1h 21m,81.0,False,False
-P4W1,3/29/26,4/4/26,,1972,Miami,2026-03-30,Daniuska (RSM SO),11.0,19.0,Exceeds Expectations - 4 Stars,4,2h 57m,177.0,False,False
-P4W1,3/29/26,4/4/26,,2627,Hialeah,2026-04-04,Frank,3.0,5.0,Operational Excellence - 5 Stars,5,1h 21m,81.0,False,False
-P4W1,3/29/26,4/4/26,,2766,Miami,2026-04-04,Lizt Gonzalez,5.0,13.0,Operational Excellence - 5 Stars,5,2h 27m,147.0,False,False
-P4W1,3/29/26,4/4/26,,4032,Miami,2026-04-02,Dianelys,1.0,3.0,Operational Excellence - 5 Stars,5,2h 4m,124.0,False,False
-P4W1,3/29/26,4/4/26,,4032,Miami,2026-03-31,Dianelys (RSM SO),7.0,13.0,Operational Excellence - 5 Stars,5,1h 21m,81.0,False,False
-P4W1,3/29/26,4/4/26,,1864,HIALEAH GARDENS,2026-04-02,Carlos RSM,4.0,6.0,Operational Excellence - 5 Stars,5,1h 51m,111.0,False,False
-P4W1,3/29/26,4/4/26,,1864,HIALEAH GARDENS,2026-04-02,Carlos (RSM SO),9.0,17.0,Exceeds Expectations - 4 Stars,4,1h 17m,77.0,False,False
-P4W1,3/29/26,4/4/26,,1954,Miami,2026-04-03,Tulis,6.0,10.0,Operational Excellence - 5 Stars,5,1h 23m,83.0,False,False
-P4W1,3/29/26,4/4/26,,2042,Miami,2026-04-02,bryanna diaz,4.0,12.0,Operational Excellence - 5 Stars,5,55h 32m,3332.0,False,False
-P4W1,3/29/26,4/4/26,,2602,Doral,2026-04-03,Liseidis,3.0,5.0,Operational Excellence - 5 Stars,5,1h 13m,73.0,False,False
-P4W1,3/29/26,4/4/26,,2890,Miami,2026-04-04,Dc,3.0,9.0,Operational Excellence - 5 Stars,5,1h 3m,63.0,False,False
-P4W1,3/29/26,4/4/26,,2893,Miami,2026-04-01,Mirtha Velozo,3.0,9.0,Operational Excellence - 5 Stars,5,27h 6m,1626.0,False,False
-P4W1,3/29/26,4/4/26,,2893,Miami,2026-03-31,AGM (RSM),11.0,25.0,Meets Minimum Expectations - 3 Stars,3,1h 34m,94.0,False,False
-P4W1,3/29/26,4/4/26,,205,Lauderhill,2026-03-31,kristal willaims,5.0,13.0,Operational Excellence - 5 Stars,5,2h 21m,141.0,False,False
-P4W1,3/29/26,4/4/26,,420,Deerfield Beach,2026-04-01,Dana,7.0,17.0,Exceeds Expectations - 4 Stars,4,1h 35m,95.0,False,False
-P4W1,3/29/26,4/4/26,,420,Deerfield Beach,2026-03-31,Donna Brokenburr,8.0,14.0,Operational Excellence - 5 Stars,5,2h 36m,156.0,False,False
-P4W1,3/29/26,4/4/26,,883,Hallandale Beach,2026-04-03,Karla,11.0,21.0,Exceeds Expectations - 4 Stars,4,2h 47m,167.0,False,False
-P4W1,3/29/26,4/4/26,,1252,Fort Lauderdale,2026-04-01,K Faustin,3.0,7.0,Operational Excellence - 5 Stars,5,0h 45m,45.0,False,True
-P4W1,3/29/26,4/4/26,,1726,Oakland Park,2026-04-01,Charity Gainer,3.0,5.0,Operational Excellence - 5 Stars,5,1h 19m,79.0,False,False
-P4W1,3/29/26,4/4/26,,1841,Fort Lauderdale,2026-04-03,MS,0.0,0.0,Operational Excellence - 5 Stars,5,0h 53m,53.0,False,True
-P4W1,3/29/26,4/4/26,,1847,Pompano Beach,2026-04-01,Eugene,3.0,5.0,Operational Excellence - 5 Stars,5,0h 58m,58.0,False,True
 P4W1,3/29/26,4/4/26,,79,Plantation,2026-03-30,Patricia M,3.0,5.0,Operational Excellence - 5 Stars,5,1h 42m,102.0,False,False
 P4W1,3/29/26,4/4/26,,183,Margate,2026-04-01,Towanda Edwards,3.0,9.0,Exceeds Expectations - 4 Stars,4,5h 18m,318.0,False,False
+P4W1,3/29/26,4/4/26,,205,Lauderhill,2026-03-31,kristal willaims,5.0,13.0,Operational Excellence - 5 Stars,5,2h 21m,141.0,False,False
+P4W1,3/29/26,4/4/26,,346,Cutler Bay,2026-04-02,norman fonseca,2.0,4.0,Operational Excellence - 5 Stars,5,1h 35m,95.0,False,False
+P4W1,3/29/26,4/4/26,,420,Deerfield Beach,2026-04-01,Dana,7.0,17.0,Exceeds Expectations - 4 Stars,4,1h 35m,95.0,False,False
+P4W1,3/29/26,4/4/26,,871,Homestead,2026-04-04,Jernay,7.0,19.0,Exceeds Expectations - 4 Stars,4,1h 58m,118.0,False,False
+P4W1,3/29/26,4/4/26,,883,Hallandale Beach,2026-04-03,Karla,11.0,21.0,Exceeds Expectations - 4 Stars,4,2h 47m,167.0,False,False
 P4W1,3/29/26,4/4/26,,1096,Tamarac,2026-03-31,Chadwick Clark,8.0,22.0,Exceeds Expectations - 4 Stars,4,5h 6m,306.0,False,False
 P4W1,3/29/26,4/4/26,,1167,Pembroke Pines,2026-04-02,JA,4.0,8.0,Operational Excellence - 5 Stars,5,1h 7m,67.0,False,False
-P4W1,3/29/26,4/4/26,,2048,Coral Springs,2026-03-29,Donnie Osborne,3.0,9.0,Operational Excellence - 5 Stars,5,1h 7m,67.0,False,False
-P4W1,3/29/26,4/4/26,,2290,Pembroke Pines,2026-04-02,Britina,2.0,4.0,Operational Excellence - 5 Stars,5,1h 55m,115.0,False,False
-P4W1,3/29/26,4/4/26,,2290,Pembroke Pines,2026-03-31,Devin,2.0,4.0,Operational Excellence - 5 Stars,5,25h 34m,1534.0,False,False
-P4W1,3/29/26,4/4/26,,2976,Weston,2026-04-02,Luis,3.0,5.0,Operational Excellence - 5 Stars,5,1h 18m,78.0,False,False
+P4W1,3/29/26,4/4/26,,1252,Fort Lauderdale,2026-04-01,K Faustin,3.0,7.0,Operational Excellence - 5 Stars,5,0h 45m,45.0,False,True
+P4W1,3/29/26,4/4/26,,1677,Palmetto Bay,2026-04-03,Linda Fountain,5.0,11.0,Operational Excellence - 5 Stars,5,2h 20m,140.0,False,False
+P4W1,3/29/26,4/4/26,,1726,Oakland Park,2026-04-01,Charity Gainer,3.0,5.0,Operational Excellence - 5 Stars,5,1h 19m,79.0,False,False
+P4W1,3/29/26,4/4/26,,1771,Miami,2026-04-03,Andrea V,4.0,8.0,Operational Excellence - 5 Stars,5,2h 42m,162.0,False,False
+P4W1,3/29/26,4/4/26,,1841,Fort Lauderdale,2026-04-03,MS,0.0,0.0,Operational Excellence - 5 Stars,5,0h 53m,53.0,False,True
+P4W1,3/29/26,4/4/26,,1847,Pompano Beach,2026-04-01,Eugene,3.0,5.0,Operational Excellence - 5 Stars,5,0h 58m,58.0,False,True
+P4W1,3/29/26,4/4/26,,1848,Miami,2026-03-29,Paulina,1.0,5.0,Exceeds Expectations - 4 Stars,4,1h 14m,74.0,False,False
+P4W1,3/29/26,4/4/26,,1891,Miami,2026-04-01,Jairon Vino,0.0,0.0,Operational Excellence - 5 Stars,5,1h 59m,119.0,False,True
+P4W1,3/29/26,4/4/26,,1954,Miami,2026-04-03,Tulis,6.0,10.0,Operational Excellence - 5 Stars,5,1h 23m,83.0,False,False
+P4W1,3/29/26,4/4/26,,1972,Miami,2026-04-03,Tasha Prudhomme,4.0,10.0,Exceeds Expectations - 4 Stars,4,1h 21m,81.0,False,False
 P4W1,3/29/26,4/4/26,,2013,Palm Springs,2026-04-04,brianna yanes,8.0,20.0,Exceeds Expectations - 4 Stars,4,1h 10m,70.0,False,False
+P4W1,3/29/26,4/4/26,,2042,Miami,2026-04-02,bryanna diaz,4.0,12.0,Operational Excellence - 5 Stars,5,55h 32m,3332.0,False,False
+P4W1,3/29/26,4/4/26,,2048,Coral Springs,2026-03-29,Donnie Osborne,3.0,9.0,Operational Excellence - 5 Stars,5,1h 7m,67.0,False,False
+P4W1,3/29/26,4/4/26,,2118,Homestead,2026-04-02,Dayami,1.0,3.0,Operational Excellence - 5 Stars,5,1h 39m,99.0,False,False
+P4W1,3/29/26,4/4/26,,2290,Pembroke Pines,2026-04-02,Britina,2.0,4.0,Operational Excellence - 5 Stars,5,1h 55m,115.0,False,False
 P4W1,3/29/26,4/4/26,,2497,Royal Palm Beach,2026-03-31,Arlenna,2.0,8.0,Exceeds Expectations - 4 Stars,4,3h 15m,195.0,False,False
+P4W1,3/29/26,4/4/26,,2602,Doral,2026-04-03,Liseidis,3.0,5.0,Operational Excellence - 5 Stars,5,1h 13m,73.0,False,False
+P4W1,3/29/26,4/4/26,,2627,Hialeah,2026-04-04,Frank,3.0,5.0,Operational Excellence - 5 Stars,5,1h 21m,81.0,False,False
 P4W1,3/29/26,4/4/26,,2696,West Palm Beach,2026-04-04,David Soria,1.0,3.0,Operational Excellence - 5 Stars,5,46h 1m,2761.0,False,False
+P4W1,3/29/26,4/4/26,,2766,Miami,2026-04-04,Lizt Gonzalez,5.0,13.0,Operational Excellence - 5 Stars,5,2h 27m,147.0,False,False
 P4W1,3/29/26,4/4/26,,2885,Lantana,2026-03-29,Thomas Rea,1.0,3.0,Operational Excellence - 5 Stars,5,0h 11m,11.0,False,True
+P4W1,3/29/26,4/4/26,,2890,Miami,2026-04-04,Dc,3.0,9.0,Operational Excellence - 5 Stars,5,1h 3m,63.0,False,False
+P4W1,3/29/26,4/4/26,,2893,Miami,2026-04-01,Mirtha Velozo,3.0,9.0,Operational Excellence - 5 Stars,5,27h 6m,1626.0,False,False
 P4W1,3/29/26,4/4/26,,2974,,,,,,NO EVALUATION COMPLETED,0,,,True,False
+P4W1,3/29/26,4/4/26,,2976,Weston,2026-04-02,Luis,3.0,5.0,Operational Excellence - 5 Stars,5,1h 18m,78.0,False,False
+P4W1,3/29/26,4/4/26,,3013,Miami,2026-04-01,Liquita EDWARDS,3.0,7.0,Operational Excellence - 5 Stars,5,2h 10m,130.0,False,False
 P4W1,3/29/26,4/4/26,,3200,Jupiter,2026-03-31,Wanda,2.0,8.0,Exceeds Expectations - 4 Stars,4,1h 10m,70.0,False,False
-P4W1,3/29/26,4/4/26,,3200,Jupiter,2026-03-29,Tonya,3.0,9.0,Exceeds Expectations - 4 Stars,4,1h 16m,76.0,False,False
-P4W2,4/5/26,4/11/26,,346,Cutler Bay,2026-04-11,norman fonseca,2.0,4.0,Operational Excellence - 5 Stars,5,1h 24m,84.0,False,False
-P4W2,4/5/26,4/11/26,,871,Homestead,2026-04-11,Samir,3.0,9.0,Operational Excellence - 5 Stars,5,1h 40m,100.0,False,False
-P4W2,4/5/26,4/11/26,,871,Homestead,2026-04-11,Ke'Anda,11.0,23.0,Exceeds Expectations - 4 Stars,4,1h 27m,87.0,False,False
-P4W2,4/5/26,4/11/26,,1677,Palmetto Bay,2026-04-10,Linda Fountain,3.0,9.0,Exceeds Expectations - 4 Stars,4,2h 23m,143.0,False,False
-P4W2,4/5/26,4/11/26,,1771,Miami,2026-04-10,Andrea V,3.0,11.0,Unacceptable - 1 Star,1,3h 18m,198.0,False,False
-P4W2,4/5/26,4/11/26,,2118,Homestead,2026-04-08,Dayami,1.0,3.0,Operational Excellence - 5 Stars,5,1h 54m,114.0,False,False
-P4W2,4/5/26,4/11/26,,3013,Miami,2026-04-06,Liquita Edwards,3.0,7.0,Operational Excellence - 5 Stars,5,2h 28m,148.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 2,1848,Miami,2026-04-05,Paulina,1.0,3.0,Operational Excellence - 5 Stars,5,3h 46m,226.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 2,1848,Miami,2026-04-06,Paulina (RSM SO),8.0,22.0,Exceeds Expectations - 4 Stars,4,1h 31m,91.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 2,1891,Miami,2026-04-08,Jairon Vino,0.0,0.0,Operational Excellence - 5 Stars,5,1h 35m,95.0,False,True
-P4W2,4/5/26,4/11/26,DISTRICT 2,1891,Miami,2026-04-07,Maryanis (RSM SO),8.0,14.0,Operational Excellence - 5 Stars,5,1h 21m,81.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 2,1972,Miami,2026-04-10,Daniuska Bebelagua,2.0,6.0,Exceeds Expectations - 4 Stars,4,1h 26m,86.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 2,2627,Hialeah,2026-04-09,Frank,4.0,8.0,Operational Excellence - 5 Stars,5,1h 14m,74.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 2,2766,Miami,2026-04-09,Geydi Castello,3.0,7.0,Operational Excellence - 5 Stars,5,1h 32m,92.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 2,4032,Miami,2026-04-10,Sarah,2.0,6.0,Operational Excellence - 5 Stars,5,1h 46m,106.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-04-09,Teresa Hernandez,1.0,1.0,Operational Excellence - 5 Stars,5,1h 32m,92.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 3,1954,Miami,2026-04-11,John,6.0,10.0,Operational Excellence - 5 Stars,5,7h 45m,465.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 3,2042,Miami,2026-04-06,bryanna diaz,6.0,20.0,Meets Minimum Expectations - 3 Stars,3,1h 8m,68.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 3,2042,Miami,2026-04-06,Miguel (RSM SO),8.0,16.0,Exceeds Expectations - 4 Stars,4,2h 8m,128.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 3,2602,Doral,2026-04-11,caad,4.0,8.0,Operational Excellence - 5 Stars,5,1h 1m,61.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 3,2890,Miami,2026-04-05,Derick c,3.0,9.0,Operational Excellence - 5 Stars,5,1h 9m,69.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 3,2893,Miami,2026-04-11,Yogii,4.0,4.0,Operational Excellence - 5 Stars,5,0h 36m,36.0,False,True
+P4W1,3/29/26,4/4/26,,4032,Miami,2026-04-02,Dianelys,1.0,3.0,Operational Excellence - 5 Stars,5,2h 4m,124.0,False,False
+P4W2,4/5/26,4/11/26,DISTRICT 5,79,Plantation,2026-04-06,Ruben F,2.0,4.0,Operational Excellence - 5 Stars,5,1h 14m,74.0,False,False
+P4W2,4/5/26,4/11/26,DISTRICT 5,183,Margate,2026-04-09,Iclude Faudoas,1.0,5.0,Exceeds Expectations - 4 Stars,4,1h 52m,112.0,False,False
 P4W2,4/5/26,4/11/26,DISTRICT 4,205,Lauderhill,2026-04-07,kristal williams,3.0,7.0,Exceeds Expectations - 4 Stars,4,2h 27m,147.0,False,False
+P4W2,4/5/26,4/11/26,,346,Cutler Bay,2026-04-11,norman fonseca,2.0,4.0,Operational Excellence - 5 Stars,5,1h 24m,84.0,False,False
 P4W2,4/5/26,4/11/26,DISTRICT 4,420,Deerfield Beach,2026-04-07,Nate,5.0,11.0,Operational Excellence - 5 Stars,5,2h 6m,126.0,False,False
+P4W2,4/5/26,4/11/26,,871,Homestead,2026-04-11,Ke'Anda,11.0,23.0,Exceeds Expectations - 4 Stars,4,1h 27m,87.0,False,False
 P4W2,4/5/26,4/11/26,DISTRICT 4,883,Hallandale Beach,2026-04-11,Cesar Montenegro,6.0,10.0,Operational Excellence - 5 Stars,5,2h 29m,149.0,False,False
+P4W2,4/5/26,4/11/26,DISTRICT 5,1096,Tamarac,2026-04-08,Chadwick,7.0,23.0,Unacceptable - 1 Star,1,3h 19m,199.0,False,False
+P4W2,4/5/26,4/11/26,DISTRICT 5,1167,Pembroke Pines,2026-04-11,Jorge Andrade,1.0,3.0,Operational Excellence - 5 Stars,5,7h 36m,456.0,False,False
 P4W2,4/5/26,4/11/26,DISTRICT 4,1252,Fort Lauderdale,2026-04-08,Kelline,4.0,10.0,Operational Excellence - 5 Stars,5,0h 52m,52.0,False,True
+P4W2,4/5/26,4/11/26,,1677,Palmetto Bay,2026-04-10,Linda Fountain,3.0,9.0,Exceeds Expectations - 4 Stars,4,2h 23m,143.0,False,False
 P4W2,4/5/26,4/11/26,DISTRICT 4,1726,Oakland Park,2026-04-08,Charity Gainer,2.0,4.0,Operational Excellence - 5 Stars,5,1h 42m,102.0,False,False
+P4W2,4/5/26,4/11/26,,1771,Miami,2026-04-10,Andrea V,3.0,11.0,Unacceptable - 1 Star,1,3h 18m,198.0,False,False
 P4W2,4/5/26,4/11/26,DISTRICT 4,1841,,,,,,NO EVALUATION COMPLETED,0,,,True,False
 P4W2,4/5/26,4/11/26,DISTRICT 4,1847,Pompano Beach,2026-04-09,Tierra,3.0,3.0,Operational Excellence - 5 Stars,5,1h 12m,72.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 5,79,Plantation,2026-04-06,Ruben F,2.0,4.0,Operational Excellence - 5 Stars,5,1h 14m,74.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 5,79,Plantation,2026-04-10,Frantz (RSM SO),8.0,14.0,Operational Excellence - 5 Stars,5,1h 51m,111.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 5,183,Margate,2026-04-09,Iclude Faudoas,1.0,5.0,Exceeds Expectations - 4 Stars,4,1h 52m,112.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 5,1096,Tamarac,2026-04-08,Chadwick,7.0,23.0,Unacceptable - 1 Star,1,3h 19m,199.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 5,1096,Tamarac,2026-04-08,Chadwick (RSM SO),13.0,29.0,Meets Minimum Expectations - 3 Stars,3,1h 12m,72.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 5,1167,Pembroke Pines,2026-04-11,Jorge Andrade,1.0,3.0,Operational Excellence - 5 Stars,5,7h 36m,456.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 5,1167,Pembroke Pines,2026-04-10,Jorge (RSM SO),13.0,31.0,Meets Minimum Expectations - 3 Stars,3,1h 22m,82.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 5,2048,Coral Springs,2026-04-10,Juan Centeno,5.0,7.0,Operational Excellence - 5 Stars,5,1h 12m,72.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 5,2048,Coral Springs,2026-04-08,Juan (RSM SO),18.0,36.0,Meets Minimum Expectations - 3 Stars,3,1h 37m,97.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 5,2290,Pembroke Pines,2026-04-08,Britina Brown,1.0,3.0,Operational Excellence - 5 Stars,5,70h 25m,4225.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 5,2290,Pembroke Pines,2026-04-11,Brit,1.0,1.0,Operational Excellence - 5 Stars,5,2h 36m,156.0,False,False
-P4W2,4/5/26,4/11/26,DISTRICT 5,2976,Weston,2026-04-10,Luis,3.0,9.0,Operational Excellence - 5 Stars,5,2h 12m,132.0,False,False
+P4W2,4/5/26,4/11/26,DISTRICT 2,1848,Miami,2026-04-05,Paulina,1.0,3.0,Operational Excellence - 5 Stars,5,3h 46m,226.0,False,False
+P4W2,4/5/26,4/11/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-04-09,Teresa Hernandez,1.0,1.0,Operational Excellence - 5 Stars,5,1h 32m,92.0,False,False
+P4W2,4/5/26,4/11/26,DISTRICT 2,1891,Miami,2026-04-08,Jairon Vino,0.0,0.0,Operational Excellence - 5 Stars,5,1h 35m,95.0,False,True
+P4W2,4/5/26,4/11/26,DISTRICT 3,1954,Miami,2026-04-11,John,6.0,10.0,Operational Excellence - 5 Stars,5,7h 45m,465.0,False,False
+P4W2,4/5/26,4/11/26,DISTRICT 2,1972,Miami,2026-04-10,Daniuska Bebelagua,2.0,6.0,Exceeds Expectations - 4 Stars,4,1h 26m,86.0,False,False
 P4W2,4/5/26,4/11/26,DISTRICT 6,2013,Palm Springs,2026-04-11,brianna yanes,11.0,23.0,Exceeds Expectations - 4 Stars,4,1h 12m,72.0,False,False
+P4W2,4/5/26,4/11/26,DISTRICT 3,2042,Miami,2026-04-06,bryanna diaz,6.0,20.0,Meets Minimum Expectations - 3 Stars,3,1h 8m,68.0,False,False
+P4W2,4/5/26,4/11/26,DISTRICT 5,2048,Coral Springs,2026-04-10,Juan Centeno,5.0,7.0,Operational Excellence - 5 Stars,5,1h 12m,72.0,False,False
+P4W2,4/5/26,4/11/26,,2118,Homestead,2026-04-08,Dayami,1.0,3.0,Operational Excellence - 5 Stars,5,1h 54m,114.0,False,False
+P4W2,4/5/26,4/11/26,DISTRICT 5,2290,Pembroke Pines,2026-04-11,Brit,1.0,1.0,Operational Excellence - 5 Stars,5,2h 36m,156.0,False,False
 P4W2,4/5/26,4/11/26,DISTRICT 6,2497,Royal Palm Beach,2026-04-07,Arlenna,2.0,6.0,Operational Excellence - 5 Stars,5,2h 42m,162.0,False,False
+P4W2,4/5/26,4/11/26,DISTRICT 3,2602,Doral,2026-04-11,caad,4.0,8.0,Operational Excellence - 5 Stars,5,1h 1m,61.0,False,False
+P4W2,4/5/26,4/11/26,DISTRICT 2,2627,Hialeah,2026-04-09,Frank,4.0,8.0,Operational Excellence - 5 Stars,5,1h 14m,74.0,False,False
 P4W2,4/5/26,4/11/26,DISTRICT 6,2696,West Palm Beach,2026-04-08,David Soria,1.0,3.0,Operational Excellence - 5 Stars,5,1h 31m,91.0,False,False
+P4W2,4/5/26,4/11/26,DISTRICT 2,2766,Miami,2026-04-09,Geydi Castello,3.0,7.0,Operational Excellence - 5 Stars,5,1h 32m,92.0,False,False
 P4W2,4/5/26,4/11/26,DISTRICT 6,2885,Lantana,2026-04-08,Thomas Rea Jr,1.0,3.0,Operational Excellence - 5 Stars,5,0h 8m,8.0,False,True
+P4W2,4/5/26,4/11/26,DISTRICT 3,2890,Miami,2026-04-05,Derick c,3.0,9.0,Operational Excellence - 5 Stars,5,1h 9m,69.0,False,False
+P4W2,4/5/26,4/11/26,DISTRICT 3,2893,Miami,2026-04-11,Yogii,4.0,4.0,Operational Excellence - 5 Stars,5,0h 36m,36.0,False,True
 P4W2,4/5/26,4/11/26,DISTRICT 6,2974,Delray Beach,2026-04-10,Javia,0.0,0.0,Operational Excellence - 5 Stars,5,2h 5m,125.0,False,True
+P4W2,4/5/26,4/11/26,DISTRICT 5,2976,Weston,2026-04-10,Luis,3.0,9.0,Operational Excellence - 5 Stars,5,2h 12m,132.0,False,False
+P4W2,4/5/26,4/11/26,,3013,Miami,2026-04-06,Liquita Edwards,3.0,7.0,Operational Excellence - 5 Stars,5,2h 28m,148.0,False,False
 P4W2,4/5/26,4/11/26,DISTRICT 6,3200,Jupiter,2026-04-05,Wanda Sanchez,2.0,6.0,Operational Excellence - 5 Stars,5,1h 8m,68.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 1,346,Cutler Bay,2026-04-16,Norman (RSM SO),13.0,23.0,Exceeds Expectations - 4 Stars,4,2h 18m,138.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 1,346,Cutler Bay,2026-04-18,norman fonseca,1.0,3.0,Operational Excellence - 5 Stars,5,1h 56m,116.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 1,871,Homestead,2026-04-14,Phillip,6.0,18.0,Exceeds Expectations - 4 Stars,4,95h 49m,5749.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 1,1677,Palmetto Bay,2026-04-17,Linda Fountain,3.0,13.0,Meets Minimum Expectations - 3 Stars,3,3h 18m,198.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 1,1771,Miami,2026-04-13,Alonso (RSM SO),12.0,22.0,Exceeds Expectations - 4 Stars,4,2h 44m,164.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 1,1771,Miami,2026-04-18,AV,2.0,4.0,Operational Excellence - 5 Stars,5,4h 21m,261.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 1,2118,Homestead,2026-04-15,Dayami,1.0,3.0,Operational Excellence - 5 Stars,5,1h 41m,101.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 1,3013,Miami,2026-04-15,Liquita Edwards,3.0,5.0,Operational Excellence - 5 Stars,5,3h 13m,193.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 1,3013,Miami,2026-04-16,Yulian (RSM SO),8.0,14.0,Operational Excellence - 5 Stars,5,1h 26m,86.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 2,1848,Miami,2026-04-13,Paulina,1.0,1.0,Operational Excellence - 5 Stars,5,3h 16m,196.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 2,1891,Miami,2026-04-13,Jairon Vino,0.0,0.0,Operational Excellence - 5 Stars,5,1h 31m,91.0,False,True
-P4W3,4/12/26,4/18/26,DISTRICT 2,1972,Miami,2026-04-15,Brandon (RSM SO),8.0,16.0,Exceeds Expectations - 4 Stars,4,2h 18m,138.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 2,1972,Miami,2026-04-17,Daniuska Bebelagua,2.0,4.0,Operational Excellence - 5 Stars,5,1h 25m,85.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 2,2627,,,,,,,0,,,True,False
-P4W3,4/12/26,4/18/26,DISTRICT 2,2766,Miami,2026-04-15,Camila (RSM SO),7.0,11.0,Operational Excellence - 5 Stars,5,1h 14m,74.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 2,2766,Miami,2026-04-16,David Fragoso,3.0,7.0,Operational Excellence - 5 Stars,5,1h 39m,99.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 2,4032,Miami,2026-04-17,Sarah,1.0,3.0,Operational Excellence - 5 Stars,5,1h 28m,88.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-04-16,Carlos Dubon (ASM),3.0,5.0,Operational Excellence - 5 Stars,5,1h 46m,106.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 3,1954,Miami,2026-04-13,Luis (RSM SO),9.0,17.0,Exceeds Expectations - 4 Stars,4,2h 13m,133.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 3,1954,Miami,2026-04-16,Luis Alvarez,9.0,27.0,Meets Minimum Expectations - 3 Stars,3,1h 30m,90.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 3,2042,Miami,2026-04-12,Milena Moreno,4.0,12.0,Operational Excellence - 5 Stars,5,1h 34m,94.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 3,2602,Doral,2026-04-18,ls,1.0,1.0,Operational Excellence - 5 Stars,5,3h 14m,194.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 3,2890,Miami,2026-04-18,Mike,1.0,5.0,Exceeds Expectations - 4 Stars,4,1h 18m,78.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 3,2893,Miami,2026-04-15,Mirtha Velozo,3.0,7.0,Operational Excellence - 5 Stars,5,1h 1m,61.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 4,205,Lauderhill,2026-04-14,Krystal (RSM SO),12.0,24.0,Exceeds Expectations - 4 Stars,4,1h 34m,94.0,False,False
+P4W2,4/5/26,4/11/26,DISTRICT 2,4032,Miami,2026-04-10,Sarah,2.0,6.0,Operational Excellence - 5 Stars,5,1h 46m,106.0,False,False
+P4W3,4/12/26,4/18/26,DISTRICT 5,79,Plantation,2026-04-13,Sachenka Jean Chilles,3.0,7.0,Operational Excellence - 5 Stars,5,1h 13m,73.0,False,False
+P4W3,4/12/26,4/18/26,DISTRICT 5,183,Margate,2026-04-15,Chian Matterlon,8.0,16.0,Exceeds Expectations - 4 Stars,4,1h 27m,87.0,False,False
 P4W3,4/12/26,4/18/26,DISTRICT 4,205,Lauderhill,2026-04-14,kristal  williams,3.0,7.0,Exceeds Expectations - 4 Stars,4,1h 42m,102.0,False,False
+P4W3,4/12/26,4/18/26,DISTRICT 1,346,Cutler Bay,2026-04-18,norman fonseca,1.0,3.0,Operational Excellence - 5 Stars,5,1h 56m,116.0,False,False
 P4W3,4/12/26,4/18/26,DISTRICT 4,420,Deerfield Beach,2026-04-14,Nate,6.0,16.0,Exceeds Expectations - 4 Stars,4,2h 1m,121.0,False,False
+P4W3,4/12/26,4/18/26,DISTRICT 1,871,Homestead,2026-04-14,Phillip,6.0,18.0,Exceeds Expectations - 4 Stars,4,95h 49m,5749.0,False,False
 P4W3,4/12/26,4/18/26,DISTRICT 4,883,Hallandale Beach,,,,,,0,,,True,False
+P4W3,4/12/26,4/18/26,DISTRICT 5,1096,Tamarac,2026-04-18,Chadwick,5.0,13.0,Operational Excellence - 5 Stars,5,0h 41m,41.0,False,True
+P4W3,4/12/26,4/18/26,DISTRICT 5,1167,Pembroke Pines,2026-04-18,Rose Grant,5.0,9.0,Operational Excellence - 5 Stars,5,2h 27m,147.0,False,False
 P4W3,4/12/26,4/18/26,DISTRICT 4,1252,Fort Lauderdale,2026-04-14,Kelline,3.0,7.0,Operational Excellence - 5 Stars,5,1h 44m,104.0,False,False
+P4W3,4/12/26,4/18/26,DISTRICT 1,1677,Palmetto Bay,2026-04-17,Linda Fountain,3.0,13.0,Meets Minimum Expectations - 3 Stars,3,3h 18m,198.0,False,False
 P4W3,4/12/26,4/18/26,DISTRICT 4,1726,Oakland Park,2026-04-18,Charity Gainer,3.0,7.0,Operational Excellence - 5 Stars,5,1h 36m,96.0,False,False
+P4W3,4/12/26,4/18/26,DISTRICT 1,1771,Miami,2026-04-18,AV,2.0,4.0,Operational Excellence - 5 Stars,5,4h 21m,261.0,False,False
 P4W3,4/12/26,4/18/26,DISTRICT 4,1841,Fort Lauderdale,2026-04-15,Makayla,0.0,0.0,Operational Excellence - 5 Stars,5,2h 11m,131.0,False,True
 P4W3,4/12/26,4/18/26,DISTRICT 4,1847,Pompano Beach,2026-04-16,Ishmael,2.0,6.0,Exceeds Expectations - 4 Stars,4,0h 46m,46.0,False,True
-P4W3,4/12/26,4/18/26,DISTRICT 5,79,Plantation,2026-04-13,Sachenka Jean Chilles,3.0,7.0,Operational Excellence - 5 Stars,5,1h 13m,73.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 5,183,Margate,2026-04-14,Towanda (RSM SO),14.0,24.0,Exceeds Expectations - 4 Stars,4,1h 33m,93.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 5,183,Margate,2026-04-15,Chian Matterlon,8.0,16.0,Exceeds Expectations - 4 Stars,4,1h 27m,87.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 5,1096,Tamarac,2026-04-18,Chadwick,5.0,13.0,Operational Excellence - 5 Stars,5,0h 41m,41.0,False,True
-P4W3,4/12/26,4/18/26,DISTRICT 5,1167,Pembroke Pines,2026-04-16,Rose Grant,0.0,0.0,Operational Excellence - 5 Stars,5,7h 40m,460.0,False,True
-P4W3,4/12/26,4/18/26,DISTRICT 5,1167,Pembroke Pines,2026-04-18,Rose Grant,5.0,9.0,Operational Excellence - 5 Stars,5,2h 27m,147.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 5,2048,Coral Springs,2026-04-16,Donnie Osborne,3.0,7.0,Operational Excellence - 5 Stars,5,1h 14m,74.0,False,False
-P4W3,4/12/26,4/18/26,DISTRICT 5,2290,Pembroke Pines,2026-04-15,Brit,1.0,1.0,Operational Excellence - 5 Stars,5,2h 24m,144.0,False,False
+P4W3,4/12/26,4/18/26,DISTRICT 2,1848,Miami,2026-04-13,Paulina,1.0,1.0,Operational Excellence - 5 Stars,5,3h 16m,196.0,False,False
+P4W3,4/12/26,4/18/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-04-16,Carlos Dubon (ASM),3.0,5.0,Operational Excellence - 5 Stars,5,1h 46m,106.0,False,False
+P4W3,4/12/26,4/18/26,DISTRICT 2,1891,Miami,2026-04-13,Jairon Vino,0.0,0.0,Operational Excellence - 5 Stars,5,1h 31m,91.0,False,True
+P4W3,4/12/26,4/18/26,DISTRICT 3,1954,Miami,2026-04-16,Luis Alvarez,9.0,27.0,Meets Minimum Expectations - 3 Stars,3,1h 30m,90.0,False,False
+P4W3,4/12/26,4/18/26,DISTRICT 2,1972,Miami,2026-04-17,Daniuska Bebelagua,2.0,4.0,Operational Excellence - 5 Stars,5,1h 25m,85.0,False,False
 P4W3,4/12/26,4/18/26,DISTRICT 6,2013,Palm Springs,2026-04-17,brianna yanes,8.0,14.0,Operational Excellence - 5 Stars,5,1h 21m,81.0,False,False
+P4W3,4/12/26,4/18/26,DISTRICT 3,2042,Miami,2026-04-12,Milena Moreno,4.0,12.0,Operational Excellence - 5 Stars,5,1h 34m,94.0,False,False
+P4W3,4/12/26,4/18/26,DISTRICT 5,2048,Coral Springs,2026-04-16,Donnie Osborne,3.0,7.0,Operational Excellence - 5 Stars,5,1h 14m,74.0,False,False
+P4W3,4/12/26,4/18/26,DISTRICT 1,2118,Homestead,2026-04-15,Dayami,1.0,3.0,Operational Excellence - 5 Stars,5,1h 41m,101.0,False,False
+P4W3,4/12/26,4/18/26,DISTRICT 5,2290,Pembroke Pines,2026-04-15,Brit,1.0,1.0,Operational Excellence - 5 Stars,5,2h 24m,144.0,False,False
 P4W3,4/12/26,4/18/26,DISTRICT 6,2497,Royal Palm Beach,2026-04-15,Arlenna Holman,1.0,3.0,Operational Excellence - 5 Stars,5,4h 29m,269.0,False,False
+P4W3,4/12/26,4/18/26,DISTRICT 3,2602,Doral,2026-04-18,ls,1.0,1.0,Operational Excellence - 5 Stars,5,3h 14m,194.0,False,False
+P4W3,4/12/26,4/18/26,DISTRICT 2,2627,,,,,,,0,,,True,False
 P4W3,4/12/26,4/18/26,DISTRICT 6,2696,West Palm Beach,2026-04-15,David  Soria,1.0,3.0,Operational Excellence - 5 Stars,5,1h 31m,91.0,False,False
+P4W3,4/12/26,4/18/26,DISTRICT 2,2766,Miami,2026-04-16,David Fragoso,3.0,7.0,Operational Excellence - 5 Stars,5,1h 39m,99.0,False,False
 P4W3,4/12/26,4/18/26,DISTRICT 6,2885,Lantana,2026-04-12,Thomas Rea Jr,1.0,3.0,Operational Excellence - 5 Stars,5,0h 21m,21.0,False,True
+P4W3,4/12/26,4/18/26,DISTRICT 3,2890,Miami,2026-04-18,Mike,1.0,5.0,Exceeds Expectations - 4 Stars,4,1h 18m,78.0,False,False
+P4W3,4/12/26,4/18/26,DISTRICT 3,2893,Miami,2026-04-15,Mirtha Velozo,3.0,7.0,Operational Excellence - 5 Stars,5,1h 1m,61.0,False,False
 P4W3,4/12/26,4/18/26,DISTRICT 6,2974,Delray Beach,2026-04-15,Diamond Pelt,8.0,20.0,Exceeds Expectations - 4 Stars,4,69h 53m,4193.0,False,False
+P4W3,4/12/26,4/18/26,DISTRICT 1,3013,Miami,2026-04-15,Liquita Edwards,3.0,5.0,Operational Excellence - 5 Stars,5,3h 13m,193.0,False,False
 P4W3,4/12/26,4/18/26,DISTRICT 6,3200,Jupiter,2026-04-18,Wanda Sanchez,1.0,1.0,Operational Excellence - 5 Stars,5,1h 27m,87.0,False,False
 P4W3,4/12/26,4/18/26,DISTRICT 6,3317,Boca Raton,2026-04-17,Steven Rivera,1.0,1.0,Operational Excellence - 5 Stars,5,1h 30m,90.0,False,False
-P4W4,4/19/26,4/25/26,,346,Cutler Bay,2026-04-22,Tay (RSM SO),10.0,18.0,Exceeds Expectations - 4 Stars,4,1h 34m,94.0,False,False
-P4W4,4/19/26,4/25/26,,346,Cutler Bay,2026-04-25,norman fonseca,3.0,7.0,Operational Excellence - 5 Stars,5,1h 9m,69.0,False,False
-P4W4,4/19/26,4/25/26,,871,Homestead,2026-04-22,Rosemary (RSM SO),14.0,30.0,Meets Minimum Expectations - 3 Stars,3,1h 50m,110.0,False,False
-P4W4,4/19/26,4/25/26,,871,Homestead,2026-04-24,Phillip,10.0,16.0,Exceeds Expectations - 4 Stars,4,1h 55m,115.0,False,False
-P4W4,4/19/26,4/25/26,,1677,Palmetto Bay,2026-04-21,Linda,3.0,3.0,Operational Excellence - 5 Stars,5,2h 4m,124.0,False,False
-P4W4,4/19/26,4/25/26,,1771,Miami,2026-04-20,Gero,5.0,11.0,Operational Excellence - 5 Stars,5,2h 25m,145.0,False,False
-P4W4,4/19/26,4/25/26,,1771,Miami,2026-04-23,Geronimo (RSM SO),8.0,16.0,Exceeds Expectations - 4 Stars,4,1h 29m,89.0,False,False
-P4W4,4/19/26,4/25/26,,1771,Miami,2026-04-24,AH,3.0,9.0,Operational Excellence - 5 Stars,5,1h 51m,111.0,False,False
-P4W4,4/19/26,4/25/26,,2118,Homestead,2026-04-20,Dayami (RSM SO),10.0,18.0,Exceeds Expectations - 4 Stars,4,2h 19m,139.0,False,False
-P4W4,4/19/26,4/25/26,,3013,Miami,2026-04-23,Liquita Edwards,3.0,5.0,Operational Excellence - 5 Stars,5,2h 10m,130.0,False,False
-P4W4,4/19/26,4/25/26,,2118,Homestead,04/22/2026,Dayami,1.0,3.0,Operational Excellence - 5 Stars,5,117h 53m,7073.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 2,1848,Miami,2026-04-20,Paulina,1.0,3.0,Operational Excellence - 5 Stars,5,3h 9m,189.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 2,1891,Miami,2026-04-23,Jairon vino,1.0,3.0,Operational Excellence - 5 Stars,5,1h 14m,74.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 2,1972,Miami,2026-04-24,Brandon (RSM SO),10.0,22.0,Exceeds Expectations - 4 Stars,4,1h 45m,105.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 2,2766,Miami,2026-04-23,Brandon Cordoba,3.0,7.0,Operational Excellence - 5 Stars,5,2h 16m,136.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 2,4032,Miami,2026-04-23,Dianelys,4.0,8.0,Operational Excellence - 5 Stars,5,1h 45m,105.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 2,1972,Miami,04/25/2026,Brandon,5.0,11.0,Operational Excellence - 5 Stars,5,33h 18m,1998.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 2,2627,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P4W4,4/19/26,4/25/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-04-23,Carlos,4.0,8.0,Operational Excellence - 5 Stars,5,1h 40m,100.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-04-23,Carlos (RSM SO),6.0,14.0,Operational Excellence - 5 Stars,5,1h 19m,79.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 3,1954,Miami,2026-04-23,Luis Alvarez,2.0,2.0,Operational Excellence - 5 Stars,5,18h 50m,1130.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 3,1954,Miami,2026-04-23,Tulis (RSM SO),8.0,14.0,Operational Excellence - 5 Stars,5,1h 32m,92.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 3,1954,Miami,2026-04-24,Andres,6.0,10.0,Operational Excellence - 5 Stars,5,28h 3m,1683.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 3,2042,Miami,2026-04-21,Milena (RSM SO),6.0,12.0,Operational Excellence - 5 Stars,5,3h 4m,184.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 3,2042,Miami,2026-04-23,Miguel,5.0,11.0,Operational Excellence - 5 Stars,5,1h 12m,72.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 3,2602,Doral,2026-04-24,Liseidis,3.0,5.0,Operational Excellence - 5 Stars,5,1h 12m,72.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 3,2890,Miami,2026-04-18,Mike,1.0,5.0,Exceeds Expectations - 4 Stars,4,1h 18m,78.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 3,2893,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P4W4,4/19/26,4/25/26,DISTRICT 4,205,Lauderhill,2026-04-21,kristal williams,3.0,5.0,Operational Excellence - 5 Stars,5,2h 13m,133.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 4,420,Deerfield Beach,2026-04-22,Reva,3.0,7.0,Operational Excellence - 5 Stars,5,1h 0m,60.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 4,883,Hallandale Beach,2026-04-25,César,4.0,6.0,Operational Excellence - 5 Stars,5,3h 21m,201.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 4,1252,Fort Lauderdale,2026-04-23,Kelline Faustin,0.0,0.0,Operational Excellence - 5 Stars,5,0h 55m,55.0,False,True
-P4W4,4/19/26,4/25/26,DISTRICT 4,1726,Oakland Park,2026-04-22,Divia Bell,1.0,1.0,Operational Excellence - 5 Stars,5,1h 25m,85.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 4,1841,Fort Lauderdale,2026-04-22,Makayla Francis,1.0,3.0,Operational Excellence - 5 Stars,5,1h 9m,69.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 4,1847,Pompano Beach,2026-04-24,Eugene,3.0,5.0,Operational Excellence - 5 Stars,5,0h 56m,56.0,False,True
+P4W3,4/12/26,4/18/26,DISTRICT 2,4032,Miami,2026-04-17,Sarah,1.0,3.0,Operational Excellence - 5 Stars,5,1h 28m,88.0,False,False
 P4W4,4/19/26,4/25/26,DISTRICT 5,79,Plantation,2026-04-20,Ruben F,1.0,1.0,Operational Excellence - 5 Stars,5,2h 24m,144.0,False,False
 P4W4,4/19/26,4/25/26,DISTRICT 5,183,Margate,2026-04-24,Iclude,3.0,5.0,Operational Excellence - 5 Stars,5,1h 0m,60.0,False,False
+P4W4,4/19/26,4/25/26,DISTRICT 4,205,Lauderhill,2026-04-21,kristal williams,3.0,5.0,Operational Excellence - 5 Stars,5,2h 13m,133.0,False,False
+P4W4,4/19/26,4/25/26,,346,Cutler Bay,2026-04-25,norman fonseca,3.0,7.0,Operational Excellence - 5 Stars,5,1h 9m,69.0,False,False
+P4W4,4/19/26,4/25/26,DISTRICT 4,420,Deerfield Beach,2026-04-22,Reva,3.0,7.0,Operational Excellence - 5 Stars,5,1h 0m,60.0,False,False
+P4W4,4/19/26,4/25/26,,871,Homestead,2026-04-24,Phillip,10.0,16.0,Exceeds Expectations - 4 Stars,4,1h 55m,115.0,False,False
+P4W4,4/19/26,4/25/26,DISTRICT 4,883,Hallandale Beach,2026-04-25,César,4.0,6.0,Operational Excellence - 5 Stars,5,3h 21m,201.0,False,False
 P4W4,4/19/26,4/25/26,DISTRICT 5,1096,Tamarac,2026-04-24,Csc,6.0,16.0,Exceeds Expectations - 4 Stars,4,6h 51m,411.0,False,False
 P4W4,4/19/26,4/25/26,DISTRICT 5,1167,Pembroke Pines,2026-04-23,Adriana Hernandez,6.0,16.0,Exceeds Expectations - 4 Stars,4,5h 12m,312.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 5,2048,Coral Springs,2026-04-22,Donnie Osborne,7.0,21.0,Exceeds Expectations - 4 Stars,4,1h 14m,74.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 5,2290,Pembroke Pines,2026-04-22,Brit,1.0,1.0,Operational Excellence - 5 Stars,5,2h 4m,124.0,False,False
+P4W4,4/19/26,4/25/26,DISTRICT 4,1252,Fort Lauderdale,2026-04-23,Kelline Faustin,0.0,0.0,Operational Excellence - 5 Stars,5,0h 55m,55.0,False,True
+P4W4,4/19/26,4/25/26,,1677,Palmetto Bay,2026-04-21,Linda,3.0,3.0,Operational Excellence - 5 Stars,5,2h 4m,124.0,False,False
+P4W4,4/19/26,4/25/26,DISTRICT 4,1726,Oakland Park,2026-04-22,Divia Bell,1.0,1.0,Operational Excellence - 5 Stars,5,1h 25m,85.0,False,False
+P4W4,4/19/26,4/25/26,,1771,Miami,2026-04-24,AH,3.0,9.0,Operational Excellence - 5 Stars,5,1h 51m,111.0,False,False
+P4W4,4/19/26,4/25/26,DISTRICT 4,1841,Fort Lauderdale,2026-04-22,Makayla Francis,1.0,3.0,Operational Excellence - 5 Stars,5,1h 9m,69.0,False,False
+P4W4,4/19/26,4/25/26,DISTRICT 4,1847,Pompano Beach,2026-04-24,Eugene,3.0,5.0,Operational Excellence - 5 Stars,5,0h 56m,56.0,False,True
+P4W4,4/19/26,4/25/26,DISTRICT 2,1848,Miami,2026-04-20,Paulina,1.0,3.0,Operational Excellence - 5 Stars,5,3h 9m,189.0,False,False
+P4W4,4/19/26,4/25/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-04-23,Carlos,4.0,8.0,Operational Excellence - 5 Stars,5,1h 40m,100.0,False,False
+P4W4,4/19/26,4/25/26,DISTRICT 2,1891,Miami,2026-04-23,Jairon vino,1.0,3.0,Operational Excellence - 5 Stars,5,1h 14m,74.0,False,False
+P4W4,4/19/26,4/25/26,DISTRICT 3,1954,Miami,2026-04-24,Andres,6.0,10.0,Operational Excellence - 5 Stars,5,28h 3m,1683.0,False,False
+P4W4,4/19/26,4/25/26,DISTRICT 2,1972,Miami,04/25/2026,Brandon,5.0,11.0,Operational Excellence - 5 Stars,5,33h 18m,1998.0,False,False
 P4W4,4/19/26,4/25/26,DISTRICT 6,2013,Palm Springs,2026-04-25,brianna yanes,8.0,18.0,Exceeds Expectations - 4 Stars,4,1h 36m,96.0,False,False
+P4W4,4/19/26,4/25/26,DISTRICT 3,2042,Miami,2026-04-23,Miguel,5.0,11.0,Operational Excellence - 5 Stars,5,1h 12m,72.0,False,False
+P4W4,4/19/26,4/25/26,DISTRICT 5,2048,Coral Springs,2026-04-22,Donnie Osborne,7.0,21.0,Exceeds Expectations - 4 Stars,4,1h 14m,74.0,False,False
+P4W4,4/19/26,4/25/26,,2118,Homestead,04/22/2026,Dayami,1.0,3.0,Operational Excellence - 5 Stars,5,117h 53m,7073.0,False,False
+P4W4,4/19/26,4/25/26,DISTRICT 5,2290,Pembroke Pines,2026-04-22,Brit,1.0,1.0,Operational Excellence - 5 Stars,5,2h 4m,124.0,False,False
 P4W4,4/19/26,4/25/26,DISTRICT 6,2497,Royal Palm Beach,2026-04-19,Arlenna Holman,1.0,3.0,Operational Excellence - 5 Stars,5,2h 31m,151.0,False,False
+P4W4,4/19/26,4/25/26,DISTRICT 3,2602,Doral,2026-04-24,Liseidis,3.0,5.0,Operational Excellence - 5 Stars,5,1h 12m,72.0,False,False
+P4W4,4/19/26,4/25/26,DISTRICT 2,2627,NO EVALUATION COMPLETED,,,,,,0,,,True,False
 P4W4,4/19/26,4/25/26,DISTRICT 6,2696,West Palm Beach,2026-04-24,David  Soria,1.0,3.0,Operational Excellence - 5 Stars,5,1h 45m,105.0,False,False
-P4W4,4/19/26,4/25/26,DISTRICT 6,2885,Lantana,2026-04-21,Will,3.0,13.0,Meets Minimum Expectations - 3 Stars,3,9h 46m,586.0,False,False
+P4W4,4/19/26,4/25/26,DISTRICT 2,2766,Miami,2026-04-23,Brandon Cordoba,3.0,7.0,Operational Excellence - 5 Stars,5,2h 16m,136.0,False,False
 P4W4,4/19/26,4/25/26,DISTRICT 6,2885,Lantana,2026-04-25,Thomas Rea Jr,1.0,3.0,Operational Excellence - 5 Stars,5,0h 37m,37.0,False,True
+P4W4,4/19/26,4/25/26,DISTRICT 3,2890,Miami,2026-04-18,Mike,1.0,5.0,Exceeds Expectations - 4 Stars,4,1h 18m,78.0,False,False
+P4W4,4/19/26,4/25/26,DISTRICT 3,2893,NO EVALUATION COMPLETED,,,,,,0,,,True,False
 P4W4,4/19/26,4/25/26,DISTRICT 6,2974,Delray Beach,2026-04-25,Wesley Johnson,0.0,0.0,Operational Excellence - 5 Stars,5,2h 25m,145.0,False,True
+P4W4,4/19/26,4/25/26,,3013,Miami,2026-04-23,Liquita Edwards,3.0,5.0,Operational Excellence - 5 Stars,5,2h 10m,130.0,False,False
 P4W4,4/19/26,4/25/26,DISTRICT 6,3200,Jupiter,2026-04-21,Willhem Hernandez,2.0,6.0,Operational Excellence - 5 Stars,5,2h 17m,137.0,False,False
 P4W4,4/19/26,4/25/26,DISTRICT 6,3317,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P5W1,4/26/26,5/2/26,DISTRICT 1,346,Cutler Bay,2026-04-29,Arna’Ja Allen,9.0,17.0,Exceeds Expectations - 4 Stars,4,2h 5m,125.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 1,346,Cutler Bay,2026-05-02,norman fonseca,3.0,5.0,Operational Excellence - 5 Stars,5,1h 33m,93.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 1,871,Homestead,2026-05-03,Phillip Hardemon,9.0,17.0,Exceeds Expectations - 4 Stars,4,14h 14m,854.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 1,1677,Palmetto Bay,2026-04-30,LINDA,5.0,11.0,Operational Excellence - 5 Stars,5,2h 14m,134.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 1,1677,Palmetto Bay,2026-05-01,Ms. Linda (RSM SO),7.0,17.0,Exceeds Expectations - 4 Stars,4,1h 52m,112.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 1,1771,Miami,2026-04-30,Andrea,4.0,6.0,Operational Excellence - 5 Stars,5,2h 7m,127.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 1,2118,Homestead,2026-04-30,Daya5,1.0,3.0,Operational Excellence - 5 Stars,5,1h 30m,90.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 1,2118,Homestead,2026-05-01,Dayami (RSM SO),8.0,12.0,Operational Excellence - 5 Stars,5,1h 22m,82.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 1,3013,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P5W1,4/26/26,5/2/26,DISTRICT 2,1848,Miami,2026-04-26,Paulina,1.0,1.0,Operational Excellence - 5 Stars,5,0h 52m,52.0,False,True
-P5W1,4/26/26,5/2/26,DISTRICT 2,1891,Miami,2026-04-27,Lizt (RSM SO),8.0,14.0,Operational Excellence - 5 Stars,5,1h 30m,90.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 2,1891,Miami,2026-04-29,Jairon Vino,0.0,0.0,Operational Excellence - 5 Stars,5,1h 7m,67.0,False,True
-P5W1,4/26/26,5/2/26,DISTRICT 2,1972,Miami,2026-04-27,Brandon,5.0,11.0,Operational Excellence - 5 Stars,5,33h 18m,1998.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 2,2627,Hialeah,2026-04-28,Angelica (RSM SO),9.0,13.0,Exceeds Expectations - 4 Stars,4,1h 38m,98.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 2,2627,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P5W1,4/26/26,5/2/26,DISTRICT 2,2766,Miami,2026-04-27,Brandon Cordoba,3.0,5.0,Operational Excellence - 5 Stars,5,1h 25m,85.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 2,4032,Miami,2026-05-02,Amy,5.0,11.0,Operational Excellence - 5 Stars,5,1h 48m,108.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-04-29,Carlos(RSM),3.0,5.0,Operational Excellence - 5 Stars,5,1h 45m,105.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 3,1954,Miami,2026-04-30,Luis Alvarez,4.0,6.0,Operational Excellence - 5 Stars,5,23h 58m,1438.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 3,2042,Miami,2026-04-30,bryanna diaz,4.0,14.0,Exceeds Expectations - 4 Stars,4,2h 39m,159.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 3,2602,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P5W1,4/26/26,5/2/26,DISTRICT 3,2890,Miami,2026-05-02,Andre.V,4.0,8.0,Operational Excellence - 5 Stars,5,0h 58m,58.0,False,True
-P5W1,4/26/26,5/2/26,DISTRICT 3,2893,Miami,2026-04-28,Yogii,2.0,2.0,Operational Excellence - 5 Stars,5,2h 46m,166.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 3,2893,Miami,2026-05-01,Mirtha Velozo,2.0,2.0,Operational Excellence - 5 Stars,5,1h 2m,62.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 4,205,Lauderhill,2026-05-01,sky sorian,3.0,7.0,Operational Excellence - 5 Stars,5,1h 14m,74.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 4,420,Deerfield Beach,2026-04-29,Alex,5.0,11.0,Operational Excellence - 5 Stars,5,1h 16m,76.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 4,883,Hallandale Beach,2026-04-28,Jaheim,2.0,2.0,Operational Excellence - 5 Stars,5,3h 43m,223.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 4,1252,Fort Lauderdale,2026-04-28,Kelline,5.0,9.0,Operational Excellence - 5 Stars,5,0h 59m,59.0,False,True
-P5W1,4/26/26,5/2/26,DISTRICT 4,1726,Oakland Park,2026-04-29,Tiqosha Ortiz,2.0,2.0,Operational Excellence - 5 Stars,5,1h 27m,87.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 4,1841,Fort Lauderdale,2026-04-30,Jasmine,0.0,0.0,Operational Excellence - 5 Stars,5,2h 19m,139.0,False,True
-P5W1,4/26/26,5/2/26,DISTRICT 4,1847,Pompano Beach,2026-04-30,Tierra,3.0,3.0,Operational Excellence - 5 Stars,5,1h 46m,106.0,False,False
+P4W4,4/19/26,4/25/26,DISTRICT 2,4032,Miami,2026-04-23,Dianelys,4.0,8.0,Operational Excellence - 5 Stars,5,1h 45m,105.0,False,False
 P5W1,4/26/26,5/2/26,DISTRICT 5,79,Plantation,2026-04-27,Ruben,2.0,4.0,Operational Excellence - 5 Stars,5,1h 20m,80.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 5,79,Plantation,2026-04-30,Sachanka (RSM SO),8.0,14.0,Operational Excellence - 5 Stars,5,1h 28m,88.0,False,False
 P5W1,4/26/26,5/2/26,DISTRICT 5,183,Margate,2026-04-26,Towanda Edwards,8.0,22.0,Exceeds Expectations - 4 Stars,4,2h 24m,144.0,False,False
+P5W1,4/26/26,5/2/26,DISTRICT 4,205,Lauderhill,2026-05-01,sky sorian,3.0,7.0,Operational Excellence - 5 Stars,5,1h 14m,74.0,False,False
+P5W1,4/26/26,5/2/26,DISTRICT 1,346,Cutler Bay,2026-05-02,norman fonseca,3.0,5.0,Operational Excellence - 5 Stars,5,1h 33m,93.0,False,False
+P5W1,4/26/26,5/2/26,DISTRICT 4,420,Deerfield Beach,2026-04-29,Alex,5.0,11.0,Operational Excellence - 5 Stars,5,1h 16m,76.0,False,False
+P5W1,4/26/26,5/2/26,DISTRICT 1,871,Homestead,2026-05-03,Phillip Hardemon,9.0,17.0,Exceeds Expectations - 4 Stars,4,14h 14m,854.0,False,False
+P5W1,4/26/26,5/2/26,DISTRICT 4,883,Hallandale Beach,2026-04-28,Jaheim,2.0,2.0,Operational Excellence - 5 Stars,5,3h 43m,223.0,False,False
 P5W1,4/26/26,5/2/26,DISTRICT 5,1096,Tamarac,2026-04-26,Chadwick,6.0,10.0,Operational Excellence - 5 Stars,5,1h 51m,111.0,False,False
 P5W1,4/26/26,5/2/26,DISTRICT 5,1167,Pembroke Pines,2026-04-29,Jorge Castillo,14.0,24.0,Exceeds Expectations - 4 Stars,4,3h 51m,231.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 5,1167,Pembroke Pines,2026-04-30,Rose (RSM SO),16.0,32.0,Meets Minimum Expectations - 3 Stars,3,1h 32m,92.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 5,2048,Coral Springs,2026-04-29,Juan Centeno,6.0,10.0,Operational Excellence - 5 Stars,5,1h 15m,75.0,False,False
-P5W1,4/26/26,5/2/26,DISTRICT 5,2290,Pembroke Pines,2026-04-29,Brit,1.0,3.0,Operational Excellence - 5 Stars,5,2h 11m,131.0,False,False
+P5W1,4/26/26,5/2/26,DISTRICT 4,1252,Fort Lauderdale,2026-04-28,Kelline,5.0,9.0,Operational Excellence - 5 Stars,5,0h 59m,59.0,False,True
+P5W1,4/26/26,5/2/26,DISTRICT 1,1677,Palmetto Bay,2026-04-30,LINDA,5.0,11.0,Operational Excellence - 5 Stars,5,2h 14m,134.0,False,False
+P5W1,4/26/26,5/2/26,DISTRICT 4,1726,Oakland Park,2026-04-29,Tiqosha Ortiz,2.0,2.0,Operational Excellence - 5 Stars,5,1h 27m,87.0,False,False
+P5W1,4/26/26,5/2/26,DISTRICT 1,1771,Miami,2026-04-30,Andrea,4.0,6.0,Operational Excellence - 5 Stars,5,2h 7m,127.0,False,False
+P5W1,4/26/26,5/2/26,DISTRICT 4,1841,Fort Lauderdale,2026-04-30,Jasmine,0.0,0.0,Operational Excellence - 5 Stars,5,2h 19m,139.0,False,True
+P5W1,4/26/26,5/2/26,DISTRICT 4,1847,Pompano Beach,2026-04-30,Tierra,3.0,3.0,Operational Excellence - 5 Stars,5,1h 46m,106.0,False,False
+P5W1,4/26/26,5/2/26,DISTRICT 2,1848,Miami,2026-04-26,Paulina,1.0,1.0,Operational Excellence - 5 Stars,5,0h 52m,52.0,False,True
+P5W1,4/26/26,5/2/26,DISTRICT 2,1891,Miami,2026-04-29,Jairon Vino,0.0,0.0,Operational Excellence - 5 Stars,5,1h 7m,67.0,False,True
+P5W1,4/26/26,5/2/26,DISTRICT 3,1954,Miami,2026-04-30,Luis Alvarez,4.0,6.0,Operational Excellence - 5 Stars,5,23h 58m,1438.0,False,False
+P5W1,4/26/26,5/2/26,DISTRICT 2,1972,Miami,2026-04-27,Brandon,5.0,11.0,Operational Excellence - 5 Stars,5,33h 18m,1998.0,False,False
 P5W1,4/26/26,5/2/26,DISTRICT 6,2013,Palm Springs,2026-05-02,brianna yanes,8.0,20.0,Exceeds Expectations - 4 Stars,4,1h 10m,70.0,False,False
+P5W1,4/26/26,5/2/26,DISTRICT 3,2042,Miami,2026-04-30,bryanna diaz,4.0,14.0,Exceeds Expectations - 4 Stars,4,2h 39m,159.0,False,False
+P5W1,4/26/26,5/2/26,DISTRICT 5,2048,Coral Springs,2026-04-29,Juan Centeno,6.0,10.0,Operational Excellence - 5 Stars,5,1h 15m,75.0,False,False
+P5W1,4/26/26,5/2/26,DISTRICT 1,2118,Homestead,2026-04-30,Daya5,1.0,3.0,Operational Excellence - 5 Stars,5,1h 30m,90.0,False,False
+P5W1,4/26/26,5/2/26,DISTRICT 5,2290,Pembroke Pines,2026-04-29,Brit,1.0,3.0,Operational Excellence - 5 Stars,5,2h 11m,131.0,False,False
 P5W1,4/26/26,5/2/26,DISTRICT 6,2497,Royal Palm Beach,2026-04-29,Arlenna Holman,1.0,3.0,Operational Excellence - 5 Stars,5,2h 26m,146.0,False,False
+P5W1,4/26/26,5/2/26,DISTRICT 3,2602,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P5W1,4/26/26,5/2/26,DISTRICT 2,2627,NO EVALUATION COMPLETED,,,,,,0,,,True,False
 P5W1,4/26/26,5/2/26,DISTRICT 6,2696,West Palm Beach,2026-04-28,David  Soria,2.0,6.0,Operational Excellence - 5 Stars,5,3h 14m,194.0,False,False
+P5W1,4/26/26,5/2/26,DISTRICT 2,2766,Miami,2026-04-27,Brandon Cordoba,3.0,5.0,Operational Excellence - 5 Stars,5,1h 25m,85.0,False,False
 P5W1,4/26/26,5/2/26,DISTRICT 6,2885,Lantana,2026-04-26,Thomas Rea Jr,1.0,3.0,Operational Excellence - 5 Stars,5,0h 13m,13.0,False,True
+P5W1,4/26/26,5/2/26,DISTRICT 3,2890,Miami,2026-05-02,Andre.V,4.0,8.0,Operational Excellence - 5 Stars,5,0h 58m,58.0,False,True
+P5W1,4/26/26,5/2/26,DISTRICT 3,2893,Miami,2026-05-01,Mirtha Velozo,2.0,2.0,Operational Excellence - 5 Stars,5,1h 2m,62.0,False,False
 P5W1,4/26/26,5/2/26,DISTRICT 6,2974,Delray Beach,2026-04-30,Diamond Pelt,5.0,17.0,Unacceptable - 1 Star,1,32h 11m,1931.0,False,False
+P5W1,4/26/26,5/2/26,DISTRICT 1,3013,NO EVALUATION COMPLETED,,,,,,0,,,True,False
 P5W1,4/26/26,5/2/26,DISTRICT 6,3200,Jupiter,2026-05-02,Will,5.0,13.0,Operational Excellence - 5 Stars,5,1h 7m,67.0,False,False
 P5W1,4/26/26,5/2/26,DISTRICT 6,3317,Boca Raton,2026-04-27,Steven Rivera,2.0,2.0,Operational Excellence - 5 Stars,5,1h 49m,109.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 1,346,Cutler Bay,2026-05-09,norman fonseca,3.0,7.0,Operational Excellence - 5 Stars,5,1h 42m,102.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 1,871,Homestead,2026-05-09,Phillip Hardemon,10.0,22.0,Exceeds Expectations - 4 Stars,4,1h 57m,117.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 1,1677,Palmetto Bay,2026-05-07,Linda Fountain,5.0,13.0,Exceeds Expectations - 4 Stars,4,1h 51m,111.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 1,1677,Palmetto Bay,2026-05-08,Ms. Linda (RSM SO),9.0,21.0,Exceeds Expectations - 4 Stars,4,1h 22m,82.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 1,1771,Miami,2026-05-06,Geronimo (RSM SO),9.0,23.0,Exceeds Expectations - 4 Stars,4,1h 45m,105.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 1,1771,Miami,2026-05-06,Andrea V,3.0,9.0,Exceeds Expectations - 4 Stars,4,2h 33m,153.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 1,2118,Homestead,2026-05-08,Dayami,1.0,3.0,Operational Excellence - 5 Stars,5,1h 46m,106.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 1,3013,Miami,2026-05-04,Samir,2.0,4.0,Operational Excellence - 5 Stars,5,133h 32m,8012.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 2,1848,Miami,2026-05-09,Paulina,2.0,6.0,Operational Excellence - 5 Stars,5,1h 46m,106.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 2,1891,Miami,2026-05-09,Melissa Navarro,1.0,1.0,Operational Excellence - 5 Stars,5,1h 29m,89.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 2,1972,Miami,2026-05-02,Brandon,4.0,14.0,Meets Minimum Expectations - 3 Stars,3,16h 43m,1003.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 2,1972,Miami,2026-05-08,Brandon (RSM SO),11.0,17.0,Exceeds Expectations - 4 Stars,4,2h 53m,173.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 2,1972,Miami,2026-05-09,Erik Urra,2.0,6.0,Operational Excellence - 5 Stars,5,1h 53m,113.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 2,2627,Hialeah,2026-05-07,Ariel Reyes,3.0,5.0,Operational Excellence - 5 Stars,5,1h 8m,68.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 2,2766,Miami,2026-05-07,Camila Reyes,2.0,2.0,Operational Excellence - 5 Stars,5,1h 21m,81.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 2,4032,Miami,2026-05-09,Dianelys,4.0,8.0,Operational Excellence - 5 Stars,5,1h 34m,94.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-05-06,Carlos Dubon,2.0,6.0,Operational Excellence - 5 Stars,5,1h 23m,83.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 3,1954,Miami,2026-05-06,Luis (RSM SO),8.0,14.0,Operational Excellence - 5 Stars,5,1h 16m,76.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 3,1954,Miami,2026-05-07,Luis Alvarez,5.0,11.0,Operational Excellence - 5 Stars,5,1h 26m,86.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 3,2042,Miami,2026-05-04,Bryanna (RSM SO),12.0,24.0,Exceeds Expectations - 4 Stars,4,2h 44m,164.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 3,2042,Miami,2026-05-08,Yuni,3.0,7.0,Operational Excellence - 5 Stars,5,1h 1m,61.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 3,2602,Doral,2026-05-06,CAAD,1.0,1.0,Operational Excellence - 5 Stars,5,2h 18m,138.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 3,2890,Miami,2026-05-09,Andre V,2.0,6.0,Operational Excellence - 5 Stars,5,1h 13m,73.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 3,2893,Miami,2026-05-07,Mirtha Velozo,4.0,10.0,Exceeds Expectations - 4 Stars,4,0h 52m,52.0,False,True
-P5W2,5/3/26,5/9/26,DISTRICT 4,205,Lauderhill,2026-05-05,kristal williams,3.0,5.0,Operational Excellence - 5 Stars,5,2h 8m,128.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 4,205,Lauderhill,2026-05-05,Tameika (RSM SO),11.0,21.0,Exceeds Expectations - 4 Stars,4,1h 8m,68.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 4,420,Deerfield Beach,2026-05-06,Jazimine,5.0,11.0,Operational Excellence - 5 Stars,5,1h 22m,82.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 4,1252,Fort Lauderdale,2026-05-06,Kelline,4.0,8.0,Operational Excellence - 5 Stars,5,1h 4m,64.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 4,1726,Oakland Park,2026-05-06,Tiqosha Ortiz,1.0,3.0,Operational Excellence - 5 Stars,5,5h 28m,328.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 4,1841,Fort Lauderdale,2026-05-07,Jasmine M,2.0,6.0,Operational Excellence - 5 Stars,5,5h 8m,308.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 4,1847,Pompano Beach,2026-05-07,Tierra Peterson,2.0,4.0,Operational Excellence - 5 Stars,5,1h 10m,70.0,False,False
+P5W1,4/26/26,5/2/26,DISTRICT 2,4032,Miami,2026-05-02,Amy,5.0,11.0,Operational Excellence - 5 Stars,5,1h 48m,108.0,False,False
 P5W2,5/3/26,5/9/26,DISTRICT 5,79,Plantation,2026-05-06,Ruben Farris,2.0,4.0,Operational Excellence - 5 Stars,5,2h 32m,152.0,False,False
 P5W2,5/3/26,5/9/26,DISTRICT 5,183,Margate,2026-05-08,Towanda Edwards,5.0,11.0,Exceeds Expectations - 4 Stars,4,5h 19m,319.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 5,1096,Tamarac,2026-05-05,Chadwick (RSM SO),13.0,21.0,Exceeds Expectations - 4 Stars,4,1h 36m,96.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 4,205,Lauderhill,2026-05-05,kristal williams,3.0,5.0,Operational Excellence - 5 Stars,5,2h 8m,128.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 1,346,Cutler Bay,2026-05-09,norman fonseca,3.0,7.0,Operational Excellence - 5 Stars,5,1h 42m,102.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 4,420,Deerfield Beach,2026-05-06,Jazimine,5.0,11.0,Operational Excellence - 5 Stars,5,1h 22m,82.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 1,871,Homestead,2026-05-09,Phillip Hardemon,10.0,22.0,Exceeds Expectations - 4 Stars,4,1h 57m,117.0,False,False
 P5W2,5/3/26,5/9/26,DISTRICT 5,1096,Tamarac,2026-05-06,Chadwick,9.0,23.0,Exceeds Expectations - 4 Stars,4,1h 14m,74.0,False,False
 P5W2,5/3/26,5/9/26,DISTRICT 5,1167,Pembroke Pines,2026-05-05,Jorge Castillo,4.0,4.0,Operational Excellence - 5 Stars,5,11h 27m,687.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 4,1252,Fort Lauderdale,2026-05-06,Kelline,4.0,8.0,Operational Excellence - 5 Stars,5,1h 4m,64.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 1,1677,Palmetto Bay,2026-05-07,Linda Fountain,5.0,13.0,Exceeds Expectations - 4 Stars,4,1h 51m,111.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 4,1726,Oakland Park,2026-05-06,Tiqosha Ortiz,1.0,3.0,Operational Excellence - 5 Stars,5,5h 28m,328.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 1,1771,Miami,2026-05-06,Andrea V,3.0,9.0,Exceeds Expectations - 4 Stars,4,2h 33m,153.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 4,1841,Fort Lauderdale,2026-05-07,Jasmine M,2.0,6.0,Operational Excellence - 5 Stars,5,5h 8m,308.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 4,1847,Pompano Beach,2026-05-07,Tierra Peterson,2.0,4.0,Operational Excellence - 5 Stars,5,1h 10m,70.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 2,1848,Miami,2026-05-09,Paulina,2.0,6.0,Operational Excellence - 5 Stars,5,1h 46m,106.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-05-06,Carlos Dubon,2.0,6.0,Operational Excellence - 5 Stars,5,1h 23m,83.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 2,1891,Miami,2026-05-09,Melissa Navarro,1.0,1.0,Operational Excellence - 5 Stars,5,1h 29m,89.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 3,1954,Miami,2026-05-07,Luis Alvarez,5.0,11.0,Operational Excellence - 5 Stars,5,1h 26m,86.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 2,1972,Miami,2026-05-09,Erik Urra,2.0,6.0,Operational Excellence - 5 Stars,5,1h 53m,113.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 3,2042,Miami,2026-05-08,Yuni,3.0,7.0,Operational Excellence - 5 Stars,5,1h 1m,61.0,False,False
 P5W2,5/3/26,5/9/26,DISTRICT 5,2048,Coral Springs,2026-05-03,Juan Centeno,4.0,6.0,Operational Excellence - 5 Stars,5,1h 14m,74.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 1,2118,Homestead,2026-05-08,Dayami,1.0,3.0,Operational Excellence - 5 Stars,5,1h 46m,106.0,False,False
 P5W2,5/3/26,5/9/26,DISTRICT 5,2290,Pembroke Pines,2026-05-05,Brit,1.0,3.0,Operational Excellence - 5 Stars,5,3h 47m,227.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 5,2976,Weston,2026-05-08,Raquel Hernandez,3.0,9.0,Operational Excellence - 5 Stars,5,2h 15m,135.0,False,False
 P5W2,5/3/26,5/9/26,DISTRICT 6,2497,Royal Palm Beach,2026-05-06,Arlenna Holman,2.0,4.0,Operational Excellence - 5 Stars,5,2h 36m,156.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 3,2602,Doral,2026-05-06,CAAD,1.0,1.0,Operational Excellence - 5 Stars,5,2h 18m,138.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 2,2627,Hialeah,2026-05-07,Ariel Reyes,3.0,5.0,Operational Excellence - 5 Stars,5,1h 8m,68.0,False,False
 P5W2,5/3/26,5/9/26,DISTRICT 6,2696,West Palm Beach,2026-05-05,David  Soria,2.0,6.0,Operational Excellence - 5 Stars,5,1h 56m,116.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 2,2766,Miami,2026-05-07,Camila Reyes,2.0,2.0,Operational Excellence - 5 Stars,5,1h 21m,81.0,False,False
 P5W2,5/3/26,5/9/26,DISTRICT 6,2885,Lantana,2026-05-04,Thomas Rea Jr,1.0,3.0,Operational Excellence - 5 Stars,5,2h 13m,133.0,False,False
-P5W2,5/3/26,5/9/26,DISTRICT 6,2974,Delray Beach,2026-05-05,Deana Elveus,1.0,3.0,Operational Excellence - 5 Stars,5,5h 30m,330.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 3,2890,Miami,2026-05-09,Andre V,2.0,6.0,Operational Excellence - 5 Stars,5,1h 13m,73.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 3,2893,Miami,2026-05-07,Mirtha Velozo,4.0,10.0,Exceeds Expectations - 4 Stars,4,0h 52m,52.0,False,True
 P5W2,5/3/26,5/9/26,DISTRICT 6,2974,Delray Beach,2026-05-06,Diamond Pelt,5.0,13.0,Operational Excellence - 5 Stars,5,3h 41m,221.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 5,2976,Weston,2026-05-08,Raquel Hernandez,3.0,9.0,Operational Excellence - 5 Stars,5,2h 15m,135.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 1,3013,Miami,2026-05-04,Samir,2.0,4.0,Operational Excellence - 5 Stars,5,133h 32m,8012.0,False,False
 P5W2,5/3/26,5/9/26,DISTRICT 6,3200,Jupiter,2026-05-05,Wanda Sanchez,2.0,6.0,Operational Excellence - 5 Stars,5,1h 21m,81.0,False,False
 P5W2,5/3/26,5/9/26,DISTRICT 6,3317,Boca Raton,2026-05-06,Steven Rivers,2.0,2.0,Operational Excellence - 5 Stars,5,1h 5m,65.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 1,346,Cutler Bay,2026-05-13,Deandris Harris,6.0,8.0,Operational Excellence - 5 Stars,5,1h 20m,80.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 1,871,Homestead,2026-05-15,Phillip Hardemon,12.0,24.0,Exceeds Expectations - 4 Stars,4,2h 28m,148.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 1,1677,Palmetto Bay,2026-05-14,Linda Fountain,6.0,14.0,Exceeds Expectations - 4 Stars,4,2h 12m,132.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 1,1771,Miami,2026-05-11,Alonso (RSM SO),8.0,14.0,Operational Excellence - 5 Stars,5,3h 52m,232.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 1,1771,Miami,2026-05-16,Alonso,3.0,7.0,Operational Excellence - 5 Stars,5,1h 6m,66.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 1,2118,Homestead,2026-05-13,Mayra,0.0,0.0,Operational Excellence - 5 Stars,5,52 min,52.0,False,True
-P5W3,5/10/26,5/16/26,DISTRICT 1,2118,Homestead,2026-05-17,Dayami,1.0,3.0,Operational Excellence - 5 Stars,5,1h 31m,91.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 1,3013,Miami,2026-05-12,Liquita Edwards,0.0,0.0,Operational Excellence - 5 Stars,5,3h 2m,182.0,False,True
-P5W3,5/10/26,5/16/26,DISTRICT 1,3013,Miami,2026-05-17,Liquita Edwards,9.0,21.0,Exceeds Expectations - 4 Stars,4,18h 5m,1085.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 2,1848,Miami,2026-05-15,Paulina,2.0,4.0,Operational Excellence - 5 Stars,5,1h 50m,110.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 2,1891,Miami,2026-05-16,Mairelis Romero,2.0,6.0,Operational Excellence - 5 Stars,5,10h 51m,651.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 2,1972,Miami,2026-05-16,Brandon,3.0,9.0,Operational Excellence - 5 Stars,5,20h 19m,1219.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 2,2627,Hialeah,2026-05-14,Iyaimel Gonzalez,1.0,3.0,Operational Excellence - 5 Stars,5,1h 46m,106.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 2,2766,Miami,2026-05-16,Mariangela,3.0,7.0,Operational Excellence - 5 Stars,5,2h 32m,152.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 2,4032,Miami,2026-05-16,Dianelys,4.0,8.0,Operational Excellence - 5 Stars,5,1h 51m,111.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-05-13,Carlos Dubon (RSM SO),4.0,8.0,Operational Excellence - 5 Stars,5,1h 32m,92.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 3,1954,Miami,2026-05-14,Luis Alvarez,5.0,15.0,Meets Minimum Expectations - 3 Stars,3,1h 32m,92.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 3,1954,Miami,2026-05-15,Luis (RSM SO),10.0,20.0,Exceeds Expectations - 4 Stars,4,55h 59m,3359.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 3,2042,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P5W3,5/10/26,5/16/26,DISTRICT 3,2042,Miami,2026-05-14,Bryanna (RSM SO),9.0,19.0,Exceeds Expectations - 4 Stars,4,10h 37m,637.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 3,2602,Doral,2026-05-15,Liseidis,1.0,1.0,Operational Excellence - 5 Stars,5,1h 4m,64.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 3,2890,Miami,2026-05-17,Andre.V,3.0,3.0,Operational Excellence - 5 Stars,5,1h 12m,72.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 3,2893,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P5W3,5/10/26,5/16/26,DISTRICT 4,205,Lauderhill,2026-05-12,kristal williams,2.0,8.0,Exceeds Expectations - 4 Stars,4,2h 10m,130.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 4,420,Deerfield Beach,2026-05-12,Jazime,8.0,22.0,Exceeds Expectations - 4 Stars,4,1h 11m,71.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 4,883,Hallandale Beach,2026-05-09,Cesar M.,1.0,1.0,Operational Excellence - 5 Stars,5,3h 23m,203.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 4,883,Hallandale Beach,2026-05-12,Karla (RSM SO),6.0,14.0,Exceeds Expectations - 4 Stars,4,4h 9m,249.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 4,883,Hallandale Beach,2026-05-16,Rebekah,0.0,0.0,Operational Excellence - 5 Stars,5,2h 25m,145.0,False,True
-P5W3,5/10/26,5/16/26,DISTRICT 4,1252,Fort Lauderdale,2026-05-12,Kelline,5.0,9.0,Operational Excellence - 5 Stars,5,51 min,51.0,False,True
-P5W3,5/10/26,5/16/26,DISTRICT 4,1726,Oakland Park,2026-05-13,Tiqosha Ortiz,2.0,2.0,Operational Excellence - 5 Stars,5,8h 31m,511.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 4,1841,Fort Lauderdale,2026-05-16,Jasmine M,0.0,0.0,Operational Excellence - 5 Stars,5,5h 12m,312.0,False,True
-P5W3,5/10/26,5/16/26,DISTRICT 4,1847,Pompano Beach,2026-05-14,Tierra Peterson,1.0,1.0,Operational Excellence - 5 Stars,5,1h 11m,71.0,False,False
+P5W2,5/3/26,5/9/26,DISTRICT 2,4032,Miami,2026-05-09,Dianelys,4.0,8.0,Operational Excellence - 5 Stars,5,1h 34m,94.0,False,False
 P5W3,5/10/26,5/16/26,DISTRICT 5,79,Plantation,2026-05-13,Ruben Fedius,2.0,6.0,Operational Excellence - 5 Stars,5,2h 19m,139.0,False,False
 P5W3,5/10/26,5/16/26,DISTRICT 5,183,Margate,2026-05-16,Towanda Edwards,7.0,15.0,Exceeds Expectations - 4 Stars,4,1h 29m,89.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 4,205,Lauderhill,2026-05-12,kristal williams,2.0,8.0,Exceeds Expectations - 4 Stars,4,2h 10m,130.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 1,346,Cutler Bay,2026-05-13,Deandris Harris,6.0,8.0,Operational Excellence - 5 Stars,5,1h 20m,80.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 4,420,Deerfield Beach,2026-05-12,Jazime,8.0,22.0,Exceeds Expectations - 4 Stars,4,1h 11m,71.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 1,871,Homestead,2026-05-15,Phillip Hardemon,12.0,24.0,Exceeds Expectations - 4 Stars,4,2h 28m,148.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 4,883,Hallandale Beach,2026-05-16,Rebekah,0.0,0.0,Operational Excellence - 5 Stars,5,2h 25m,145.0,False,True
 P5W3,5/10/26,5/16/26,DISTRICT 5,1096,Tamarac,2026-05-11,Chadwick Clark,3.0,9.0,Operational Excellence - 5 Stars,5,106h 16m,6376.0,False,False
 P5W3,5/10/26,5/16/26,DISTRICT 5,1167,Pembroke Pines,2026-05-14,Rose Grant,13.0,37.0,Meets Minimum Expectations - 3 Stars,3,33h 7m,1987.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 5,2048,Coral Springs,2026-05-16,Genet,5.0,11.0,Operational Excellence - 5 Stars,5,1h 35m,95.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 5,2290,Pembroke Pines,2026-05-12,Brit,1.0,5.0,Exceeds Expectations - 4 Stars,4,1h 36m,96.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 5,2976,Weston,2026-05-13,Raquel Hernández,4.0,10.0,Operational Excellence - 5 Stars,5,2h 20m,140.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 4,1252,Fort Lauderdale,2026-05-12,Kelline,5.0,9.0,Operational Excellence - 5 Stars,5,51 min,51.0,False,True
+P5W3,5/10/26,5/16/26,DISTRICT 1,1677,Palmetto Bay,2026-05-14,Linda Fountain,6.0,14.0,Exceeds Expectations - 4 Stars,4,2h 12m,132.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 4,1726,Oakland Park,2026-05-13,Tiqosha Ortiz,2.0,2.0,Operational Excellence - 5 Stars,5,8h 31m,511.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 1,1771,Miami,2026-05-16,Alonso,3.0,7.0,Operational Excellence - 5 Stars,5,1h 6m,66.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 4,1841,Fort Lauderdale,2026-05-16,Jasmine M,0.0,0.0,Operational Excellence - 5 Stars,5,5h 12m,312.0,False,True
+P5W3,5/10/26,5/16/26,DISTRICT 4,1847,Pompano Beach,2026-05-14,Tierra Peterson,1.0,1.0,Operational Excellence - 5 Stars,5,1h 11m,71.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 2,1848,Miami,2026-05-15,Paulina,2.0,4.0,Operational Excellence - 5 Stars,5,1h 50m,110.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 2,1891,Miami,2026-05-16,Mairelis Romero,2.0,6.0,Operational Excellence - 5 Stars,5,10h 51m,651.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 3,1954,Miami,2026-05-14,Luis Alvarez,5.0,15.0,Meets Minimum Expectations - 3 Stars,3,1h 32m,92.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 2,1972,Miami,2026-05-16,Brandon,3.0,9.0,Operational Excellence - 5 Stars,5,20h 19m,1219.0,False,False
 P5W3,5/10/26,5/16/26,DISTRICT 6,2013,Palm Springs,2026-05-16,brianna yanes,7.0,17.0,Exceeds Expectations - 4 Stars,4,1h 7m,67.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 3,2042,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P5W3,5/10/26,5/16/26,DISTRICT 5,2048,Coral Springs,2026-05-16,Genet,5.0,11.0,Operational Excellence - 5 Stars,5,1h 35m,95.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 1,2118,Homestead,2026-05-17,Dayami,1.0,3.0,Operational Excellence - 5 Stars,5,1h 31m,91.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 5,2290,Pembroke Pines,2026-05-12,Brit,1.0,5.0,Exceeds Expectations - 4 Stars,4,1h 36m,96.0,False,False
 P5W3,5/10/26,5/16/26,DISTRICT 6,2497,Royal Palm Beach,2026-05-14,Arlenna Holman,5.0,15.0,Exceeds Expectations - 4 Stars,4,3h 17m,197.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 3,2602,Doral,2026-05-15,Liseidis,1.0,1.0,Operational Excellence - 5 Stars,5,1h 4m,64.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 2,2627,Hialeah,2026-05-14,Iyaimel Gonzalez,1.0,3.0,Operational Excellence - 5 Stars,5,1h 46m,106.0,False,False
 P5W3,5/10/26,5/16/26,DISTRICT 6,2696,West Palm Beach,2026-05-13,David  Soria,1.0,3.0,Operational Excellence - 5 Stars,5,2h 40m,160.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 2,2766,Miami,2026-05-16,Mariangela,3.0,7.0,Operational Excellence - 5 Stars,5,2h 32m,152.0,False,False
 P5W3,5/10/26,5/16/26,DISTRICT 6,2885,Lantana,2026-05-10,Thomas Rea Jr,1.0,3.0,Operational Excellence - 5 Stars,5,1h 13m,73.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 3,2890,Miami,2026-05-17,Andre.V,3.0,3.0,Operational Excellence - 5 Stars,5,1h 12m,72.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 3,2893,NO EVALUATION COMPLETED,,,,,,0,,,True,False
 P5W3,5/10/26,5/16/26,DISTRICT 6,2974,Delray Beach,2026-05-13,Diamond Pelt,2.0,6.0,Operational Excellence - 5 Stars,5,72h 34m,4354.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 5,2976,Weston,2026-05-13,Raquel Hernández,4.0,10.0,Operational Excellence - 5 Stars,5,2h 20m,140.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 1,3013,Miami,2026-05-17,Liquita Edwards,9.0,21.0,Exceeds Expectations - 4 Stars,4,18h 5m,1085.0,False,False
 P5W3,5/10/26,5/16/26,DISTRICT 6,3200,Jupiter,2026-05-16,W,5.0,11.0,Operational Excellence - 5 Stars,5,1h 2m,62.0,False,False
 P5W3,5/10/26,5/16/26,DISTRICT 6,3317,Boca Raton,2026-05-13,Willhem,2.0,4.0,Operational Excellence - 5 Stars,5,1h 35m,95.0,False,False
-P5W3,5/10/26,5/16/26,DISTRICT 6,3317,Boca Raton,2026-05-13,Steven (RSM SO),11.0,19.0,Exceeds Expectations - 4 Stars,4,2h 33m,153.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 1,346,,,,,,,0,,,True,False
-P5W4,5/17/26,5/23/26,DISTRICT 1,871,Homestead,2026-05-23,Phillip Hardemon,10.0,20.0,Exceeds Expectations - 4 Stars,4,4h 21m,261.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 1,1677,Palmetto Bay,2026-05-21,Linda Fountain,5.0,13.0,Exceeds Expectations - 4 Stars,4,1h 54m,114.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 1,1771,Miami,2026-05-22,Geronimo,4.0,6.0,Operational Excellence - 5 Stars,5,1h 42m,102.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 1,2118,Homestead,2026-05-17,Dayami,1.0,3.0,Operational Excellence - 5 Stars,5,1h 31m,91.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 1,3013,Miami,2026-05-17,Liquita Edwards,9.0,21.0,Exceeds Expectations - 4 Stars,4,18h 5m,1085.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 2,1848,Miami,2026-05-23,Paulina,2.0,6.0,Operational Excellence - 5 Stars,5,1h 48m,108.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 2,1891,Miami,2026-05-21,Jairon Vino,0.0,0.0,Operational Excellence - 5 Stars,5,1h 24m,84.0,False,True
-P5W4,5/17/26,5/23/26,DISTRICT 2,1891,Miami,2026-05-20,Jairon (RSM SO),6.0,12.0,Operational Excellence - 5 Stars,5,2h 49m,169.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 2,1972,Miami,2026-05-21,Corey,6.0,14.0,Operational Excellence - 5 Stars,5,51m,,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 2,1972,Miami,2026-05-16,Brandon,3.0,9.0,Operational Excellence - 5 Stars,5,20h 19m,1219.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 2,2627,Hialeah,2026-05-23,Juana Pelaez,1.0,5.0,Exceeds Expectations - 4 Stars,4,2h 41m,161.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 2,2766,Miami,2026-05-23,Mariangela,3.0,7.0,Operational Excellence - 5 Stars,5,2h 11m,131.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 2,4032,Miami,2026-05-23,Dianelys,1.0,3.0,Operational Excellence - 5 Stars,5,1h 55m,115.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 2,4032,Miami,2026-05-21,Dianelys,4.0,8.0,Operational Excellence - 5 Stars,5,1h 55m,115.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-05-20,Carlos Dubon,5.0,9.0,Operational Excellence - 5 Stars,5,1h 36m,96.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 3,1954,Miami,2026-05-20,Luis Alvarez,2.0,10.0,Meets Minimum Expectations - 3 Stars,3,1h 24m,84.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 3,1954,Miami,2026-05-19,Luis (RSM SO),9.0,19.0,Exceeds Expectations - 4 Stars,4,4h 48m,288.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 3,2042,Miami,2026-05-18,bryanna diaz,6.0,18.0,Exceeds Expectations - 4 Stars,4,1h 5m,65.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 3,2602,Doral,2026-05-21,Liseidis,2.0,2.0,Operational Excellence - 5 Stars,5,1h 4m,64.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 3,2890,Miami,2026-05-17,Andre.V,3.0,3.0,Operational Excellence - 5 Stars,5,1h 12m,72.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 3,2893,,,,,,,0,,,True,False
-P5W4,5/17/26,5/23/26,DISTRICT 4,205,Lauderhill,2026-05-20,sky soriana,4.0,6.0,Operational Excellence - 5 Stars,5,1h 41m,101.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 4,420,Deerfield Beach,2026-05-20,Reva,7.0,19.0,Exceeds Expectations - 4 Stars,4,1h 1m,61.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 4,883,Hallandale Beach,2026-05-23,James Beckett,0.0,0.0,Operational Excellence - 5 Stars,5,5h 55m,355.0,False,True
-P5W4,5/17/26,5/23/26,DISTRICT 4,1252,Fort Lauderdale,2026-05-19,Kelline,3.0,5.0,Operational Excellence - 5 Stars,5,43m,,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 4,1726,Oakland Park,2026-05-20,Tiqosha Ortiz,4.0,8.0,Operational Excellence - 5 Stars,5,1h 54m,114.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 4,1841,Fort Lauderdale,2026-05-21,Jasmine,2.0,4.0,Operational Excellence - 5 Stars,5,3h 59m,239.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 4,1841,Fort Lauderdale,2026-05-16,Jasmine M,0.0,0.0,Operational Excellence - 5 Stars,5,5h 12m,312.0,False,True
-P5W4,5/17/26,5/23/26,DISTRICT 4,1847,Pompano Beach,2026-05-20,Tierra Peterson,1.0,3.0,Operational Excellence - 5 Stars,5,2h 7m,127.0,False,False
+P5W3,5/10/26,5/16/26,DISTRICT 2,4032,Miami,2026-05-16,Dianelys,4.0,8.0,Operational Excellence - 5 Stars,5,1h 51m,111.0,False,False
 P5W4,5/17/26,5/23/26,DISTRICT 5,79,Plantation,2026-05-18,Sachenka Jean Chilles,2.0,4.0,Operational Excellence - 5 Stars,5,1h 23m,83.0,False,False
 P5W4,5/17/26,5/23/26,DISTRICT 5,183,Margate,2026-05-23,TE,6.0,16.0,Exceeds Expectations - 4 Stars,4,2h 19m,139.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 4,205,Lauderhill,2026-05-20,sky soriana,4.0,6.0,Operational Excellence - 5 Stars,5,1h 41m,101.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 1,346,,,,,,,0,,,True,False
+P5W4,5/17/26,5/23/26,DISTRICT 4,420,Deerfield Beach,2026-05-20,Reva,7.0,19.0,Exceeds Expectations - 4 Stars,4,1h 1m,61.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 1,871,Homestead,2026-05-23,Phillip Hardemon,10.0,20.0,Exceeds Expectations - 4 Stars,4,4h 21m,261.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 4,883,Hallandale Beach,2026-05-23,James Beckett,0.0,0.0,Operational Excellence - 5 Stars,5,5h 55m,355.0,False,True
 P5W4,5/17/26,5/23/26,DISTRICT 5,1096,Tamarac,2026-05-21,Chadwick Clark,6.0,12.0,Operational Excellence - 5 Stars,5,1h 32m,92.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 5,1096,Tamarac,2026-05-20,Clerita (RSM SO),10.0,22.0,Exceeds Expectations - 4 Stars,4,1h 25m,85.0,False,False
 P5W4,5/17/26,5/23/26,DISTRICT 5,1167,Pembroke Pines,2026-05-22,Rose Grant,5.0,13.0,Operational Excellence - 5 Stars,5,1h 15m,75.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 5,2048,Coral Springs,2026-05-20,Juan Centeno,5.0,9.0,Operational Excellence - 5 Stars,5,1h 21m,81.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 5,2290,Pembroke Pines,2026-05-20,Brit,1.0,3.0,Operational Excellence - 5 Stars,5,1h 54m,114.0,False,False
-P5W4,5/17/26,5/23/26,DISTRICT 5,2976,Weston,2026-05-22,Raquel Hernandez,5.0,15.0,Exceeds Expectations - 4 Stars,4,2h 6m,126.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 4,1252,Fort Lauderdale,2026-05-19,Kelline,3.0,5.0,Operational Excellence - 5 Stars,5,43m,,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 1,1677,Palmetto Bay,2026-05-21,Linda Fountain,5.0,13.0,Exceeds Expectations - 4 Stars,4,1h 54m,114.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 4,1726,Oakland Park,2026-05-20,Tiqosha Ortiz,4.0,8.0,Operational Excellence - 5 Stars,5,1h 54m,114.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 1,1771,Miami,2026-05-22,Geronimo,4.0,6.0,Operational Excellence - 5 Stars,5,1h 42m,102.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 4,1841,Fort Lauderdale,2026-05-21,Jasmine,2.0,4.0,Operational Excellence - 5 Stars,5,3h 59m,239.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 4,1847,Pompano Beach,2026-05-20,Tierra Peterson,1.0,3.0,Operational Excellence - 5 Stars,5,2h 7m,127.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 2,1848,Miami,2026-05-23,Paulina,2.0,6.0,Operational Excellence - 5 Stars,5,1h 48m,108.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-05-20,Carlos Dubon,5.0,9.0,Operational Excellence - 5 Stars,5,1h 36m,96.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 2,1891,Miami,2026-05-21,Jairon Vino,0.0,0.0,Operational Excellence - 5 Stars,5,1h 24m,84.0,False,True
+P5W4,5/17/26,5/23/26,DISTRICT 3,1954,Miami,2026-05-20,Luis Alvarez,2.0,10.0,Meets Minimum Expectations - 3 Stars,3,1h 24m,84.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 2,1972,Miami,2026-05-21,Corey,6.0,14.0,Operational Excellence - 5 Stars,5,51m,,False,False
 P5W4,5/17/26,5/23/26,DISTRICT 6,2013,Palm Springs,2026-05-21,brianna yanes,7.0,13.0,Operational Excellence - 5 Stars,5,2h 44m,164.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 3,2042,Miami,2026-05-18,bryanna diaz,6.0,18.0,Exceeds Expectations - 4 Stars,4,1h 5m,65.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 5,2048,Coral Springs,2026-05-20,Juan Centeno,5.0,9.0,Operational Excellence - 5 Stars,5,1h 21m,81.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 1,2118,Homestead,2026-05-17,Dayami,1.0,3.0,Operational Excellence - 5 Stars,5,1h 31m,91.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 5,2290,Pembroke Pines,2026-05-20,Brit,1.0,3.0,Operational Excellence - 5 Stars,5,1h 54m,114.0,False,False
 P5W4,5/17/26,5/23/26,DISTRICT 6,2497,Royal Palm Beach,2026-05-23,Tiffany,1.0,3.0,Operational Excellence - 5 Stars,5,1h 15m,75.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 3,2602,Doral,2026-05-21,Liseidis,2.0,2.0,Operational Excellence - 5 Stars,5,1h 4m,64.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 2,2627,Hialeah,2026-05-23,Juana Pelaez,1.0,5.0,Exceeds Expectations - 4 Stars,4,2h 41m,161.0,False,False
 P5W4,5/17/26,5/23/26,DISTRICT 6,2696,,,,,,,0,,,True,False
+P5W4,5/17/26,5/23/26,DISTRICT 2,2766,Miami,2026-05-23,Mariangela,3.0,7.0,Operational Excellence - 5 Stars,5,2h 11m,131.0,False,False
 P5W4,5/17/26,5/23/26,DISTRICT 6,2885,Lantana,2026-05-17,Thomas Rea Jr,0.0,0.0,Operational Excellence - 5 Stars,5,168h 40m,10120.0,False,True
+P5W4,5/17/26,5/23/26,DISTRICT 3,2890,Miami,2026-05-17,Andre.V,3.0,3.0,Operational Excellence - 5 Stars,5,1h 12m,72.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 3,2893,,,,,,,0,,,True,False
 P5W4,5/17/26,5/23/26,DISTRICT 6,2974,Delray Beach,2026-05-20,Deana Elevus,0.0,0.0,Operational Excellence - 5 Stars,5,83h 53m,5033.0,False,True
+P5W4,5/17/26,5/23/26,DISTRICT 5,2976,Weston,2026-05-22,Raquel Hernandez,5.0,15.0,Exceeds Expectations - 4 Stars,4,2h 6m,126.0,False,False
+P5W4,5/17/26,5/23/26,DISTRICT 1,3013,Miami,2026-05-17,Liquita Edwards,9.0,21.0,Exceeds Expectations - 4 Stars,4,18h 5m,1085.0,False,False
 P5W4,5/17/26,5/23/26,DISTRICT 6,3200,Jupiter,2026-05-23,W,7.0,21.0,Exceeds Expectations - 4 Stars,4,12h 9m,729.0,False,False
 P5W4,5/17/26,5/23/26,DISTRICT 6,3317,Boca Raton,2026-05-23,Willhem,2.0,2.0,Operational Excellence - 5 Stars,5,1h 22m,82.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 1,346,Cutler Bay,2026-05-27,norman fonseca,4.0,8.0,Operational Excellence - 5 Stars,5,1h 32m,92.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 1,871,Homestead,2026-05-27,Phillip Hardemon,11.0,19.0,Exceeds Expectations - 4 Stars,4,26h 14m,1574.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 1,1677,Palmetto Bay,2026-05-27,Linda Fountain,5.0,9.0,Operational Excellence - 5 Stars,5,1h 56m,116.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 1,1771,Miami,2026-05-28,Geronimo,3.0,7.0,Operational Excellence - 5 Stars,5,2h 5m,125.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 1,2118,Homestead,2026-05-28,Dayami,1.0,1.0,Operational Excellence - 5 Stars,5,3h 39m,219.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 1,3013,Miami,2026-05-25,Liquita EDWARDS,4.0,10.0,Operational Excellence - 5 Stars,5,4h 14m,254.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 2,1848,Miami,2026-05-29,Paulina,2.0,4.0,Operational Excellence - 5 Stars,5,2h 21m,141.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 2,1891,Miami,2026-05-27,Jairon Vino,0.0,0.0,Operational Excellence - 5 Stars,5,1h 5m,65.0,False,True
-P6W1,5/24/26,5/30/26,DISTRICT 2,1972,Miami,2026-05-29,Daniuska Bebelagua,3.0,7.0,Operational Excellence - 5 Stars,5,2h 30m,150.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 2,2627,Hialeah,2026-05-28,Juana Pelaez,2.0,6.0,Operational Excellence - 5 Stars,5,1h 6m,66.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 2,2766,Miami,2026-05-30,Mariangela,5.0,13.0,Operational Excellence - 5 Stars,5,2h 6m,126.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 2,4032,Miami,2026-05-28,Dianelys,4.0,8.0,Operational Excellence - 5 Stars,5,1h 34m,94.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-05-27,Carlos Dubon,4.0,6.0,Operational Excellence - 5 Stars,5,1h 32m,92.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 3,1954,Miami,2026-05-30,Luis,1.0,3.0,Operational Excellence - 5 Stars,5,5h 29m,329.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 3,2042,Miami,2026-05-26,Bryanna,10.0,20.0,Exceeds Expectations - 4 Stars,4,1h 04m,64.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 3,2602,Doral,2026-05-28,Liseidis,4.0,14.0,Exceeds Expectations - 4 Stars,4,1h 8m,68.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 3,2890,Miami,2026-05-24,Andre,2.0,4.0,Operational Excellence - 5 Stars,5,1h 17m,77.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 3,2893,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P6W1,5/24/26,5/30/26,DISTRICT 4,205,Lauderhill,2026-05-25,kristal williams,6.0,14.0,Operational Excellence - 5 Stars,5,1h 39m,99.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 4,420,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P6W1,5/24/26,5/30/26,DISTRICT 4,883,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P6W1,5/24/26,5/30/26,DISTRICT 4,1252,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P6W1,5/24/26,5/30/26,DISTRICT 4,1726,Oakland Park,2026-05-27,Tiqosha Ortiz,3.0,5.0,Operational Excellence - 5 Stars,5,1h 40m,100.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 4,1841,Fort Lauderdale,2026-05-29,Makayla,1.0,3.0,Operational Excellence - 5 Stars,5,5h 1m,301.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 4,1847,Pompano Beach,2026-05-28,Tierra Petterson,2.0,4.0,Operational Excellence - 5 Stars,5,0h 33m,33.0,False,True
+P5W4,5/17/26,5/23/26,DISTRICT 2,4032,Miami,2026-05-23,Dianelys,1.0,3.0,Operational Excellence - 5 Stars,5,1h 55m,115.0,False,False
 P6W1,5/24/26,5/30/26,DISTRICT 5,79,Plantation,2026-05-25,Cherma,2.0,4.0,Operational Excellence - 5 Stars,5,5h 10m,310.0,False,False
 P6W1,5/24/26,5/30/26,DISTRICT 5,183,Margate,2026-05-27,Towanda Edwards,11.0,27.0,Meets Minimum Expectations - 3 Stars,3,1h 53m,113.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 4,205,Lauderhill,2026-05-25,kristal williams,6.0,14.0,Operational Excellence - 5 Stars,5,1h 39m,99.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 1,346,Cutler Bay,2026-05-27,norman fonseca,4.0,8.0,Operational Excellence - 5 Stars,5,1h 32m,92.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 4,420,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P6W1,5/24/26,5/30/26,DISTRICT 1,871,Homestead,2026-05-27,Phillip Hardemon,11.0,19.0,Exceeds Expectations - 4 Stars,4,26h 14m,1574.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 4,883,NO EVALUATION COMPLETED,,,,,,0,,,True,False
 P6W1,5/24/26,5/30/26,DISTRICT 5,1096,Tamarac,2026-05-30,Rikenson Fenelus,3.0,9.0,Operational Excellence - 5 Stars,5,2h 10m,130.0,False,False
 P6W1,5/24/26,5/30/26,DISTRICT 5,1167,Pembroke Pines,2026-05-27,Jorge Castillo,14.0,34.0,Meets Minimum Expectations - 3 Stars,3,2h 31m,151.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 5,2048,Coral Springs,2026-05-27,Juan Centeno,6.0,12.0,Operational Excellence - 5 Stars,5,1h 16m,76.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 5,2290,Pembroke Pines,2026-05-27,Brit,1.0,1.0,Operational Excellence - 5 Stars,5,1h 58m,118.0,False,False
-P6W1,5/24/26,5/30/26,DISTRICT 5,2976,Weston,2026-05-29,Raquel Hernández,3.0,7.0,Operational Excellence - 5 Stars,5,11h 5m,665.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 4,1252,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P6W1,5/24/26,5/30/26,DISTRICT 1,1677,Palmetto Bay,2026-05-27,Linda Fountain,5.0,9.0,Operational Excellence - 5 Stars,5,1h 56m,116.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 4,1726,Oakland Park,2026-05-27,Tiqosha Ortiz,3.0,5.0,Operational Excellence - 5 Stars,5,1h 40m,100.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 1,1771,Miami,2026-05-28,Geronimo,3.0,7.0,Operational Excellence - 5 Stars,5,2h 5m,125.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 4,1841,Fort Lauderdale,2026-05-29,Makayla,1.0,3.0,Operational Excellence - 5 Stars,5,5h 1m,301.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 4,1847,Pompano Beach,2026-05-28,Tierra Petterson,2.0,4.0,Operational Excellence - 5 Stars,5,0h 33m,33.0,False,True
+P6W1,5/24/26,5/30/26,DISTRICT 2,1848,Miami,2026-05-29,Paulina,2.0,4.0,Operational Excellence - 5 Stars,5,2h 21m,141.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-05-27,Carlos Dubon,4.0,6.0,Operational Excellence - 5 Stars,5,1h 32m,92.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 2,1891,Miami,2026-05-27,Jairon Vino,0.0,0.0,Operational Excellence - 5 Stars,5,1h 5m,65.0,False,True
+P6W1,5/24/26,5/30/26,DISTRICT 3,1954,Miami,2026-05-30,Luis,1.0,3.0,Operational Excellence - 5 Stars,5,5h 29m,329.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 2,1972,Miami,2026-05-29,Daniuska Bebelagua,3.0,7.0,Operational Excellence - 5 Stars,5,2h 30m,150.0,False,False
 P6W1,5/24/26,5/30/26,DISTRICT 6,2013,Palm Springs,2026-05-30,brianna yanes,11.0,21.0,Exceeds Expectations - 4 Stars,4,1h 28m,88.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 3,2042,Miami,2026-05-26,Bryanna,10.0,20.0,Exceeds Expectations - 4 Stars,4,1h 04m,64.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 5,2048,Coral Springs,2026-05-27,Juan Centeno,6.0,12.0,Operational Excellence - 5 Stars,5,1h 16m,76.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 1,2118,Homestead,2026-05-28,Dayami,1.0,1.0,Operational Excellence - 5 Stars,5,3h 39m,219.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 5,2290,Pembroke Pines,2026-05-27,Brit,1.0,1.0,Operational Excellence - 5 Stars,5,1h 58m,118.0,False,False
 P6W1,5/24/26,5/30/26,DISTRICT 6,2497,Royal Palm Beach,2026-05-28,Tiffany Jerome,5.0,11.0,Exceeds Expectations - 4 Stars,4,0h 55m,55.0,False,True
+P6W1,5/24/26,5/30/26,DISTRICT 3,2602,Doral,2026-05-28,Liseidis,4.0,14.0,Exceeds Expectations - 4 Stars,4,1h 8m,68.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 2,2627,Hialeah,2026-05-28,Juana Pelaez,2.0,6.0,Operational Excellence - 5 Stars,5,1h 6m,66.0,False,False
 P6W1,5/24/26,5/30/26,DISTRICT 6,2696,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P6W1,5/24/26,5/30/26,DISTRICT 2,2766,Miami,2026-05-30,Mariangela,5.0,13.0,Operational Excellence - 5 Stars,5,2h 6m,126.0,False,False
 P6W1,5/24/26,5/30/26,DISTRICT 6,2885,Lantana,2026-05-24,Thomas Rea Jr,0.0,0.0,Operational Excellence - 5 Stars,5,97h 2m,5822.0,False,True
+P6W1,5/24/26,5/30/26,DISTRICT 3,2890,Miami,2026-05-24,Andre,2.0,4.0,Operational Excellence - 5 Stars,5,1h 17m,77.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 3,2893,NO EVALUATION COMPLETED,,,,,,0,,,True,False
 P6W1,5/24/26,5/30/26,DISTRICT 6,2974,Delray Beach,2026-05-26,Diamond Pelt,4.0,12.0,Operational Excellence - 5 Stars,5,105h 21m,6321.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 5,2976,Weston,2026-05-29,Raquel Hernández,3.0,7.0,Operational Excellence - 5 Stars,5,11h 5m,665.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 1,3013,Miami,2026-05-25,Liquita EDWARDS,4.0,10.0,Operational Excellence - 5 Stars,5,4h 14m,254.0,False,False
 P6W1,5/24/26,5/30/26,DISTRICT 6,3200,Jupiter,2026-05-25,Wanda,2.0,6.0,Operational Excellence - 5 Stars,5,1h 26m,86.0,False,False
 P6W1,5/24/26,5/30/26,DISTRICT 6,3317,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P6W2,5/31/26,6/6/26,,346,Cutler Bay,2026-06-02,norman fonseca,6.0,18.0,Meets Minimum Expectations - 3 Stars,3,1h 14m,74.0,False,False
-P6W2,5/31/26,6/6/26,,346,Cutler Bay,2026-06-04,NormanF,15.0,31.0,Meets Minimum Expectations - 3 Stars,3,1h 33m,93.0,False,False
-P6W2,5/31/26,6/6/26,,871,Homestead,2026-06-01,Phillip Hardemon,12.0,20.0,Exceeds Expectations - 4 Stars,4,105h 15m,6315.0,False,False
-P6W2,5/31/26,6/6/26,,871,Homestead,2026-06-05,Phillip Hardemon,9.0,17.0,Exceeds Expectations - 4 Stars,4,11h 57m,717.0,False,False
-P6W2,5/31/26,6/6/26,,1677,Palmetto Bay,2026-06-01,Linda Fountain,2.0,8.0,Exceeds Expectations - 4 Stars,4,2h 4m,124.0,False,False
-P6W2,5/31/26,6/6/26,,1771,Miami,2026-06-03,Geronimo,3.0,7.0,Operational Excellence - 5 Stars,5,2h 46m,166.0,False,False
-P6W2,5/31/26,6/6/26,,2118,Homestead,2026-06-03,Dayami,1.0,5.0,Unacceptable - 1 Star,1,2h 18m,138.0,False,False
-P6W2,5/31/26,6/6/26,,2118,Homestead,2026-06-04,Linda Jaen,9.0,25.0,Meets Minimum Expectations - 3 Stars,3,1h 49m,109.0,False,False
-P6W2,5/31/26,6/6/26,,3013,Miami,2026-06-01,Liquita Edwards,3.0,7.0,Operational Excellence - 5 Stars,5,2h 36m,156.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 2,1848,Miami,2026-06-07,Paulina,3.0,5.0,Operational Excellence - 5 Stars,5,2h 16m,136.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 2,1891,Miami,2026-06-03,Jairon Vino,0.0,0.0,Operational Excellence - 5 Stars,5,1h 30m,90.0,False,True
-P6W2,5/31/26,6/6/26,DISTRICT 2,1972,Miami,2026-06-06,Daniuska Bebelagua,6.0,12.0,Operational Excellence - 5 Stars,5,3h 24m,204.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 2,2627,Hialeah,2026-06-04,Ariel Reyes,1.0,1.0,Operational Excellence - 5 Stars,5,2h 11m,131.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 2,2766,Miami,2026-06-06,Mariangela,6.0,14.0,Operational Excellence - 5 Stars,5,25h 30m,1530.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 2,4032,Miami,2026-06-04,Dianelys,3.0,7.0,Operational Excellence - 5 Stars,5,1h 53m,113.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-06-03,Carlos Dubon,3.0,5.0,Operational Excellence - 5 Stars,5,1h 30m,90.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 3,1954,Miami,2026-06-06,Tulis,4.0,4.0,Operational Excellence - 5 Stars,5,30h 29m,1829.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 3,2042,Miami,2026-06-02,Yuni,4.0,6.0,Operational Excellence - 5 Stars,5,0h 46m,46.0,False,True
-P6W2,5/31/26,6/6/26,DISTRICT 3,2042,Miami,2026-06-02,Bryanna,1.0,1.0,Operational Excellence - 5 Stars,5,2h 36m,156.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 3,2602,Doral,2026-06-05,Liseidis,2.0,2.0,Operational Excellence - 5 Stars,5,1h 11m,71.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 3,2890,Miami,2026-05-31,Andre.V,1.0,3.0,Operational Excellence - 5 Stars,5,1h 46m,106.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 3,2893,,NO EVALUAT,,,,,0,,,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 4,205,Lauderhill,2026-06-04,sky soriana,3.0,9.0,Exceeds Expectations - 4 Stars,4,2h 22m,142.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 4,205,Lauderhill,2026-06-07,sky soriana,4.0,8.0,Operational Excellence - 5 Stars,5,2h 20m,140.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 4,420,Deerfield Beach,2026-06-02,Dana Brno,5.0,11.0,Operational Excellence - 5 Stars,5,1h 4m,64.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 4,883,Hallandale Beach,2026-06-06,Rebekah -Stewart-Ellis,2.0,6.0,Operational Excellence - 5 Stars,5,3h 27m,207.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 4,1252,Fort Lauderdale,2026-06-02,Kelline,4.0,6.0,Operational Excellence - 5 Stars,5,0h 47m,47.0,False,True
-P6W2,5/31/26,6/6/26,DISTRICT 4,1726,Oakland Park,2026-06-01,Divia Bell,2.0,2.0,Operational Excellence - 5 Stars,5,1h 28m,88.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 4,1841,Fort Lauderdale,2026-06-03,Makayla Francis,0.0,0.0,Operational Excellence - 5 Stars,5,5h 11m,311.0,False,True
-P6W2,5/31/26,6/6/26,DISTRICT 4,1847,Pompano Beach,2026-06-03,Gene Resila,6.0,10.0,Operational Excellence - 5 Stars,5,1h 0m,60.0,False,False
+P6W1,5/24/26,5/30/26,DISTRICT 2,4032,Miami,2026-05-28,Dianelys,4.0,8.0,Operational Excellence - 5 Stars,5,1h 34m,94.0,False,False
 P6W2,5/31/26,6/6/26,DISTRICT 5,79,Plantation,2026-06-01,Ruben F,2.0,4.0,Operational Excellence - 5 Stars,5,1h 34m,94.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 5,183,Margate,2026-06-03,Keyariel Hankerson,7.0,21.0,Exceeds Expectations - 4 Stars,4,25h 47m,1547.0,False,False
 P6W2,5/31/26,6/6/26,DISTRICT 5,183,Margate,2026-06-05,Towanda Edwards,9.0,25.0,Meets Minimum Expectations - 3 Stars,3,3h 7m,187.0,False,False
+P6W2,5/31/26,6/6/26,DISTRICT 4,205,Lauderhill,2026-06-07,sky soriana,4.0,8.0,Operational Excellence - 5 Stars,5,2h 20m,140.0,False,False
+P6W2,5/31/26,6/6/26,,346,Cutler Bay,2026-06-04,NormanF,15.0,31.0,Meets Minimum Expectations - 3 Stars,3,1h 33m,93.0,False,False
+P6W2,5/31/26,6/6/26,DISTRICT 4,420,Deerfield Beach,2026-06-02,Dana Brno,5.0,11.0,Operational Excellence - 5 Stars,5,1h 4m,64.0,False,False
+P6W2,5/31/26,6/6/26,,871,Homestead,2026-06-05,Phillip Hardemon,9.0,17.0,Exceeds Expectations - 4 Stars,4,11h 57m,717.0,False,False
+P6W2,5/31/26,6/6/26,DISTRICT 4,883,Hallandale Beach,2026-06-06,Rebekah -Stewart-Ellis,2.0,6.0,Operational Excellence - 5 Stars,5,3h 27m,207.0,False,False
 P6W2,5/31/26,6/6/26,DISTRICT 5,1096,Tamarac,2026-06-04,Clerita Jean Baptiste,14.0,40.0,Below Expectations - 2 Stars,2,1h 0m,60.0,False,False
 P6W2,5/31/26,6/6/26,DISTRICT 5,1167,Pembroke Pines,2026-06-03,Jorge Castillo,16.0,34.0,Meets Minimum Expectations - 3 Stars,3,1h 22m,82.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 5,2048,Coral Springs,2026-06-03,Juan Centeno,7.0,15.0,Exceeds Expectations - 4 Stars,4,20h 7m,1207.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 5,2048,Coral Springs,2026-06-04,Genet,5.0,7.0,Operational Excellence - 5 Stars,5,1h 27m,87.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 5,2290,Pembroke Pines,2026-06-02,Brit,2.0,6.0,Operational Excellence - 5 Stars,5,1h 42m,102.0,False,False
-P6W2,5/31/26,6/6/26,DISTRICT 5,2976,Weston,2026-06-04,Raquel Hernandez,4.0,10.0,Operational Excellence - 5 Stars,5,2h 5m,125.0,False,False
+P6W2,5/31/26,6/6/26,DISTRICT 4,1252,Fort Lauderdale,2026-06-02,Kelline,4.0,6.0,Operational Excellence - 5 Stars,5,0h 47m,47.0,False,True
+P6W2,5/31/26,6/6/26,,1677,Palmetto Bay,2026-06-01,Linda Fountain,2.0,8.0,Exceeds Expectations - 4 Stars,4,2h 4m,124.0,False,False
+P6W2,5/31/26,6/6/26,DISTRICT 4,1726,Oakland Park,2026-06-01,Divia Bell,2.0,2.0,Operational Excellence - 5 Stars,5,1h 28m,88.0,False,False
+P6W2,5/31/26,6/6/26,,1771,Miami,2026-06-03,Geronimo,3.0,7.0,Operational Excellence - 5 Stars,5,2h 46m,166.0,False,False
+P6W2,5/31/26,6/6/26,DISTRICT 4,1841,Fort Lauderdale,2026-06-03,Makayla Francis,0.0,0.0,Operational Excellence - 5 Stars,5,5h 11m,311.0,False,True
+P6W2,5/31/26,6/6/26,DISTRICT 4,1847,Pompano Beach,2026-06-03,Gene Resila,6.0,10.0,Operational Excellence - 5 Stars,5,1h 0m,60.0,False,False
+P6W2,5/31/26,6/6/26,DISTRICT 2,1848,Miami,2026-06-07,Paulina,3.0,5.0,Operational Excellence - 5 Stars,5,2h 16m,136.0,False,False
+P6W2,5/31/26,6/6/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-06-03,Carlos Dubon,3.0,5.0,Operational Excellence - 5 Stars,5,1h 30m,90.0,False,False
+P6W2,5/31/26,6/6/26,DISTRICT 2,1891,Miami,2026-06-03,Jairon Vino,0.0,0.0,Operational Excellence - 5 Stars,5,1h 30m,90.0,False,True
+P6W2,5/31/26,6/6/26,DISTRICT 3,1954,Miami,2026-06-06,Tulis,4.0,4.0,Operational Excellence - 5 Stars,5,30h 29m,1829.0,False,False
+P6W2,5/31/26,6/6/26,DISTRICT 2,1972,Miami,2026-06-06,Daniuska Bebelagua,6.0,12.0,Operational Excellence - 5 Stars,5,3h 24m,204.0,False,False
 P6W2,5/31/26,6/6/26,DISTRICT 6,2013,Palm Springs,2026-06-06,brianna yanes,9.0,19.0,Exceeds Expectations - 4 Stars,4,1h 23m,83.0,False,False
+P6W2,5/31/26,6/6/26,DISTRICT 3,2042,Miami,2026-06-02,Bryanna,1.0,1.0,Operational Excellence - 5 Stars,5,2h 36m,156.0,False,False
+P6W2,5/31/26,6/6/26,DISTRICT 5,2048,Coral Springs,2026-06-04,Genet,5.0,7.0,Operational Excellence - 5 Stars,5,1h 27m,87.0,False,False
+P6W2,5/31/26,6/6/26,,2118,Homestead,2026-06-04,Linda Jaen,9.0,25.0,Meets Minimum Expectations - 3 Stars,3,1h 49m,109.0,False,False
+P6W2,5/31/26,6/6/26,DISTRICT 5,2290,Pembroke Pines,2026-06-02,Brit,2.0,6.0,Operational Excellence - 5 Stars,5,1h 42m,102.0,False,False
 P6W2,5/31/26,6/6/26,DISTRICT 6,2497,Royal Palm Beach,2026-06-06,Tiffany,1.0,3.0,Operational Excellence - 5 Stars,5,1h 8m,68.0,False,False
+P6W2,5/31/26,6/6/26,DISTRICT 3,2602,Doral,2026-06-05,Liseidis,2.0,2.0,Operational Excellence - 5 Stars,5,1h 11m,71.0,False,False
+P6W2,5/31/26,6/6/26,DISTRICT 2,2627,Hialeah,2026-06-04,Ariel Reyes,1.0,1.0,Operational Excellence - 5 Stars,5,2h 11m,131.0,False,False
 P6W2,5/31/26,6/6/26,DISTRICT 6,2696,West Palm Beach,2026-06-01,Steven Rivera,3.0,9.0,Operational Excellence - 5 Stars,5,2h 23m,143.0,False,False
+P6W2,5/31/26,6/6/26,DISTRICT 2,2766,Miami,2026-06-06,Mariangela,6.0,14.0,Operational Excellence - 5 Stars,5,25h 30m,1530.0,False,False
 P6W2,5/31/26,6/6/26,DISTRICT 6,2885,Lantana,2026-06-03,Thomas Rea Jr,0.0,0.0,Operational Excellence - 5 Stars,5,2h 36m,156.0,False,True
+P6W2,5/31/26,6/6/26,DISTRICT 3,2890,Miami,2026-05-31,Andre.V,1.0,3.0,Operational Excellence - 5 Stars,5,1h 46m,106.0,False,False
+P6W2,5/31/26,6/6/26,DISTRICT 3,2893,,NO EVALUAT,,,,,0,,,False,False
 P6W2,5/31/26,6/6/26,DISTRICT 6,2974,,NO EVALUAT,,,,,0,,,False,False
+P6W2,5/31/26,6/6/26,DISTRICT 5,2976,Weston,2026-06-04,Raquel Hernandez,4.0,10.0,Operational Excellence - 5 Stars,5,2h 5m,125.0,False,False
+P6W2,5/31/26,6/6/26,,3013,Miami,2026-06-01,Liquita Edwards,3.0,7.0,Operational Excellence - 5 Stars,5,2h 36m,156.0,False,False
 P6W2,5/31/26,6/6/26,DISTRICT 6,3200,,NO EVALUAT,,,,,0,,,False,False
 P6W2,5/31/26,6/6/26,DISTRICT 6,3317,Boca Raton,2026-06-06,W,4.0,10.0,Operational Excellence - 5 Stars,5,6h 3m,363.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 1,346,Cutler Bay,2026-06-09,norman fonseca,3.0,7.0,Exceeds Expectations - 4 Stars,4,1h 42m,102.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 1,871,Homestead,2026-06-14,Phillip Hardemon,10.0,16.0,Exceeds Expectations - 4 Stars,4,63h 15m,3795.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 1,1677,Palmetto Bay,2026-06-07,Linda Fountain,2.0,8.0,Exceeds Expectations - 4 Stars,4,2h 4m,124.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 1,1771,Miami,2026-06-12,Andrea V,4.0,6.0,Operational Excellence - 5 Stars,5,1h 2m,62.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 1,2118,Homestead,2026-06-10,Dayami,1.0,1.0,Operational Excellence - 5 Stars,5,2h 1m,121.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 1,3013,Miami,2026-06-10,Liquita EDWARDS,2.0,6.0,Operational Excellence - 5 Stars,5,2h 23m,143.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 2,1848,Miami,2026-06-07,Paulina,3.0,5.0,Operational Excellence - 5 Stars,5,2h 16m,136.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 2,1848,Miami,2026-06-09,Paulina,2.0,4.0,Operational Excellence - 5 Stars,5,2h 4m,124.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 2,1891,Miami,2026-06-10,Jairon Vino,2.0,6.0,Operational Excellence - 5 Stars,5,0h 55m,55.0,False,True
-P6W3,6/7/26,6/13/26,DISTRICT 2,1972,Miami,2026-06-13,Daniuska Bebelagua,5.0,15.0,Exceeds Expectations - 4 Stars,4,1h 52m,112.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 2,2627,Hialeah,2026-06-13,Frank Munoz,0.0,0.0,Operational Excellence - 5 Stars,5,2h 10m,130.0,False,True
-P6W3,6/7/26,6/13/26,DISTRICT 2,2766,Miami,2026-06-14,Mariangela,4.0,10.0,Operational Excellence - 5 Stars,5,13h 21m,801.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 2,3210,Miami,2026-06-13,Lizt Gonzalez,2.0,2.0,Operational Excellence - 5 Stars,5,1h 3m,63.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 2,4032,Miami,2026-06-11,Olaimis,3.0,9.0,Operational Excellence - 5 Stars,5,1h 46m,106.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-06-12,Carlos Dubon,4.0,8.0,Operational Excellence - 5 Stars,5,1h 23m,83.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 3,1954,Miami,2026-06-13,John,4.0,4.0,Operational Excellence - 5 Stars,5,1h 16m,76.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 3,2042,Miami,2026-06-08,Milena Moreno,2.0,4.0,Operational Excellence - 5 Stars,5,1h 2m,62.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 3,2602,Doral,2026-06-12,Liseidis,2.0,8.0,Exceeds Expectations - 4 Stars,4,1h 25m,85.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 3,2890,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P6W3,6/7/26,6/13/26,DISTRICT 3,2893,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P6W3,6/7/26,6/13/26,DISTRICT 4,205,Lauderhill,2026-06-07,sky soriana,4.0,8.0,Operational Excellence - 5 Stars,5,2h 20m,140.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 4,420,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P6W3,6/7/26,6/13/26,DISTRICT 4,883,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P6W3,6/7/26,6/13/26,DISTRICT 4,1252,Fort Lauderdale,2026-06-10,Kelline,3.0,7.0,Operational Excellence - 5 Stars,5,0h 43m,43.0,False,True
-P6W3,6/7/26,6/13/26,DISTRICT 4,1726,Oakland Park,2026-06-13,Divia Bell,2.0,2.0,Operational Excellence - 5 Stars,5,5h 30m,330.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 4,1841,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P6W3,6/7/26,6/13/26,DISTRICT 4,1847,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P6W2,5/31/26,6/6/26,DISTRICT 2,4032,Miami,2026-06-04,Dianelys,3.0,7.0,Operational Excellence - 5 Stars,5,1h 53m,113.0,False,False
 P6W3,6/7/26,6/13/26,DISTRICT 5,79,Plantation,2026-06-09,Ruben F,1.0,1.0,Operational Excellence - 5 Stars,5,1h 56m,116.0,False,False
 P6W3,6/7/26,6/13/26,DISTRICT 5,183,Margate,2026-06-08,Towanda Edwards,8.0,18.0,Exceeds Expectations - 4 Stars,4,2h 53m,173.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 5,1096,Tamarac,2026-06-10,Clerita Jean Baptiste,5.0,11.0,Operational Excellence - 5 Stars,5,0h 40m,40.0,False,True
+P6W3,6/7/26,6/13/26,DISTRICT 4,205,Lauderhill,2026-06-07,sky soriana,4.0,8.0,Operational Excellence - 5 Stars,5,2h 20m,140.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 1,346,Cutler Bay,2026-06-09,norman fonseca,3.0,7.0,Exceeds Expectations - 4 Stars,4,1h 42m,102.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 4,420,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P6W3,6/7/26,6/13/26,DISTRICT 1,871,Homestead,2026-06-14,Phillip Hardemon,10.0,16.0,Exceeds Expectations - 4 Stars,4,63h 15m,3795.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 4,883,NO EVALUATION COMPLETED,,,,,,0,,,True,False
 P6W3,6/7/26,6/13/26,DISTRICT 5,1096,Tamarac,2026-06-11,Chadwick,7.0,15.0,Exceeds Expectations - 4 Stars,4,1h 17m,77.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 5,1167,Pembroke Pines,2026-06-10,Jorge Castillo,17.0,45.0,Below Expectations - 2 Stars,2,6h 16m,376.0,False,False
 P6W3,6/7/26,6/13/26,DISTRICT 5,1167,Pembroke Pines,2026-06-11,Jorge Castillo,14.0,36.0,Meets Minimum Expectations - 3 Stars,3,1h 12m,72.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 5,2048,Coral Springs,2026-06-09,Genet,6.0,8.0,Operational Excellence - 5 Stars,5,1h 44m,104.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 5,2048,Coral Springs,2026-06-10,Juan Centeno,5.0,11.0,Operational Excellence - 5 Stars,5,1h 17m,77.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 5,2290,Pembroke Pines,2026-06-10,Devin,2.0,6.0,Operational Excellence - 5 Stars,5,2h 53m,173.0,False,False
-P6W3,6/7/26,6/13/26,DISTRICT 5,2976,Weston,2026-06-11,Raquel Hernandez,4.0,10.0,Operational Excellence - 5 Stars,5,2h 41m,161.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 4,1252,Fort Lauderdale,2026-06-10,Kelline,3.0,7.0,Operational Excellence - 5 Stars,5,0h 43m,43.0,False,True
+P6W3,6/7/26,6/13/26,DISTRICT 1,1677,Palmetto Bay,2026-06-07,Linda Fountain,2.0,8.0,Exceeds Expectations - 4 Stars,4,2h 4m,124.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 4,1726,Oakland Park,2026-06-13,Divia Bell,2.0,2.0,Operational Excellence - 5 Stars,5,5h 30m,330.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 1,1771,Miami,2026-06-12,Andrea V,4.0,6.0,Operational Excellence - 5 Stars,5,1h 2m,62.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 4,1841,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P6W3,6/7/26,6/13/26,DISTRICT 4,1847,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P6W3,6/7/26,6/13/26,DISTRICT 2,1848,Miami,2026-06-09,Paulina,2.0,4.0,Operational Excellence - 5 Stars,5,2h 4m,124.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-06-12,Carlos Dubon,4.0,8.0,Operational Excellence - 5 Stars,5,1h 23m,83.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 2,1891,Miami,2026-06-10,Jairon Vino,2.0,6.0,Operational Excellence - 5 Stars,5,0h 55m,55.0,False,True
+P6W3,6/7/26,6/13/26,DISTRICT 3,1954,Miami,2026-06-13,John,4.0,4.0,Operational Excellence - 5 Stars,5,1h 16m,76.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 2,1972,Miami,2026-06-13,Daniuska Bebelagua,5.0,15.0,Exceeds Expectations - 4 Stars,4,1h 52m,112.0,False,False
 P6W3,6/7/26,6/13/26,DISTRICT 6,2013,Palm Springs,2026-06-13,brianna yanes,10.0,18.0,Exceeds Expectations - 4 Stars,4,1h 6m,66.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 3,2042,Miami,2026-06-08,Milena Moreno,2.0,4.0,Operational Excellence - 5 Stars,5,1h 2m,62.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 5,2048,Coral Springs,2026-06-10,Juan Centeno,5.0,11.0,Operational Excellence - 5 Stars,5,1h 17m,77.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 1,2118,Homestead,2026-06-10,Dayami,1.0,1.0,Operational Excellence - 5 Stars,5,2h 1m,121.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 5,2290,Pembroke Pines,2026-06-10,Devin,2.0,6.0,Operational Excellence - 5 Stars,5,2h 53m,173.0,False,False
 P6W3,6/7/26,6/13/26,DISTRICT 6,2497,Royal Palm Beach,2026-06-12,Tiffany Jerome,2.0,8.0,Exceeds Expectations - 4 Stars,4,5h 19m,319.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 3,2602,Doral,2026-06-12,Liseidis,2.0,8.0,Exceeds Expectations - 4 Stars,4,1h 25m,85.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 2,2627,Hialeah,2026-06-13,Frank Munoz,0.0,0.0,Operational Excellence - 5 Stars,5,2h 10m,130.0,False,True
 P6W3,6/7/26,6/13/26,DISTRICT 6,2696,West Palm Beach,2026-06-08,Willhem,4.0,10.0,Operational Excellence - 5 Stars,5,1h 54m,114.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 2,2766,Miami,2026-06-14,Mariangela,4.0,10.0,Operational Excellence - 5 Stars,5,13h 21m,801.0,False,False
 P6W3,6/7/26,6/13/26,DISTRICT 6,2885,Lantana,2026-06-11,Thomas Rea Jr,0.0,0.0,Operational Excellence - 5 Stars,5,67h 18m,4038.0,False,True
+P6W3,6/7/26,6/13/26,DISTRICT 3,2890,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P6W3,6/7/26,6/13/26,DISTRICT 3,2893,NO EVALUATION COMPLETED,,,,,,0,,,True,False
 P6W3,6/7/26,6/13/26,DISTRICT 6,2974,Delray Beach,2026-06-09,Diamond Pelt,5.0,15.0,Exceeds Expectations - 4 Stars,4,0h 56m,56.0,False,True
+P6W3,6/7/26,6/13/26,DISTRICT 5,2976,Weston,2026-06-11,Raquel Hernandez,4.0,10.0,Operational Excellence - 5 Stars,5,2h 41m,161.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 1,3013,Miami,2026-06-10,Liquita EDWARDS,2.0,6.0,Operational Excellence - 5 Stars,5,2h 23m,143.0,False,False
 P6W3,6/7/26,6/13/26,DISTRICT 6,3200,Jupiter,2026-06-08,Wanda Sanchez,2.0,6.0,Operational Excellence - 5 Stars,5,6h 10m,370.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 2,3210,Miami,2026-06-13,Lizt Gonzalez,2.0,2.0,Operational Excellence - 5 Stars,5,1h 3m,63.0,False,False
 P6W3,6/7/26,6/13/26,DISTRICT 6,3317,Boca Raton,2026-06-13,H,0.0,0.0,Operational Excellence - 5 Stars,5,34h 23m,2063.0,False,True
-P6W4,6/14/26,6/20/26,DISTRICT 1,346,Cutler Bay,2026-06-18,norman fonseca,6.0,16.0,Meets Minimum Expectations - 3 Stars,3,1h 10m,70.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 1,871,Homestead,2026-06-18,Phillip Hardemon,17.0,35.0,Meets Minimum Expectations - 3 Stars,3,72h 13m,4333.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 1,1677,Palmetto Bay,2026-06-16,Linda Fountain,4.0,8.0,Operational Excellence - 5 Stars,5,2h 39m,159.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 1,1771,Miami,2026-06-14,Andrea V,4.0,12.0,Operational Excellence - 5 Stars,5,4h 13m,253.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 1,2118,Homestead,2026-06-17,Dayami,3.0,7.0,Operational Excellence - 5 Stars,5,1h 35m,95.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 1,3013,Miami,2026-06-17,Liquita EDWARDS,3.0,9.0,Operational Excellence - 5 Stars,5,3h 55m,235.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 2,1848,Miami,2026-06-15,Paulina,2.0,8.0,Exceeds Expectations - 4 Stars,4,1h 58m,118.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 2,1891,Miami,2026-06-17,Jairon Vino,0.0,0.0,Operational Excellence - 5 Stars,5,2h 28m,148.0,False,True
-P6W4,6/14/26,6/20/26,DISTRICT 2,1972,Miami,2026-06-18,Daniuska Bebelagua,3.0,7.0,Operational Excellence - 5 Stars,5,1h 7m,67.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 2,2627,Hialeah,2026-06-20,Juana Pelaez,1.0,1.0,Operational Excellence - 5 Stars,5,1h 7m,67.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 2,2766,Miami,2026-06-20,Mariangela,4.0,8.0,Operational Excellence - 5 Stars,5,12h 59m,779.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 2,3210,Miami,2026-06-18,Brandon Cordoba,4.0,8.0,Operational Excellence - 5 Stars,5,3h 1m,181.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 2,4032,Miami,2026-06-18,Cynthia,3.0,7.0,Operational Excellence - 5 Stars,5,1h 48m,108.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-06-17,Carlos Dubon,6.0,12.0,Operational Excellence - 5 Stars,5,1h 38m,98.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 3,1954,Miami,2026-06-20,Luis Alvarez,4.0,8.0,Operational Excellence - 5 Stars,5,2h 1m,121.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 3,2042,Miami,2026-06-16,bryanna diaz,4.0,8.0,Exceeds Expectations - 4 Stars,4,1h 2m,62.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 3,2602,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P6W4,6/14/26,6/20/26,DISTRICT 3,2890,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P6W4,6/14/26,6/20/26,DISTRICT 3,2893,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P6W4,6/14/26,6/20/26,DISTRICT 4,205,Lauderhill,2026-06-17,sky soriana,4.0,6.0,Operational Excellence - 5 Stars,5,1h 33m,93.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 4,420,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P6W4,6/14/26,6/20/26,DISTRICT 4,883,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P6W4,6/14/26,6/20/26,DISTRICT 4,1252,Fort Lauderdale,2026-06-18,Kelline,2.0,4.0,Operational Excellence - 5 Stars,5,1h 28m,88.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 4,1726,Oakland Park,2026-06-16,Tiqosha Ortiz,1.0,1.0,Operational Excellence - 5 Stars,5,0h 41m,41.0,False,True
-P6W4,6/14/26,6/20/26,DISTRICT 4,1841,NO EVALUATION COMPLETED,,,,,,0,,,True,False
-P6W4,6/14/26,6/20/26,DISTRICT 4,1847,Pompano Beach,2026-06-18,Tierra Peterson,1.0,1.0,Operational Excellence - 5 Stars,5,1h 10m,70.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 4,1847,Pompano Beach,2026-06-12,Tierra P,1.0,3.0,Operational Excellence - 5 Stars,5,145h 33m,8733.0,False,False
+P6W3,6/7/26,6/13/26,DISTRICT 2,4032,Miami,2026-06-11,Olaimis,3.0,9.0,Operational Excellence - 5 Stars,5,1h 46m,106.0,False,False
 P6W4,6/14/26,6/20/26,DISTRICT 5,79,Plantation,2026-06-17,Ruben F,2.0,4.0,Operational Excellence - 5 Stars,5,3h 13m,193.0,False,False
 P6W4,6/14/26,6/20/26,DISTRICT 5,183,Margate,2026-06-15,T Edwards,6.0,16.0,Exceeds Expectations - 4 Stars,4,2h 55m,175.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 4,205,Lauderhill,2026-06-17,sky soriana,4.0,6.0,Operational Excellence - 5 Stars,5,1h 33m,93.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 1,346,Cutler Bay,2026-06-18,norman fonseca,6.0,16.0,Meets Minimum Expectations - 3 Stars,3,1h 10m,70.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 4,420,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P6W4,6/14/26,6/20/26,DISTRICT 1,871,Homestead,2026-06-18,Phillip Hardemon,17.0,35.0,Meets Minimum Expectations - 3 Stars,3,72h 13m,4333.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 4,883,NO EVALUATION COMPLETED,,,,,,0,,,True,False
 P6W4,6/14/26,6/20/26,DISTRICT 5,1096,Tamarac,2026-06-16,Chadwick,6.0,12.0,Operational Excellence - 5 Stars,5,1h 49m,109.0,False,False
 P6W4,6/14/26,6/20/26,DISTRICT 5,1167,Pembroke Pines,2026-06-18,Rose Grant,8.0,18.0,Exceeds Expectations - 4 Stars,4,13h 20m,800.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 5,2048,Coral Springs,2026-06-18,George,4.0,6.0,Operational Excellence - 5 Stars,5,1h 17m,77.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 5,2290,Pembroke Pines,2026-06-17,Devin,2.0,6.0,Operational Excellence - 5 Stars,5,2h 3m,123.0,False,False
-P6W4,6/14/26,6/20/26,DISTRICT 5,2976,Weston,2026-06-17,Luis,4.0,12.0,Operational Excellence - 5 Stars,5,2h 20m,140.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 4,1252,Fort Lauderdale,2026-06-18,Kelline,2.0,4.0,Operational Excellence - 5 Stars,5,1h 28m,88.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 1,1677,Palmetto Bay,2026-06-16,Linda Fountain,4.0,8.0,Operational Excellence - 5 Stars,5,2h 39m,159.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 4,1726,Oakland Park,2026-06-16,Tiqosha Ortiz,1.0,1.0,Operational Excellence - 5 Stars,5,0h 41m,41.0,False,True
+P6W4,6/14/26,6/20/26,DISTRICT 1,1771,Miami,2026-06-14,Andrea V,4.0,12.0,Operational Excellence - 5 Stars,5,4h 13m,253.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 4,1841,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P6W4,6/14/26,6/20/26,DISTRICT 4,1847,Pompano Beach,2026-06-18,Tierra Peterson,1.0,1.0,Operational Excellence - 5 Stars,5,1h 10m,70.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 2,1848,Miami,2026-06-15,Paulina,2.0,8.0,Exceeds Expectations - 4 Stars,4,1h 58m,118.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-06-17,Carlos Dubon,6.0,12.0,Operational Excellence - 5 Stars,5,1h 38m,98.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 2,1891,Miami,2026-06-17,Jairon Vino,0.0,0.0,Operational Excellence - 5 Stars,5,2h 28m,148.0,False,True
+P6W4,6/14/26,6/20/26,DISTRICT 3,1954,Miami,2026-06-20,Luis Alvarez,4.0,8.0,Operational Excellence - 5 Stars,5,2h 1m,121.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 2,1972,Miami,2026-06-18,Daniuska Bebelagua,3.0,7.0,Operational Excellence - 5 Stars,5,1h 7m,67.0,False,False
 P6W4,6/14/26,6/20/26,DISTRICT 6,2013,Palm Springs,2026-06-20,brianna yanes,9.0,19.0,Exceeds Expectations - 4 Stars,4,1h 10m,70.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 3,2042,Miami,2026-06-16,bryanna diaz,4.0,8.0,Exceeds Expectations - 4 Stars,4,1h 2m,62.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 5,2048,Coral Springs,2026-06-18,George,4.0,6.0,Operational Excellence - 5 Stars,5,1h 17m,77.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 1,2118,Homestead,2026-06-17,Dayami,3.0,7.0,Operational Excellence - 5 Stars,5,1h 35m,95.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 5,2290,Pembroke Pines,2026-06-17,Devin,2.0,6.0,Operational Excellence - 5 Stars,5,2h 3m,123.0,False,False
 P6W4,6/14/26,6/20/26,DISTRICT 6,2497,Royal Palm Beach,2026-06-20,T Jerome,2.0,8.0,Exceeds Expectations - 4 Stars,4,1h 31m,91.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 3,2602,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P6W4,6/14/26,6/20/26,DISTRICT 2,2627,Hialeah,2026-06-20,Juana Pelaez,1.0,1.0,Operational Excellence - 5 Stars,5,1h 7m,67.0,False,False
 P6W4,6/14/26,6/20/26,DISTRICT 6,2696,West Palm Beach,2026-06-15,Steven Rivera,2.0,4.0,Operational Excellence - 5 Stars,5,1h 37m,97.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 2,2766,Miami,2026-06-20,Mariangela,4.0,8.0,Operational Excellence - 5 Stars,5,12h 59m,779.0,False,False
 P6W4,6/14/26,6/20/26,DISTRICT 6,2885,Lantana,2026-06-20,Thomas Rea,0.0,0.0,Operational Excellence - 5 Stars,5,1h 36m,96.0,False,True
+P6W4,6/14/26,6/20/26,DISTRICT 3,2890,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P6W4,6/14/26,6/20/26,DISTRICT 3,2893,NO EVALUATION COMPLETED,,,,,,0,,,True,False
 P6W4,6/14/26,6/20/26,DISTRICT 6,2974,Delray Beach,2026-06-20,Diamond Pelt,0.0,0.0,Operational Excellence - 5 Stars,5,1h 43m,103.0,False,True
+P6W4,6/14/26,6/20/26,DISTRICT 5,2976,Weston,2026-06-17,Luis,4.0,12.0,Operational Excellence - 5 Stars,5,2h 20m,140.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 1,3013,Miami,2026-06-17,Liquita EDWARDS,3.0,9.0,Operational Excellence - 5 Stars,5,3h 55m,235.0,False,False
 P6W4,6/14/26,6/20/26,DISTRICT 6,3200,Jupiter,2026-06-20,W,0.0,0.0,Operational Excellence - 5 Stars,5,3h 56m,236.0,False,True
+P6W4,6/14/26,6/20/26,DISTRICT 2,3210,Miami,2026-06-18,Brandon Cordoba,4.0,8.0,Operational Excellence - 5 Stars,5,3h 1m,181.0,False,False
 P6W4,6/14/26,6/20/26,DISTRICT 6,3317,Boca Raton,2026-06-20,W,2.0,8.0,Exceeds Expectations - 4 Stars,4,3h 43m,223.0,False,False
+P6W4,6/14/26,6/20/26,DISTRICT 2,4032,Miami,2026-06-18,Cynthia,3.0,7.0,Operational Excellence - 5 Stars,5,1h 48m,108.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 5,79,Plantation,2026-06-24,Ruben F,2.0,4.0,Operational Excellence - 5 Stars,5,2h 08m,128.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 5,183,Margate,2026-06-26,Iclude,6.0,16.0,Exceeds Expectations - 4 Stars,4,1h 35m,95.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 4,205,Lauderhill,2026-06-24,sky soriana,4.0,10.0,Operational Excellence - 5 Stars,5,2h 23m,143.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 1,346,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P6W5,6/21/26,6/27/26,DISTRICT 4,420,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P6W5,6/21/26,6/27/26,DISTRICT 1,871,Homestead,2026-06-21,Phillip Hardemon,10.0,22.0,Exceeds Expectations - 4 Stars,4,0h 28m,28.0,False,True
+P6W5,6/21/26,6/27/26,DISTRICT 4,883,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P6W5,6/21/26,6/27/26,DISTRICT 5,1096,Tamarac,2026-06-25,Chadwick,6.0,12.0,Operational Excellence - 5 Stars,5,1h 32m,92.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 5,1167,Pembroke Pines,2026-06-26,Jorge Castillo,13.0,27.0,Meets Minimum Expectations - 3 Stars,3,2h 28m,148.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 4,1252,Fort Lauderdale,2026-06-25,Kelline,3.0,5.0,Operational Excellence - 5 Stars,5,1h 22m,82.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 1,1677,Palmetto Bay,2026-06-22,Linda Fountain,4.0,12.0,Exceeds Expectations - 4 Stars,4,1h 59m,119.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 4,1726,Oakland Park,2026-06-23,Donna Cosby,1.0,1.0,Operational Excellence - 5 Stars,5,5h 21m,321.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 1,1771,Miami,2026-06-21,Geronimo,2.0,6.0,Operational Excellence - 5 Stars,5,2h 31m,151.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 4,1841,Fort Lauderdale,2026-06-26,Maria Sandy,2.0,4.0,Operational Excellence - 5 Stars,5,0h 41m,41.0,False,True
+P6W5,6/21/26,6/27/26,DISTRICT 4,1847,Pompano Beach,2026-06-26,lisa ayoub,3.0,3.0,Operational Excellence - 5 Stars,5,1h 35m,95.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 2,1848,Miami,2026-06-26,Paulina,3.0,9.0,Operational Excellence - 5 Stars,5,2h 00m,120.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 3,1864,HIALEAH GARDENS,2026-06-24,Carlos Dubon,5.0,9.0,Operational Excellence - 5 Stars,5,1h 25m,85.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 2,1891,Miami,2026-06-24,Jairon Vino,0.0,0.0,Operational Excellence - 5 Stars,5,1h 25m,85.0,False,True
+P6W5,6/21/26,6/27/26,DISTRICT 3,1954,Miami,2026-06-27,Luis Alvarez,6.0,12.0,Operational Excellence - 5 Stars,5,1h 39m,99.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 2,1972,Miami,2026-06-27,Ricardo Silva,6.0,16.0,Exceeds Expectations - 4 Stars,4,1h 22m,82.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 6,2013,Palm Springs,2026-06-27,brianna yanes,7.0,15.0,Exceeds Expectations - 4 Stars,4,1h 13m,73.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 3,2042,Miami,2026-06-24,Bryanna,0.0,0.0,Operational Excellence - 5 Stars,5,0h 21m,21.0,False,True
+P6W5,6/21/26,6/27/26,DISTRICT 5,2048,Coral Springs,2026-06-24,Juan Centeno,5.0,9.0,Operational Excellence - 5 Stars,5,1h 20m,80.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 1,2118,Homestead,2026-06-26,Dayami,3.0,9.0,Operational Excellence - 5 Stars,5,1h 55m,115.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 5,2290,Pembroke Pines,2026-06-22,Devin,1.0,1.0,Operational Excellence - 5 Stars,5,2h 05m,125.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 6,2497,Royal Palm Beach,2026-06-27,Jerome,1.0,5.0,Exceeds Expectations - 4 Stars,4,1h 12m,72.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 3,2602,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P6W5,6/21/26,6/27/26,DISTRICT 2,2627,Hialeah,2026-06-27,Frank Mu Oz,1.0,1.0,Operational Excellence - 5 Stars,5,1h 05m,65.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 6,2696,West Palm Beach,2026-06-22,Steven Rivera,2.0,6.0,Operational Excellence - 5 Stars,5,1h 50m,110.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 2,2766,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P6W5,6/21/26,6/27/26,DISTRICT 6,2885,Lantana,2026-06-26,Thomas Rea Jr,0.0,0.0,Operational Excellence - 5 Stars,5,1h 38m,98.0,False,True
+P6W5,6/21/26,6/27/26,DISTRICT 3,2890,Miami,2026-06-27,Andre.V,0.0,0.0,Operational Excellence - 5 Stars,5,1h 32m,92.0,False,True
+P6W5,6/21/26,6/27/26,DISTRICT 3,2893,Miami,2026-06-27,Alexandra,3.0,5.0,Operational Excellence - 5 Stars,5,1h 19m,79.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 6,2974,NO EVALUATION COMPLETED,,,,,,0,,,True,False
+P6W5,6/21/26,6/27/26,DISTRICT 5,2976,Weston,2026-06-26,Adriana,4.0,10.0,Operational Excellence - 5 Stars,5,3h 20m,200.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 1,3013,Miami,2026-06-22,Yulian,2.0,6.0,Operational Excellence - 5 Stars,5,2h 20m,140.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 6,3200,Jupiter,2026-06-26,Wanda Sanchez,2.0,4.0,Operational Excellence - 5 Stars,5,1h 04m,64.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 2,3210,Miami,2026-06-25,Brandon Cordoba,2.0,2.0,Operational Excellence - 5 Stars,5,2h 43m,163.0,False,False
+P6W5,6/21/26,6/27/26,DISTRICT 6,3317,Boca Raton,2026-06-27,W,0.0,0.0,Operational Excellence - 5 Stars,5,1h 29m,89.0,False,True
+P6W5,6/21/26,6/27/26,DISTRICT 2,4032,Miami,2026-06-27,Dianelys,2.0,4.0,Operational Excellence - 5 Stars,5,1h 37m,97.0,False,False

@@ -79,6 +79,11 @@ for f in files:
         date_val = row[3]
         mod_val = str(row[4]).strip() if pd.notna(row[4]) else ''
 
+        # Skip RSM-completed evals (shown in green, marked "(RSM SO)" by the name).
+        # These are RSM assessments, not the GM internal self-assessment we track.
+        if 'RSM' in mod_val.upper():
+            continue
+
         # Check for NO EVALUATION COMPLETED - also catch blank rows with no date/score/rating
         no_eval = ('NO EVALUATION' in mod_val.upper()
                    or (pd.isna(row[3]) and pd.isna(row[5]) and pd.isna(row[6])))
@@ -139,6 +144,14 @@ for f in files:
         })
 
 df = pd.DataFrame(all_rows)
+
+# One eval per store per week: keep the latest dated eval; if a store has only
+# blank/No-Eval rows, keep one. (Handles red duplicates like 2042's repeated entries.)
+df['_dt'] = pd.to_datetime(df['Date'], errors='coerce')
+df = df.sort_values(['Period', 'Store No', '_dt'], na_position='first')
+df = (df.groupby(['Period', 'Store No'], as_index=False, sort=False)
+        .tail(1).drop(columns='_dt').reset_index(drop=True))
+
 print(f'Total rows: {len(df)}')
 print(f'Periods: {df["Period"].unique().tolist()}')
 print(f'No Eval count: {df["No Eval"].sum()}')
