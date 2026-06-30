@@ -2413,14 +2413,17 @@ elif selected_tab == "Labor Dashboard":
 # SMG (GUEST SATISFACTION)
 # ════════════════════════════════
 elif selected_tab == "SMG (Guest Satisfaction)":
-    smg_files = {"Q1 (12/28/2025 – 3/28/2026)": "smg_q1.csv", "Q2 (3/29/2026 – 6/27/2026)": "smg_q2.csv"}
+    smg_files = {"Q1 (12/28/2025 – 3/28/2026)": "smg_q1.csv", "Q2 (3/29/2026 – 6/27/2026)": "smg_q2.csv", "Q3 (6/28/2026 – 9/26/2026)": "smg_q3.csv"}
     available_smg = {k: v for k, v in smg_files.items() if (DATA_DIR / v).exists()}
 
     if not available_smg:
         st.warning("No SMG data found. Place smg_q1.csv or smg_q2.csv in the data/ folder.")
     else:
         smg_options = list(available_smg.keys())
-        smg_sel = st.selectbox("Quarter", smg_options, index=len(smg_options) - 1, key="smg_quarter")
+        # Default to Q2 (last complete quarter); Q3 is selectable but starts sparse
+        _smg_default = next((i for i, k in enumerate(smg_options) if available_smg[k] == "smg_q2.csv"),
+                            len(smg_options) - 1)
+        smg_sel = st.selectbox("Quarter", smg_options, index=_smg_default, key="smg_quarter")
         smg_raw = pd.read_csv(DATA_DIR / available_smg[smg_sel])
         smg_raw["District"] = smg_raw["Store No"].astype(str).map(STORE_TO_DISTRICT).fillna("Unassigned")
         smg_raw["Satisfaction %"] = 100 - smg_raw["Dissatisfaction %"]
