@@ -936,20 +936,19 @@ def generate_district_ppt(district, store_to_district, districts_config):
                 lambda r: r["hours_var_pct"] - prev_var_map.get(r["store_num"], r["hours_var_pct"]), axis=1)
             lw_agg = lw_agg.sort_values("store_num", key=lambda x: x.astype(int)).reset_index(drop=True)
 
-            lw_tbl = lw_agg[["store_num", "actual_sales", "labor_pct", "sched_pct", "hours_var_pct",
-                              "Δ Var", "actual_hours", "variance", "ovt_hours"]].copy()
+            lw_tbl = lw_agg[["store_num", "actual_sales", "labor_pct", "hours_var_pct",
+                              "Δ Var", "actual_hours", "guide_hours", "ovt_hours"]].copy()
             lw_display = lw_tbl.copy()
             lw_display["actual_sales"] = lw_display["actual_sales"].apply(lambda x: f"${x:,.0f}")
             lw_display["labor_pct"] = lw_display["labor_pct"].apply(lambda x: f"{x:.1f}%")
-            lw_display["sched_pct"] = lw_display["sched_pct"].apply(lambda x: f"{x:.1f}%")
             lw_display["hours_var_pct"] = lw_display["hours_var_pct"].apply(lambda x: f"{x:+.1f}%" if pd.notna(x) else "—")
             lw_display["Δ Var"] = lw_agg["Δ Var"].apply(
                 lambda x: f"{'↓' if x < 0 else '↑'} {abs(x):.1f}%" if pd.notna(x) and abs(x) > 0.05 else ("→ 0%" if pd.notna(x) else "—"))
             lw_display["actual_hours"] = lw_display["actual_hours"].apply(lambda x: f"{x:,.0f}")
-            lw_display["variance"] = lw_display["variance"].apply(lambda x: f"{x:+.1f}%")
+            lw_display["guide_hours"] = lw_display["guide_hours"].apply(lambda x: f"{x:,.0f}")
             lw_display["ovt_hours"] = lw_display["ovt_hours"].apply(lambda x: f"{x:,.1f}")
-            lw_display.columns = ["Store #", "Actual Sales", "Labor %", "Sched %", "Labor Var %",
-                                   "Var (vs Last Wk)", "Hours", "Act vs Sched %", "OT Hours"]
+            lw_display.columns = ["Store #", "Actual Sales", "Labor %", "Labor Var %",
+                                   "Var (vs Last Wk)", "Actual Hours", "Guide Hours", "OT Hours"]
 
             cc_lw, bc_lw = _labor_colors(lw_agg, lw_display)
             # Color WoW variance delta: decrease=green (improving), increase=red (worsening)
@@ -985,17 +984,16 @@ def generate_district_ppt(district, store_to_district, districts_config):
             qtd_agg["hours_var_pct"] = (qtd_agg["actual_hours"] - qtd_agg["guide_hours"]) / qtd_agg["guide_hours"] * 100
             qtd_agg = qtd_agg.sort_values("store_num", key=lambda x: x.astype(int)).reset_index(drop=True)
 
-            qtd_tbl = qtd_agg[["store_num", "actual_sales", "labor_pct", "sched_pct", "hours_var_pct",
-                                "actual_hours", "variance", "ovt_hours"]].copy()
+            qtd_tbl = qtd_agg[["store_num", "actual_sales", "labor_pct", "hours_var_pct",
+                                "actual_hours", "guide_hours", "ovt_hours"]].copy()
             qtd_display = qtd_tbl.copy()
             qtd_display["actual_sales"] = qtd_display["actual_sales"].apply(lambda x: f"${x:,.0f}")
             qtd_display["labor_pct"] = qtd_display["labor_pct"].apply(lambda x: f"{x:.1f}%")
-            qtd_display["sched_pct"] = qtd_display["sched_pct"].apply(lambda x: f"{x:.1f}%")
             qtd_display["hours_var_pct"] = qtd_display["hours_var_pct"].apply(lambda x: f"{x:+.1f}%" if pd.notna(x) else "—")
             qtd_display["actual_hours"] = qtd_display["actual_hours"].apply(lambda x: f"{x:,.0f}")
-            qtd_display["variance"] = qtd_display["variance"].apply(lambda x: f"{x:+.1f}%")
+            qtd_display["guide_hours"] = qtd_display["guide_hours"].apply(lambda x: f"{x:,.0f}")
             qtd_display["ovt_hours"] = qtd_display["ovt_hours"].apply(lambda x: f"{x:,.1f}")
-            qtd_display.columns = ["Store #", "Actual Sales", "Labor %", "Sched %", "Labor Var %", "Hours", "Act vs Sched %", "OT Hours"]
+            qtd_display.columns = ["Store #", "Actual Sales", "Labor %", "Labor Var %", "Actual Hours", "Guide Hours", "OT Hours"]
 
             cc_qtd, bc_qtd = _labor_colors(qtd_agg, qtd_display)
             qtd_table_h = max(Inches(0.25 * (len(qtd_display) + 1)), Inches(1.5))
