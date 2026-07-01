@@ -11,14 +11,11 @@
         "District 2": [
             "1848 - FL - Miami - SW 107 Ave",
             "1891 - FL - Miami SW 137th Ave",
-            "1972 - FL - Miami 40th St",
             "2627 - FL - Hialeah Drive",
             "2766 - FL - Miami SW 40th Street",
-            "3210 - FL - Miami",
-            "4032 - FL - Airpark Plaza"
+            "3210 - FL - Miami"
         ],
         "District 3": [
-            "1864 - FL - Hialeah Gardens",
             "1954 - FL - Miami - N Kendall Dr",
             "2042 - FL - Miami Flagler",
             "2602 - FL - Doral",
@@ -38,10 +35,9 @@
             "0079 - FL - Plantation - W Sunrise",
             "0183 - FL - Margate - Atlantic",
             "1096 - FL - Tamarac",
-            "1167 - FL - Pembroke Pines Pines Blvd",
             "2048 - FL - Coral Springs",
-            "2290 - FL - Flamingo Pines",
-            "2976 - FL - Weston"
+            "2976 - FL - Weston",
+            "3317 - FL - Boca Raton"
         ],
         "District 6": [
             "2013 - FL - Palm Springs",
@@ -49,8 +45,14 @@
             "2696 - FL - Okeechobee Jog",
             "2885 - FL - Lantana",
             "2974 - FL - Delray",
-            "3200 - FL - Jupiter",
-            "3317 - FL - Boca Raton"
+            "3200 - FL - Jupiter"
+        ],
+        "District 7": [
+            "1167 - FL - Pembroke Pines Pines Blvd",
+            "1864 - FL - Hialeah Gardens",
+            "1972 - FL - Miami 40th St",
+            "2290 - FL - Flamingo Pines",
+            "4032 - FL - Airpark Plaza"
         ]
     },
     "data_dir": "data"
