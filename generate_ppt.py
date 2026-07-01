@@ -168,7 +168,7 @@ def _get_district_stores(district, store_to_district):
 
 
 def _add_scorecard_slide(prs, blank_layout, district, d_stores, sc_qtr, sc_qtr_ps,
-                         check_labels, kds, labor, smg, qi, fl, cogs):
+                         check_labels, kds, labor, smg, qi, fl, cogs, zt_missed=None, zm_missed=None):
     """Build one Scorecard slide for the given quarter. Returns the slide (or None if no stores)."""
     sc_data = {}
     for snum in d_stores:
@@ -209,6 +209,10 @@ def _add_scorecard_slide(prs, blank_layout, district, d_stores, sc_qtr, sc_qtr_p
             if not cq.empty:
                 acv = cq["COGS Variance %"].mean()
                 chk["COGS: Var ≤ 1%"] = abs(acv) <= 1 if pd.notna(acv) else None
+        if zt_missed is not None:
+            chk["Zenput: Temp ≤3 miss"] = zt_missed.get(snum, 0) <= 3
+        if zm_missed is not None:
+            chk["Zenput: Morning ≤3 miss"] = zm_missed.get(snum, 0) <= 3
         sc_data[snum] = chk
 
     if not sc_data:
@@ -418,8 +422,9 @@ ZENPUT_REPORTS = [
 ]
 
 
-def _zenput_completion(path, per_day):
-    """Return {store_no: completion %} for a Zenput report (capped at per_day, new-store windows honored)."""
+def _zenput_detail(path, per_day):
+    """Return {store: (completion %, [missing MM/DD dates])} for a Zenput report.
+    A "missing" day is any day below the per-day standard; new-store windows honored."""
     if not path.exists():
         return {}
     z = pd.read_csv(path)
@@ -427,56 +432,80 @@ def _zenput_completion(path, per_day):
     z["_open"] = z["Store No"].map(STORE_OPEN_DATES)
     z = z[z["_open"].isna() | (z["Date"] >= z["_open"])].copy()
     z["_capped"] = z["Reports"].clip(upper=per_day)
-    g = z.groupby("Store No").agg(capped=("_capped", "sum"), days=("Date", "nunique"))
-    return {s: round(row.capped / (row.days * per_day) * 100) for s, row in g.iterrows() if row.days}
+    out = {}
+    for s, g in z.groupby("Store No"):
+        days = g["Date"].nunique()
+        if not days:
+            continue
+        comp = round(g["_capped"].sum() / (days * per_day) * 100)
+        miss = sorted(g[g["Reports"] < per_day]["Date"].tolist())
+        miss_md = [f"{int(d.split('-')[1])}/{int(d.split('-')[2])}" for d in miss]
+        out[s] = (comp, miss_md)
+    return out
+
+
+def _fmt_missing(miss):
+    """Comma-joined MM/DD list, capped so the cell doesn't overflow."""
+    if not miss:
+        return "—"
+    if len(miss) <= 8:
+        return ", ".join(miss)
+    return ", ".join(miss[:8]) + f"  +{len(miss) - 8} more"
 
 
 def _add_zenput_slide(prs, blank_layout, district, d_stores, name_map):
-    """Build the Zenput log-completion slide (Time/Temp + Morning Checklist per store)."""
-    comps = [(label, _zenput_completion(DATA_DIR / fn, per)) for label, fn, per in ZENPUT_REPORTS]
-    if not any(c for _, c in comps):
+    """Zenput slide: completion % plus the specific missing days, per store, for both reports.
+    Failing = more than 3 missed days in the 30-day window (% cell turns red)."""
+    reports = [(label.split()[0], _zenput_detail(DATA_DIR / fn, per)) for label, fn, per in ZENPUT_REPORTS]
+    if not any(d for _, d in reports):
         return None
     slide = prs.slides.add_slide(blank_layout)
     _add_title_bar(slide, "Zenput — Daily Log Completion",
-                   f"{district} · Time/Temp (3/day) & Morning Manager Checklist (1/day), last 30 days")
+                   f"{district} · Time/Temp (3/day) & Morning (1/day) · last 30 days · >3 missed days = failing")
 
     rows, raw = [], []
     for snum in sorted(d_stores, key=int):
-        vals = {label: comp.get(snum) for label, comp in comps}
-        raw.append(vals)
         row = {"Store #": snum, "Store Name": name_map.get(snum, snum)}
-        for label, _ in comps:
-            row[label + " %"] = f"{vals[label]:.0f}%" if vals[label] is not None else "—"
+        rv = {}
+        for short, det in reports:
+            comp, miss = det.get(snum, (None, []))
+            rv[short] = (comp, miss)
+            row[f"{short} %"] = f"{comp:.0f}%" if comp is not None else "—"
+            row[f"{short} Missed Days"] = _fmt_missing(miss) if comp is not None else "—"
+        raw.append(rv)
         rows.append(row)
     tbl = pd.DataFrame(rows)
 
+    # % cell red if the store missed > 3 days (failing), else green
     colors, bolds = {}, {}
     col_names = list(tbl.columns)
-    for i, vals in enumerate(raw):
-        for label, _ in comps:
-            v = vals[label]
-            if v is None:
+    for i, rv in enumerate(raw):
+        for short, _ in reports:
+            comp, miss = rv[short]
+            if comp is None:
                 continue
-            j = col_names.index(label + " %")
-            if v < 85:
+            j = col_names.index(f"{short} %")
+            if len(miss) > 3:
                 colors[(i, j)] = RED; bolds[(i, j)] = True
-            elif v < 95:
-                colors[(i, j)] = ORANGE; bolds[(i, j)] = True
             else:
-                colors[(i, j)] = GREEN
-    _add_table(slide, tbl, Inches(0.5), Inches(1.4), Inches(9),
-               Inches(0.3 * (len(tbl) + 1)), cell_colors=colors, bold_cells=bolds)
+                colors[(i, j)] = GREEN; bolds[(i, j)] = True
+    cw = ([0.7, 1.7, 0.8, 2.6, 0.8, 2.6])[:len(col_names)]
+    table_h = 0.5 + 0.45 * len(tbl)
+    _add_table(slide, tbl, Inches(0.4), Inches(1.4), SLIDE_WIDTH - Inches(0.8),
+               Inches(table_h), cell_colors=colors, bold_cells=bolds, col_widths=cw)
 
     callouts = []
-    for label, comp in comps:
-        d_vals = [comp[s] for s in d_stores if s in comp]
-        if d_vals:
-            callouts.append(f"{label} district avg: {sum(d_vals) / len(d_vals):.0f}%")
-        low = sorted([(s, comp[s]) for s in d_stores if s in comp and comp[s] < 85], key=lambda x: x[1])
-        for s, v in low[:2]:
-            callouts.append(f"{label} — Store {s}: {v:.0f}% (below 85%)")
-    top_h = Inches(1.4 + 0.3 * (len(tbl) + 1) + 0.2)
-    _add_callouts(slide, callouts[:5], top_h)
+    for short, det in reports:
+        failing = sorted([(s, det[s]) for s in d_stores if s in det and len(det[s][1]) > 3],
+                         key=lambda x: -len(x[1][1]))
+        if failing:
+            for s, (comp, miss) in failing[:3]:
+                callouts.append(f"{short} — Store {s}: {len(miss)} days missed ({comp:.0f}%) — FAIL")
+        else:
+            callouts.append(f"{short}: all stores within 3 missed days ✓")
+    top_h = Inches(1.4 + table_h + 0.2)
+    if top_h < Inches(6.7):
+        _add_callouts(slide, callouts[:6], top_h)
     return slide
 
 
@@ -1158,6 +1187,8 @@ def generate_district_ppt(district, store_to_district, districts_config):
         ("QSC", "5 Stars"),
         ("FlavorLab", "≥ 95%"),
         ("COGS", "Var ≤ 1%"),
+        ("Zenput", "Temp ≤3 miss"),
+        ("Zenput", "Morning ≤3 miss"),
     ]
     check_labels = [f"{cat}: {lbl}" for cat, lbl in check_defs]
 
@@ -1189,6 +1220,12 @@ def generate_district_ppt(district, store_to_district, districts_config):
         _sc_cogs["Store No"] = _sc_cogs["Store No"].astype(str)
         _sc_cogs["_p"] = _sc_cogs["Period"].str.extract(r"P(\d+)").astype(int)
 
+    # Zenput missed-day counts (rolling 30-day window; same for every quarter)
+    _zt_det = _zenput_detail(DATA_DIR / "zenput_daily.csv", 3)
+    _zm_det = _zenput_detail(DATA_DIR / "zenput_morning_daily.csv", 1)
+    _zt_missed = {s: len(m) for s, (c, m) in _zt_det.items()} if _zt_det else None
+    _zm_missed = {s: len(m) for s, (c, m) in _zm_det.items()} if _zm_det else None
+
     # One concluding scorecard slide per quarter (chronological: Q2 then Q3)
     for _scq in sc_quarters:
         _sc_smg = None
@@ -1202,7 +1239,8 @@ def generate_district_ppt(district, store_to_district, districts_config):
             _sc_qi = pd.read_csv(_qi_p)
             _sc_qi["Store No"] = _sc_qi["Store No"].astype(str)
         _add_scorecard_slide(prs, blank_layout, district, d_stores, _scq, _sc_qmap[_scq],
-                             check_labels, _sc_kds, _sc_labor, _sc_smg, _sc_qi, _sc_fl, _sc_cogs)
+                             check_labels, _sc_kds, _sc_labor, _sc_smg, _sc_qi, _sc_fl, _sc_cogs,
+                             _zt_missed, _zm_missed)
 
     # ── Save to bytes ──
     buf = io.BytesIO()

@@ -3317,6 +3317,23 @@ elif selected_tab == "Scorecard":
             cogs_avg = cogs_qtr.groupby("Store No")["COGS Variance %"].mean()
             sc["COGS Var"] = sc["Store No"].map(cogs_avg)
 
+    # --- Zenput (rolling 30-day window; count of days missing the per-day standard) ---
+    def _zenput_missed_days(fname, per_day):
+        zp = DATA_DIR / fname
+        if not zp.exists():
+            return None
+        z = pd.read_csv(zp)
+        z["Store No"] = z["Store No"].astype(str)
+        z["_open"] = z["Store No"].map(STORE_OPEN_DATES)
+        z = z[z["_open"].isna() | (z["Date"] >= z["_open"])]
+        return z[z["Reports"] < per_day].groupby("Store No").size()
+    _zt_missed = _zenput_missed_days("zenput_daily.csv", 3)
+    if _zt_missed is not None:
+        sc["Zenput Temp Missed"] = sc["Store No"].map(_zt_missed).fillna(0)
+    _zm_missed = _zenput_missed_days("zenput_morning_daily.csv", 1)
+    if _zm_missed is not None:
+        sc["Zenput Morning Missed"] = sc["Store No"].map(_zm_missed).fillna(0)
+
     # ── Adherence checks (pass/fail like KDS adherence) ──
     checks = [
         ("KDS", "SOS < 10 min", "KDS SOS", lambda v: v < 10 if pd.notna(v) else None),
@@ -3329,6 +3346,8 @@ elif selected_tab == "Scorecard":
         ("QSC", "QSC 5 Stars", "QSC Stars", lambda v: v >= 5 if pd.notna(v) else None),
         ("FlavorLab", "Completion ≥ 95%", "FlavorLab %", lambda v: v >= 95 if pd.notna(v) else None),
         ("COGS", "COGS Var ≤ 1%", "COGS Var", lambda v: v <= 1 if pd.notna(v) else None),
+        ("Zenput", "Temp ≤ 3 missed days", "Zenput Temp Missed", lambda v: v <= 3 if pd.notna(v) else None),
+        ("Zenput", "Morning ≤ 3 missed days", "Zenput Morning Missed", lambda v: v <= 3 if pd.notna(v) else None),
     ]
 
     # Compute pass/fail for each check
