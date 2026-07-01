@@ -209,8 +209,18 @@ FONT_COLOR = "#374151"
 DISTRICT_COLORS = {
     "District 1": "#EC4899", "District 2": "#7C3AED", "District 3": "#0369A1",
     "District 4": "#CA8A04", "District 5": "#059669", "District 6": "#4338CA",
-    "District 7": "#EA580C",
+    "District 7": "#111827",
 }
+# Cell text color per district (dark-bg districts get a bright text for contrast).
+# District 7 = black background + yellow text ("black & yellow" look).
+DISTRICT_TEXT = {"District 7": "#FACC15"}
+
+
+def district_cell_css(dist):
+    """CSS for a district cell in st.dataframe (solid bg + readable text)."""
+    bg = DISTRICT_COLORS.get(dist, "#374151")
+    txt = DISTRICT_TEXT.get(dist, "#FFFFFF")
+    return f"background-color: {bg}; color: {txt}; font-weight: 600"
 OFF_GUIDE = "color: #DC2626; font-weight: 700"
 
 # Stores that opened mid-tracking — compliance windows start at their open date
@@ -923,7 +933,7 @@ if selected_tab == "KDS Dashboard":
                 # District colored cell
                 dist = raw_district.get(idx, "")
                 d_color = DISTRICT_COLORS.get(dist, "#374151")
-                styles[cols.index("District")] = f"background-color: {d_color}; color: #FFFFFF; font-weight: 600"
+                styles[cols.index("District")] = district_cell_css(dist)
                 # Off-guide highlights
                 if pd.notna(raw_sos.get(idx)) and raw_sos[idx] > 10:
                     styles[cols.index("SOS")] += f"; {OFF_GUIDE}"
@@ -2692,7 +2702,7 @@ elif selected_tab == "FlavorLab":
             # District colored cell
             dist = raw_district.get(idx, "")
             d_color = DISTRICT_COLORS.get(dist, "#374151")
-            styles[cols.index("District")] = f"background-color: {d_color}; color: #FFFFFF; font-weight: 600"
+            styles[cols.index("District")] = district_cell_css(dist)
             # Completion % color
             pct = raw_pct.get(idx)
             if pd.notna(pct) and pct < 95:
@@ -2732,7 +2742,7 @@ elif selected_tab == "FlavorLab":
             cols = list(row.index)
             dist = raw_d_name.get(idx, "")
             d_color = DISTRICT_COLORS.get(dist, "#374151")
-            styles[cols.index("District")] = f"background-color: {d_color}; color: #FFFFFF; font-weight: 600"
+            styles[cols.index("District")] = district_cell_css(dist)
             pct = raw_d_pct.get(idx)
             if pd.notna(pct) and pct < 95:
                 styles[cols.index("Completion %")] = f"color: #DC2626; font-weight: 700"
@@ -2773,8 +2783,15 @@ elif selected_tab == "District Reports":
         col = rpt_cols[i % 3]
         with col:
             d_color = DISTRICT_COLORS.get(district, "#374151")
+            if district == "District 7":
+                # black -> yellow gradient accent stripe on the left edge
+                card_style = ("background: linear-gradient(180deg, #111827, #FACC15) left/5px 100% no-repeat, #FFFFFF; "
+                              "border:1px solid #E2E8F0; border-radius:10px; padding:1rem; margin-bottom:0.8rem;")
+            else:
+                card_style = (f"background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; "
+                              f"padding:1rem; margin-bottom:0.8rem; border-left:4px solid {d_color};")
             st.markdown(f"""
-            <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; padding:1rem; margin-bottom:0.8rem; border-left:4px solid {d_color};">
+            <div style="{card_style}">
                 <div style="font-weight:700; color:#1A3C34; font-size:1rem;">{district}</div>
                 <div style="color:#6B7280; font-size:0.82rem;">{d_store_count} stores</div>
             </div>
@@ -2991,7 +3008,7 @@ elif selected_tab == "Zenput":
                 styles = [""] * len(row)
                 cols = list(row.index)
                 d = raw_dist.get(idx, "")
-                styles[cols.index("District")] = f"background-color: {DISTRICT_COLORS.get(d, '#374151')}; color:#FFFFFF; font-weight:600"
+                styles[cols.index("District")] = district_cell_css(d)
                 v = raw_comp.get(idx)
                 if pd.notna(v) and v < 85:
                     styles[cols.index("Completion %")] = "color:#DC2626; font-weight:700"
@@ -3481,7 +3498,7 @@ elif selected_tab == "Scorecard":
         # District color
         dist = raw_dist.get(idx, "")
         d_color = DISTRICT_COLORS.get(dist, "#374151")
-        styles[cols.index("District")] = f"background-color: {d_color}; color: #FFFFFF; font-weight: 600"
+        styles[cols.index("District")] = district_cell_css(dist)
         # Adherence color
         adh = raw_adh.get(idx)
         if pd.notna(adh):
@@ -3552,7 +3569,7 @@ elif selected_tab == "Scorecard":
         cols = list(row.index)
         dist = raw_da_name.get(idx, "")
         d_color = DISTRICT_COLORS.get(dist, "#374151")
-        styles[cols.index("District")] = f"background-color: {d_color}; color: #FFFFFF; font-weight: 600"
+        styles[cols.index("District")] = district_cell_css(dist)
         pct = raw_da_pct.get(idx)
         if pd.notna(pct) and pct < 60:
             styles[cols.index("Avg Adherence %")] = "color: #DC2626; font-weight: 700"
